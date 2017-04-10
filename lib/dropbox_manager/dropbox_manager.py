@@ -31,15 +31,17 @@ import sys
 import os
 import pprint
 import shutil
+
 # token = "Yomp-8XE2CoAAAAAAAAAuQsiUXNm1_Fo4BbispgGAoV8-0NvNw2E3YgwoLH1pZBX"
 class DropboxManager(object):
 	__client = None
 	__dpx = None
-	__base_path = None
-	def __init__(self, token, base_path = "D:/"):
+	__base_path = "P:/"
+	def __init__(self, token, base_path = None):
 		self.__client = dropbox.client.DropboxClient(token)
 		self.__dpx = dropbox.dropbox.Dropbox(token)
-		self.__base_path = base_path
+		if base_path:
+			self.__base_path = base_path
 
 	def uploadFile(self, local_file):
 		if not local_file.startswith(self.__base_path):
@@ -49,18 +51,27 @@ class DropboxManager(object):
 		with open(local_file, 'rb') as my_file:
 			self.__client.put_file(dropbox_path, my_file)
 
-	def downloadFile(self, dropbox_path):
-		if dropbox_path.startswith(self.__base_path):
-			target = dropbox_path
-			dropbox_path = dropbox.client.format_path(dropbox_path.split(self.__base_path,1)[1])
-		else:
-			target = os.path.join(self.__base_path, dropbox_path)
-			dropbox_path = dropbox.client.format_path(dropbox_path)
+	def downloadFile(self, path):
+		path = os.path.normpath(path).replace("\\", "/")
+		if path.startswith(self.__base_path):
+			target = path
+			dropbox_path = dropbox.client.format_path(path.split(self.__base_path,1)[1])
+			if not "WORK" in dropbox_path:
+				dropbox_path ="/WORK" + dropbox_path
 
-		if not os.path.exists(target):
+		else:
+			target = os.path.join(self.__base_path, path)
+			dropbox_path = dropbox.client.format_path(path)
+			if not "WORK" in dropbox_path:
+				dropbox_path = "/WORK" + dropbox_path
+
+		folder = target.rsplit("/",1)[0]
+		if not os.path.exists(folder):
 			os.makedirs(target.rsplit("/",1)[0])
+
+		print target, dropbox_path
 		self.__dpx.files_download_to_file(target, dropbox_path)
-		return True
+		return target
 
 	def uploadFiles(self, files):
 		for file in files:
