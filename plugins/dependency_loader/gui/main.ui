@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>499</width>
-    <height>134</height>
+    <width>440</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,10 +30,14 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="path"/>
+         <widget class="QLineEdit" name="path">
+          <property name="text">
+           <string>D:\Miguel\Programming\project\bm2\tests\bm2_shocam_seq_tst_sot_0010_camera_default_scene_wip001.ma</string>
+          </property>
+         </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="go_btn">
+         <widget class="QPushButton" name="update_btn">
           <property name="text">
            <string>Update</string>
           </property>
@@ -58,8 +62,18 @@
            </item>
           </layout>
          </item>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Dependency Listl</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="dependency_list"/>
       </item>
      </layout>
     </widget>

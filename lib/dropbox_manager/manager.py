@@ -36,7 +36,7 @@ class DropboxManager(object):
 	__client = None
 	__dpx = None
 	__base_path = None
-	def __init__(self, token, base_path = "D:/"):
+	def __init__(self, token, base_path = "P:/"):
 		self.__client = dropbox.client.DropboxClient(token)
 		self.__dpx = dropbox.dropbox.Dropbox(token)
 		self.__base_path = base_path
@@ -50,6 +50,7 @@ class DropboxManager(object):
 			self.__client.put_file(dropbox_path, my_file)
 
 	def downloadFile(self, dropbox_path):
+		dropbox_path = os.path.normpath(dropbox_path).replace("\\", "/")
 		if dropbox_path.startswith(self.__base_path):
 			target = dropbox_path
 			dropbox_path = dropbox.client.format_path(dropbox_path.split(self.__base_path,1)[1])
@@ -57,10 +58,23 @@ class DropboxManager(object):
 			target = os.path.join(self.__base_path, dropbox_path)
 			dropbox_path = dropbox.client.format_path(dropbox_path)
 
-		if not os.path.exists(target):
-			os.makedirs(target.rsplit("/",1)[0])
-		self.__dpx.files_download_to_file(target, dropbox_path)
+		folder = target.rsplit("/",1)[0]
+
+		if not os.path.exists(folder):
+			os.makedirs(folder)
+
+		try:
+			print "DOWNLOADING the file: %s"%dropbox_path 
+			self.__dpx.files_download_to_file(target, dropbox_path)
+			print "DOWNLOADING FINISHED"
+		except Exception as e:
+			message = "Something was wrong downloading the file: %s " % dropbox_path
+			message = message + "\n With the exception: %s"%e
+			print message
+			return False
+		
 		return True
+
 
 	def uploadFiles(self, files):
 		for file in files:
