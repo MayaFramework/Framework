@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>440</width>
-    <height>232</height>
+    <width>549</width>
+    <height>542</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
         <item>
          <widget class="QLineEdit" name="path">
           <property name="text">
-           <string>D:\Miguel\Programming\project\bm2\tests\bm2_shocam_seq_tst_sot_0010_camera_default_scene_wip001.ma</string>
+           <string>P:\TEST_TOOLs\bm2_shocam_seq_tst_sot_0010_camera_default_scene_wip001.ma</string>
           </property>
          </widget>
         </item>
@@ -40,6 +40,13 @@
          <widget class="QPushButton" name="update_btn">
           <property name="text">
            <string>Update</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="test_btn">
+          <property name="text">
+           <string>TEST</string>
           </property>
          </widget>
         </item>
