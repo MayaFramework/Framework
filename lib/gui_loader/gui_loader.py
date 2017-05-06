@@ -4,8 +4,8 @@ os.sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) 
 import pysideuic
 import xml.etree.ElementTree as xml
 from cStringIO import StringIO
-from PySide2 import QtCore, QtGui, QtWidgets
-
+# from PySide2 import QtCore, QtGui, QtWidgets
+from PySide import QtCore, QtGui
 
 def loadUiType(uiFile):
     """
@@ -24,7 +24,7 @@ def loadUiType(uiFile):
         exec pyc in frame
         #Fetch the base_class and form class based on their type in the xml from designer
         form_class = frame['Ui_%s'%form_class]
-        base_class = eval('QtWidgets.%s'%widget_class)
+        base_class = eval('QtGui.%s'%widget_class)
         #base_class = eval('PySide.QtGui.%s'%widget_class)
     return form_class, base_class
 
