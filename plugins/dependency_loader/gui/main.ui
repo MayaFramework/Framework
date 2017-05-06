@@ -73,13 +73,13 @@
            <string>Quantity of downloader threads to execute at the same time.</string>
           </property>
           <property name="minimum">
-           <number>1</number>
+           <number>2</number>
           </property>
           <property name="maximum">
-           <number>10</number>
+           <number>40</number>
           </property>
           <property name="value">
-           <number>1</number>
+           <number>4</number>
           </property>
          </widget>
         </item>
@@ -109,6 +109,9 @@
        <widget class="QListWidget" name="dependency_list">
         <property name="contextMenuPolicy">
          <enum>Qt::CustomContextMenu</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

@@ -1,22 +1,20 @@
 import sys
 import os
 import subprocess
-# sys.path.append(r"D:\Miguel\Programming\project\bm2")
 from Framework.lib.gui_loader import gui_loader
-from Framework import icons
 from PySide import QtCore, QtGui
 from Framework.lib.ma_utils.reader import MaReader
 from Framework.lib.dropbox_manager.manager import DropboxManager
-from Framework.lib.gui import css
+from Framework import get_environ_file, get_css_path, get_icon_path
+from Framework.lib.file import utils as f_util
 import time
 import threading
-import json
-from Framework import get_environ_file
-CSS_PATH = css.get_css_path()
-ICO_PATH = icons.get_icon_path()
-# TESTING
-#  D:\Miguel\Programming\project\bm2\tests\bm2_shocam_seq_tst_sot_0010_camera_default_scene_wip001.ma
-# C:\Users\Miguel\Downloads\bm2_shoani_seq_tst_sot_0300_animation_default_scene_out.ma
+
+ # "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
+CSS_PATH = get_css_path()
+ICO_PATH = get_icon_path()
+
+
 ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
 form, base = gui_loader.loadUiType(ui_file)
 
@@ -25,16 +23,6 @@ def setStyleSheet(uiClass, cssFile):
     file = open(cssFile).read()
     uiClass.setStyleSheet(file)
 
-
-def read_json(file):
-    if not os.path.isfile(file):
-        raise Exception("Not file Found on the system: %s"%file)
-    with open(file) as f:
-        d = json.load(f)
-        return d
-def save_json(file_path,json_data):
-    json.dump(json_data,file_path)
-    return True
 
 class DependencyLoaderWidget(form, QtGui.QDialog):
     dropboxManager = None
@@ -47,6 +35,8 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
         self.setupUi(self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
+        self.dropboxManager = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+
 
 
     def context_menu_list(self):
@@ -60,7 +50,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
 
 
     def get_maya_exe_path(self):
-        custom_environ_dict =read_json(get_environ_file())
+        custom_environ_dict =f_util.read_json(get_environ_file())
 
         if "maya_exe" in custom_environ_dict:
             return custom_environ_dict["maya_exe"]
@@ -101,22 +91,38 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
 
         current_files = []
         for key, values in dependencies.iteritems():
+            key = self.dropboxManager.getTargetPath(key)
             if key in self._processed_list:
                 continue
             current_files.append(key)
             # Create Ui Element
-            listItem = QtGui.QListWidgetItem(key)
-            listItem.setIcon(QtGui.QIcon(
-                os.path.join(ICO_PATH, "question.png")))
-            QtGui.qApp.processEvents()
-            self.dependency_list.addItem(listItem)
+            self.add_item_in_list(key)
             self._processed_list.append(key)
+
+            if "/mps/" in key:
+                folder = key.rsplit("/",1)[0]
+                children = self.dropboxManager.getChildrenFromFolder(folder)
+                if children:
+                    for child in children:
+                        child = self.dropboxManager.getTargetPath(child)
+                        if child not in self._processed_list:
+                            self.add_item_in_list(child)
+                            current_files.append(child)
+                            self._processed_list.append(child)
+
 
         for my_file in current_files:
             if self.is_available_thread(timeout=60*60):
                 self._current_thread_count += 1
                 t = threading.Thread(target = self.execute_download, args=(my_file,))
                 t.start()
+
+    def add_item_in_list(self,key):
+        listItem = QtGui.QListWidgetItem(key)
+        listItem.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "question.png")))
+        self.dependency_list.addItem(listItem)
+        QtGui.qApp.processEvents()
+
 
     def is_available_thread(self, timeout, period=0.25):
         mustend = time.time() + timeout
@@ -197,7 +203,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
         command = '"{0}" -file "{1}"'.format(maya_path, self.get_current_text())
-        subprocess.Popen(command)
+        f_util.execute_command(command)
 
 
 
