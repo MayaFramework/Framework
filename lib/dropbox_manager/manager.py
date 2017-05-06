@@ -24,75 +24,78 @@ dpx.downloadFiles(["s:/project/test/audiotest.m4v", "s:/project/test/fileTest.tx
 """
 
 
-
-
-import dropbox 
+import dropbox
 import sys
 import os
 import pprint
 import shutil
 # token = "Yomp-8XE2CoAAAAAAAAAuQsiUXNm1_Fo4BbispgGAoV8-0NvNw2E3YgwoLH1pZBX"
+
+
 class DropboxManager(object):
-	__client = None
-	__dpx = None
-	__base_path = None
-	def __init__(self, token, base_path = "P:/"):
-		self.__client = dropbox.client.DropboxClient(token)
-		self.__dpx = dropbox.dropbox.Dropbox(token)
-		self.__base_path = base_path
+    __client = None
+    __dpx = None
+    __base_path = None
 
-	def uploadFile(self, local_file):
-		if not local_file.startswith(self.__base_path):
-			raise Exception("Wrong repository")
+    def __init__(self, token, base_path="P:/"):
+        self.__client = dropbox.client.DropboxClient(token)
+        self.__dpx = dropbox.dropbox.Dropbox(token)
+        self.__base_path = base_path
 
-		dropbox_path = dropbox.client.format_path(resource_path.split(self.__base_path,1)[1])
-		with open(local_file, 'rb') as my_file:
-			self.__client.put_file(dropbox_path, my_file)
+    def uploadFile(self, local_file):
+        if not local_file.startswith(self.__base_path):
+            raise Exception("Wrong repository")
 
-	def downloadFile(self, dropbox_path):
-		dropbox_path = os.path.normpath(dropbox_path).replace("\\", "/")
-		if dropbox_path.startswith(self.__base_path):
-			target = dropbox_path
-			dropbox_path = dropbox.client.format_path(dropbox_path.split(self.__base_path,1)[1])
-		else:
-			target = os.path.join(self.__base_path, dropbox_path)
-			dropbox_path = dropbox.client.format_path(dropbox_path)
+        dropbox_path = dropbox.client.format_path(
+            local_file.split(self.__base_path, 1)[1])
+        with open(local_file, 'rb') as my_file:
+            self.__client.put_file(dropbox_path, my_file)
 
-		folder = target.rsplit("/",1)[0]
+    def downloadFile(self, dropbox_path):
+        dropbox_path = os.path.normpath(dropbox_path).replace("\\", "/")
+        if dropbox_path.startswith(self.__base_path):
+            target = dropbox_path
+            dropbox_path = dropbox.client.format_path(
+                dropbox_path.split(self.__base_path, 1)[1])
+        else:
+            target = os.path.join(self.__base_path, dropbox_path)
+            dropbox_path = dropbox.client.format_path(dropbox_path)
 
-		if not os.path.exists(folder):
-			os.makedirs(folder)
+        folder = target.rsplit("/", 1)[0]
 
-		try:
-			print "DOWNLOADING the file: %s"%dropbox_path 
-			self.__dpx.files_download_to_file(target, dropbox_path)
-			print "DOWNLOADING FINISHED"
-		except Exception as e:
-			message = "Something was wrong downloading the file: %s " % dropbox_path
-			message = message + "\n With the exception: %s"%e
-			print message
-			return False
-		
-		return True
+        if not os.path.exists(folder):
+            try:
+                os.makedirs(folder)
+            except Exception as e:
+                print "Warning: %s" % e
 
+        try:
+            print "DOWNLOADING the file: %s" % dropbox_path
+            self.__dpx.files_download_to_file(target, "/WORK"+dropbox_path)
+            print "DOWNLOADING FINISHED"
+        except Exception as e:
+            message = "Something was wrong downloading the file: %s " % dropbox_path
+            message = message + "\n With the exception: %s" % e
+            print message
+            return False
 
-	def uploadFiles(self, files):
-		for file in files:
-			self.uploadFile(self.normpath(file))
+        return True
 
-	def downloadFiles(self, files):
-		for file in files:
-			self.getFile(self.normpath(file))
+    def uploadFiles(self, files):
+        for file in files:
+            self.uploadFile(self.normpath(file))
 
-	def normpath(self, path):
-		return os.path.normpath(path).replace("\\", "/")
+    def downloadFiles(self, files):
+        for file in files:
+            self.getFile(self.normpath(file))
+
+    def normpath(self, path):
+        return os.path.normpath(path).replace("\\", "/")
 
 
 # TODO IN THIS class
 # def getChildrenFromFolder():
 # 	return list
-
-
 
 
 # TODO in another class like sequencer loader
@@ -102,11 +105,3 @@ class DropboxManager(object):
 # 							"alias": "blabla",
 # 							"filetype": "chrg" }
 # 		}}
-
-
-
-
-
-
-
-

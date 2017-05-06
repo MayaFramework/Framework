@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 # sys.path.append(r"D:\Miguel\Programming\project\bm2")
 from Framework.lib.gui_loader import gui_loader
 from Framework import icons
@@ -9,13 +10,13 @@ from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.gui import css
 import time
 import threading
-
-
+import json
+from Framework import get_environ_file
 CSS_PATH = css.get_css_path()
 ICO_PATH = icons.get_icon_path()
 # TESTING
 #  D:\Miguel\Programming\project\bm2\tests\bm2_shocam_seq_tst_sot_0010_camera_default_scene_wip001.ma
-
+# C:\Users\Miguel\Downloads\bm2_shoani_seq_tst_sot_0300_animation_default_scene_out.ma
 ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
 form, base = gui_loader.loadUiType(ui_file)
 
@@ -25,13 +26,15 @@ def setStyleSheet(uiClass, cssFile):
     uiClass.setStyleSheet(file)
 
 
-
-
-# class ExampleThread(QtCore.QThread):
-#     def run(self):
-#         count = 0
-#         print count
-
+def read_json(file):
+    if not os.path.isfile(file):
+        raise Exception("Not file Found on the system: %s"%file)
+    with open(file) as f:
+        d = json.load(f)
+        return d
+def save_json(file_path,json_data):
+    json.dump(json_data,file_path)
+    return True
 
 class DependencyLoaderWidget(form, QtGui.QDialog):
     dropboxManager = None
@@ -42,19 +45,39 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
     def __init__(self):
         super(DependencyLoaderWidget, self).__init__()
         self.setupUi(self)
-        setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style.css'))
-        self.exec_()
+        setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
+        self.context_menu_list()
 
 
-    def termina(self):
-        print "termina"
+    def context_menu_list(self):
+        self.dependency_list.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+
+        # Context Menu
+        # Copy Action
+        copy_action = QtGui.QAction("Copy rout", self)
+        copy_action.triggered.connect(self.copy_selected_rout)
+        self.dependency_list.addAction(copy_action)
+
+
+    def get_maya_exe_path(self):
+        custom_environ_dict =read_json(get_environ_file())
+
+        if "maya_exe" in custom_environ_dict:
+            return custom_environ_dict["maya_exe"]
+
+    def copy_selected_rout(self):
+        selected_item = self.dependency_list.selectedItems()
+        if not selected_item:
+            raise Exception("Select a row!")
+
+        clipboard = QtGui.QApplication.clipboard()
+        clipboard.setText(selected_item[0].text())
 
     def reset_state(self):
         # Objects
-        self._ma_list = []
         self._correct_downloaded = []
         self._failed_downloaded = []
-
+        self._processed_list = []
         # Ui Objects
         self.dependency_list.clear()
         return True
@@ -98,7 +121,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
     def is_available_thread(self, timeout, period=0.25):
         mustend = time.time() + timeout
         while time.time() < mustend:
-            if self._current_thread_count < 3:
+            if self._current_thread_count <= self.thread_spinBox.value():
                 return True
             time.sleep(period)
         return False
@@ -155,16 +178,30 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
             result = result[0]
         return result
 
-    @QtCore.Slot()
-    def on_update_btn_clicked(self):
-        start = time.time()
+
+    def get_current_text(self):
         path = os.path.normpath(self.path.text()).replace("\\", "/")
         if not path or not path.endswith(".ma"):
             raise Exception("Specify a ma file!")
+        return path
 
+    @QtCore.Slot()
+    def on_update_btn_clicked(self):
+        start = time.time()
         self.reset_state()
-        result = self.get_file_depend_dependencies(path)
+        self.get_file_depend_dependencies(self.get_current_text())
         print "TERMINA TODO: ", time.time() - start
 
+
+    @QtCore.Slot()
+    def on_open_btn_clicked(self):
+        maya_path = self.get_maya_exe_path()
+        command = '"{0}" -file "{1}"'.format(maya_path, self.get_current_text())
+        subprocess.Popen(command)
+
+
+
+
 app = QtGui.QApplication(sys.argv)
-DependencyLoaderWidget()
+obj = DependencyLoaderWidget()
+obj.exec_()
