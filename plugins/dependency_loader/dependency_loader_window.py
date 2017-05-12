@@ -1,8 +1,9 @@
 import sys
 import os
 import subprocess
+import PySide
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.gui_loader import gui_loader
-from PySide import QtCore, QtGui
 from Framework.lib.ma_utils.reader import MaReader
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework import get_environ_file, get_css_path, get_icon_path
@@ -16,7 +17,7 @@ ICO_PATH = get_icon_path()
 
 
 ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
-form, base = gui_loader.loadUiType(ui_file)
+form, base = gui_loader.load_ui_type(ui_file)
 
 
 def setStyleSheet(uiClass, cssFile):
@@ -24,7 +25,7 @@ def setStyleSheet(uiClass, cssFile):
     uiClass.setStyleSheet(file)
 
 
-class DependencyLoaderWidget(form, QtGui.QDialog):
+class DependencyLoaderWidget(form, QtWidgets.QDialog):
     dropboxManager = None
     _correct_downloaded = []
     _failed_downloaded = []
@@ -44,7 +45,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
 
         # Context Menu
         # Copy Action
-        copy_action = QtGui.QAction("Copy rout", self)
+        copy_action = QtWidgets.QAction("Copy rout", self)
         copy_action.triggered.connect(self.copy_selected_rout)
         self.dependency_list.addAction(copy_action)
 
@@ -70,6 +71,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
         self._processed_list = []
         # Ui Objects
         self.dependency_list.clear()
+        self.downloading_text.setText("")
         return True
 
     def get_dependencies(self, path):
@@ -118,10 +120,10 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
                 t.start()
 
     def add_item_in_list(self,key):
-        listItem = QtGui.QListWidgetItem(key)
+        listItem = QtWidgets.QListWidgetItem(key)
         listItem.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "question.png")))
         self.dependency_list.addItem(listItem)
-        QtGui.qApp.processEvents()
+        QtWidgets.QApplication.processEvents()
 
 
     def is_available_thread(self, timeout, period=0.25):
@@ -137,7 +139,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
             item = self.get_item(file)
             if not item:
                 return
-            # logic   
+            # logic
             result = self.download_file(file, item)
             if result:
                 self._correct_downloaded.append(file)
@@ -145,9 +147,9 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
                     self.get_file_depend_dependencies(file)
             else:
                 self._failed_downloaded.append(file)
-            
+
         except Exception as e:
-            print e  
+            print e
         finally:
             self._current_thread_count -=1
             print "Thread Acabado: %s"%file
@@ -161,7 +163,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
 
             item.setIcon(QtGui.QIcon(
                 os.path.join(ICO_PATH, "downloading.png")))
-            QtGui.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
             if self.dropboxManager.downloadFile(file):
                 item.setIcon(QtGui.QIcon(
                     os.path.join(ICO_PATH, "checked.png")))
@@ -175,7 +177,7 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
             print e
             return False
         finally:
-            QtGui.qApp.processEvents()
+            QtWidgets.QApplication.processEvents()
 
 
     def get_item(self,file):
@@ -195,6 +197,8 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
     def on_update_btn_clicked(self):
         start = time.time()
         self.reset_state()
+        self.set_loading_gif(self.loading_label)
+        self.downloading_text.setText("Downloading...")
         self.get_file_depend_dependencies(self.get_current_text())
         print "TERMINA TODO: ", time.time() - start
 
@@ -206,8 +210,16 @@ class DependencyLoaderWidget(form, QtGui.QDialog):
         f_util.execute_command(command)
 
 
+    def set_loading_gif(self,label):
+
+        movie = QtGui.QMovie(os.path.join(ICO_PATH,"gif","loading.gif"))
+        movie.setCacheMode(QtGui.QMovie.CacheAll)
+        label.setMovie(movie)
+        movie.start()
 
 
-app = QtGui.QApplication(sys.argv)
-obj = DependencyLoaderWidget()
+
+app = QtWidgets.QApplication(sys.argv)
+from Framework.lib.gui_loader import gui_loader
+obj = gui_loader.get_maya_container(DependencyLoaderWidget(), "Update All")
 obj.exec_()

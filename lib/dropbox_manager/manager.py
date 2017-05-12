@@ -130,6 +130,13 @@ class DropboxManager(object):
                 children_path.append(my_data["path"])
         return children_path
 
+
+    def getAllrecursiveChildren(self, folder):
+        children = self.__dpx.files_list_folder(folder, recursive=True)
+        return children
+
+
+
 #
 # dpx = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
 # dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")
