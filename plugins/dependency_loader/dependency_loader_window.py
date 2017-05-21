@@ -37,7 +37,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
         self.dropboxManager = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
-
+        self.set_loading_visible(False)
 
 
     def context_menu_list(self):
@@ -152,6 +152,8 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
             print e
         finally:
             self._current_thread_count -=1
+            if self._current_thread_count == 0:
+                self.set_loading_visible(False)
             print "Thread Acabado: %s"%file
             print " Time:",(time.time()-start)
 
@@ -180,6 +182,13 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
             QtWidgets.QApplication.processEvents()
 
 
+    def set_loading_visible(self, visible_state):
+        self.loading_label.setVisible(visible_state)
+        self.downloading_text.setVisible(visible_state)
+    
+    
+
+
     def get_item(self,file):
         result = self.dependency_list.findItems(file ,QtCore.Qt.MatchExactly)
         if result:
@@ -195,12 +204,12 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
 
     @QtCore.Slot()
     def on_update_btn_clicked(self):
+        self.set_loading_visible(True)
         start = time.time()
         self.reset_state()
         self.set_loading_gif(self.loading_label)
         self.downloading_text.setText("Downloading...")
         self.get_file_depend_dependencies(self.get_current_text())
-        print "TERMINA TODO: ", time.time() - start
 
 
     @QtCore.Slot()

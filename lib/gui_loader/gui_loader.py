@@ -11,7 +11,8 @@ CSS_PATH = get_css_path()
 try:
     import pyside2uic as uic
 except:
-    from Framework.lib import pysideuic as uic
+#     from Framework.lib import pysideuic as uic
+    import pysideuic as uic
 
 # print uic
 import xml.etree.ElementTree as xml
@@ -48,7 +49,7 @@ def load_ui_type(uiFile):
 
 def get_maya_container(widget, name='APP NAME',style=True, simple_bar=True):
     dialog = QtWidgets.QDialog()
-    dialog.setWindowTitle("Framework: [Miguel/Alberto]")
+    dialog.setWindowTitle("Framework: [Miguel Molledo]")
     # dialog.SetSizeContraint()
     main_layout = QtWidgets.QVBoxLayout()
     main_layout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
