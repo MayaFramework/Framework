@@ -24,45 +24,38 @@ dpx.downloadFiles(["s:/project/test/audiotest.m4v", "s:/project/test/fileTest.tx
 """
 
 
-import dropbox
-import sys
-import os
-import pprint
-import shutil
-# token = "Yomp-8XE2CoAAAAAAAAAuQsiUXNm1_Fo4BbispgGAoV8-0NvNw2E3YgwoLH1pZBX"
 
+
+import os
 
 class DropboxManager(object):
     __client = None
     __dpx = None
     __base_path = None
-
-    def __init__(self, token, base_path="P:/"):
-        self.__client = dropbox.client.DropboxClient(token)
-        self.__dpx = dropbox.dropbox.Dropbox(token)
-        self.__base_path = base_path
-
+    __subfolder = "WORK"
+    __base_path = "P:/"
+    def __init__(self, token, base_path="", subfolder = ""):
+        import dropbox
+        self.DropBox = dropbox
+        self.__client = self.DropBox.client.DropboxClient(token)
+        self.__dpx = self.DropBox.dropbox.Dropbox(token)
+        if base_path:
+            self.__base_path = base_path
+        if subfolder:
+            self.__subfolder = subfolder
     def uploadFile(self, local_file):
         if not local_file.startswith(self.__base_path):
             raise Exception("Wrong repository")
 
-        dropbox_path = dropbox.client.format_path(
-            local_file.split(self.__base_path, 1)[1])
+        dropbox_path = self.getDropboxPath(local_file.split(self.__base_path, 1)[1])
         with open(local_file, 'rb') as my_file:
             self.__client.put_file(dropbox_path, my_file)
 
-    def downloadFile(self, dropbox_path):
-        dropbox_path = os.path.normpath(dropbox_path).replace("\\", "/")
-        if dropbox_path.startswith(self.__base_path):
-            target = dropbox_path
-            dropbox_path = dropbox.client.format_path(
-                dropbox_path.split(self.__base_path, 1)[1])
-        else:
-            target = os.path.join(self.__base_path, dropbox_path)
-            dropbox_path = dropbox.client.format_path(dropbox_path)
+    def downloadFile(self, path):
+        dropbox_path = self.getDropboxPath(path)
+        target_path = self.getTargetPath(path)
 
-        folder = target.rsplit("/", 1)[0]
-
+        folder = target_path.rsplit("/", 1)[0]
         if not os.path.exists(folder):
             try:
                 os.makedirs(folder)
@@ -71,7 +64,7 @@ class DropboxManager(object):
 
         try:
             print "DOWNLOADING the file: %s" % dropbox_path
-            self.__dpx.files_download_to_file(target, "/WORK"+dropbox_path)
+            self.__dpx.files_download_to_file(target_path,dropbox_path)
             print "DOWNLOADING FINISHED"
         except Exception as e:
             message = "Something was wrong downloading the file: %s " % dropbox_path
@@ -90,18 +83,60 @@ class DropboxManager(object):
             self.getFile(self.normpath(file))
 
     def normpath(self, path):
-        return os.path.normpath(path).replace("\\", "/")
+        path = os.path.normpath(path).replace("\\", "/")
+        return path
+
+    def getDropboxPath(self,path):
+        base,file_name = path.rsplit("/", 1)
+        path = os.path.join(base.lower() ,file_name)
+        if path.startswith(self.__base_path.lower()):
+            path = path.split("/", 1)[1]
+
+        if self.__subfolder:
+            if path.startswith(self.__subfolder.lower()):
+               return self.DropBox.client.format_path(self.normpath(path))
+            else:
+                return "/" + self.__subfolder.lower() + self.DropBox.client.format_path(self.normpath(path))
+        else:
+            return self.DropBox.client.format_path(self.normpath(path))
 
 
-# TODO IN THIS class
-# def getChildrenFromFolder():
-# 	return list
+    def getTargetPath(self, path):
 
 
-# TODO in another class like sequencer loader
-# # functions
-# 	def getAssetList(type = "CHAR, ELEM, FX, ", filetype = 'chrg'):
-# 		return dict {"CHAR": {
-# 							"alias": "blabla",
-# 							"filetype": "chrg" }
-# 		}}
+        if path.startswith("/"):
+            base,file_name = path.rsplit("/", 1)
+            path = os.path.join(base.lower() ,file_name).split("/",1)[1]
+
+            if path.startswith(self.__subfolder.lower()) :
+                return self.normpath(os.path.join(self.__base_path, path.split("/",1)[1]))
+            else:
+                return self.normpath(os.path.join(self.__base_path, path))
+        else:
+            if path.startswith(self.__subfolder.lower()):
+                base,file_name = path.rsplit("/", 1)
+                return  self.normpath(os.path.join(self.__base_path,base.split("/",1)[1].lower(),file_name))
+            elif path.startswith(self.__base_path):
+                base,file_name = path.rsplit("/", 1)
+                return self.normpath(os.path.join(base.lower().replace(self.__base_path.lower(), self.__base_path.upper()),file_name))
+
+
+    def getChildrenFromFolder(self,folder):
+        folder = self.getDropboxPath(folder)
+        metadata = self.__client.metadata(folder)
+        children_path = []
+        for my_data in metadata["contents"]:
+            if len(metadata["contents"]) >1:
+                children_path.append(my_data["path"])
+        return children_path
+
+
+    def getAllrecursiveChildren(self, folder):
+        children = self.__dpx.files_list_folder(folder, recursive=True)
+        return children
+
+
+
+#
+# dpx = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+# dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")

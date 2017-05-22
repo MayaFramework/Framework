@@ -3,7 +3,7 @@ import sys
 import os
 import pprint
 import re
-from Framework.lib.dropbox_manager.dropbox_manager import DropboxManager
+from Framework.lib.dropbox_manager.manager import DropboxManager
 # reg_expression = "file\s-r\s(-ns\s\"[a-zA-z]*\")+.*(-rfn\s\"[a-zA-z]*\d*?\")+.*(\"P:/BM2/.*)\;"
 REG_EXPRESSION = "(\"P:/.*);"
 # P:/BM2/
