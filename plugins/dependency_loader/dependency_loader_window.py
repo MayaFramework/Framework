@@ -8,10 +8,15 @@ from Framework.lib.ma_utils.reader import MaReader
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework import get_environ_file, get_css_path, get_icon_path
 from Framework.lib.file import utils as f_util
+from Framework.lib.ui.widgets.common_widgets import MessageWindow
+import DATA
 import time
 import threading
 
- # "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
+#=========================================================================
+# TODO: Separate Logic from the UI
+#=========================================================================
+# "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
 CSS_PATH = get_css_path()
 ICO_PATH = get_icon_path()
 
@@ -31,14 +36,18 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
     _failed_downloaded = []
     _processed_list = []
     _current_thread_count = 0
+
     def __init__(self):
         super(DependencyLoaderWidget, self).__init__()
         self.setupUi(self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
-        self.dropboxManager = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+        self.dropboxManager = DropboxManager(
+            token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+        # Loading Text and Movie
+        self.set_loading_gif(self.loading_label)
+        self.downloading_text.setText("Downloading...")
         self.set_loading_visible(False)
-
 
     def context_menu_list(self):
         self.dependency_list.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
@@ -49,9 +58,8 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         copy_action.triggered.connect(self.copy_selected_rout)
         self.dependency_list.addAction(copy_action)
 
-
     def get_maya_exe_path(self):
-        custom_environ_dict =f_util.read_json(get_environ_file())
+        custom_environ_dict = f_util.read_json(get_environ_file())
 
         if "maya_exe" in custom_environ_dict:
             return custom_environ_dict["maya_exe"]
@@ -102,7 +110,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
             self._processed_list.append(key)
 
             if "/mps/" in key:
-                folder = key.rsplit("/",1)[0]
+                folder = key.rsplit("/", 1)[0]
                 children = self.dropboxManager.getChildrenFromFolder(folder)
                 if children:
                     for child in children:
@@ -112,19 +120,18 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
                             current_files.append(child)
                             self._processed_list.append(child)
 
-
         for my_file in current_files:
             if self.is_available_thread(timeout=60*60):
                 self._current_thread_count += 1
-                t = threading.Thread(target = self.execute_download, args=(my_file,))
+                t = threading.Thread(
+                    target=self.execute_download, args=(my_file,))
                 t.start()
 
-    def add_item_in_list(self,key):
+    def add_item_in_list(self, key):
         listItem = QtWidgets.QListWidgetItem(key)
         listItem.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "question.png")))
         self.dependency_list.addItem(listItem)
         QtWidgets.QApplication.processEvents()
-
 
     def is_available_thread(self, timeout, period=0.25):
         mustend = time.time() + timeout
@@ -133,8 +140,9 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
                 return True
             time.sleep(period)
         return False
-    def execute_download(self,file):
-        start= time.time()
+
+    def execute_download(self, file):
+        start = time.time()
         try:
             item = self.get_item(file)
             if not item:
@@ -151,11 +159,11 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         except Exception as e:
             print e
         finally:
-            self._current_thread_count -=1
+            self._current_thread_count -= 1
             if self._current_thread_count == 0:
                 self.set_loading_visible(False)
-            print "Thread Acabado: %s"%file
-            print " Time:",(time.time()-start)
+            print "Thread Acabado: %s" % file
+            print " Time:", (time.time()-start)
 
     def download_file(self, file, item):
         try:
@@ -181,20 +189,15 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         finally:
             QtWidgets.QApplication.processEvents()
 
-
     def set_loading_visible(self, visible_state):
         self.loading_label.setVisible(visible_state)
         self.downloading_text.setVisible(visible_state)
-    
-    
 
-
-    def get_item(self,file):
-        result = self.dependency_list.findItems(file ,QtCore.Qt.MatchExactly)
+    def get_item(self, file):
+        result = self.dependency_list.findItems(file, QtCore.Qt.MatchExactly)
         if result:
             result = result[0]
         return result
-
 
     def get_current_text(self):
         path = os.path.normpath(self.path.text()).replace("\\", "/")
@@ -205,27 +208,40 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
     @QtCore.Slot()
     def on_update_btn_clicked(self):
         self.set_loading_visible(True)
-        start = time.time()
         self.reset_state()
-        self.set_loading_gif(self.loading_label)
-        self.downloading_text.setText("Downloading...")
+        self.create_default_folders_on_target(self.get_current_text())
         self.get_file_depend_dependencies(self.get_current_text())
+
+    def create_default_folders_on_target(self, file_path):
+#         folders_list = ",".join(["wip","mps","out","ref","chk"])
+        folders_list = ",".join(DATA.WORKING_FOLDERS)
+        window = MessageWindow("Create Starter Folders","Warning",
+                      msg="Do you want to create previous folders on the target"+\
+                            "Path:\n %s \n FOLDERS: %s" % (file_path, folders_list))
+
+        if window.get_response():
+            folder = file_path.rsplit("/",1)[0]
+            for working_folder in DATA.WORKING_FOLDERS:
+                self.create_path_rout(folder +'/'+ working_folder)
+            
+    def create_path_rout(self,path_rout):
+        if not os.path.exists(path_rout):
+            os.makedirs(path_rout)
 
 
     @QtCore.Slot()
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
-        command = '"{0}" -file "{1}"'.format(maya_path, self.get_current_text())
+        command = '"{0}" -file "{1}"'.format(maya_path,
+                                             self.get_current_text())
         f_util.execute_command(command)
 
+    def set_loading_gif(self, label):
 
-    def set_loading_gif(self,label):
-
-        movie = QtGui.QMovie(os.path.join(ICO_PATH,"gif","loading.gif"))
+        movie = QtGui.QMovie(os.path.join(ICO_PATH, "gif", "loading.gif"))
         movie.setCacheMode(QtGui.QMovie.CacheAll)
         label.setMovie(movie)
         movie.start()
-
 
 
 app = QtWidgets.QApplication(sys.argv)
