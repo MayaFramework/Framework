@@ -6,10 +6,14 @@ Summary:
 """
 import sys
 import pprint
-
-from cmn.cmn.python.lib import PyQt5
-from PyQt5 import QtWidgets, QtCore, Qt
-
+import os
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui, QtXml
+# from cmn.cmn.python.lib import PyQt5
+# from PyQt5 import QtWidgets, QtCore, Qt
+from Framework import get_css_path
+def set_style_sheet(Qt_object, css_file):
+	with open(css_file, 'r') as style_file:
+		Qt_object.setStyleSheet(style_file.read())
 
 class MessageWindow(QtWidgets.QDialog):
     """
@@ -36,19 +40,19 @@ class MessageWindow(QtWidgets.QDialog):
 
     def __init__(self, title, level='INFO', msg=None):
         super(MessageWindow, self).__init__()
+        set_style_sheet(self,os.path.join(get_css_path(),"dark_style1.qss"))
         self._state = False
         self.vertical_layout = QtWidgets.QVBoxLayout(self)
         self.horizontal_layout_btns = QtWidgets.QHBoxLayout()
-
         self.label_layout = QtWidgets.QHBoxLayout()
 
-        title_font = Qt.QFont()
+        title_font = QtGui.QFont()
         title_font.setPointSize(11)
         self.title_label = QtWidgets.QLabel()
         self.title_label.setText(title)
         self.title_label.setFont(title_font)
 
-        level_font = Qt.QFont()
+        level_font = QtGui.QFont()
         level_font.setPointSize(11)
         level_font.setBold(True)
         self.level_label = QtWidgets.QLabel()
@@ -87,30 +91,30 @@ class MessageWindow(QtWidgets.QDialog):
         self.exec_()
 
     def set_lvl_color(self, label, lvl):
-        sample = Qt.QPalette()
+        sample = QtGui.QPalette()
         color = self.get_color_lvl(lvl)
-        sample.setColor(Qt.QPalette.WindowText, color)
+        sample.setColor(QtGui.QPalette.WindowText, color)
         label.setPalette(sample)
 
     def get_color_lvl(self, lvl):
         if not lvl.upper() in self._level_supported:
             raise Exception("Level not supported")
         if lvl.upper() == 'ERROR':
-            return Qt.QColor(128, 21, 21)
+            return QtGui.QColor(128, 21, 21)
         elif lvl.upper() == 'INFO':
-            return Qt.QColor(7.1, 21.6, 32.2)
+            return QtGui.QColor(7.1, 21.6, 32.2)
         elif lvl.upper() == 'WARNING':
-            return Qt.QColor(212, 196, 106)
+            return QtGui.QColor(212, 196, 106)
 
     def get_response(self):
         return self._state
 
     def on_right_btn(self):
-        self._state = False
+        self._state = True
         self.close()
 
     def on_left_btn(self):
-        self._state = True
+        self._state = False
         self.close()
 
 
@@ -163,7 +167,7 @@ class ReporterWindow(MessageWindow):
         raise Exception("IN-PROGRESS")
 
 
-class ProgressBar(Qt.QProgressBar):
+class ProgressBar(QtWidgets.QProgressBar):
     """
     Re imeplementation of Progress Bar 
     
@@ -172,7 +176,8 @@ class ProgressBar(Qt.QProgressBar):
         value (int): current value
     """
     def __init__(self, max=None):
-        super(ProcessBar, self).__init__()
+        super(ProgressBar, self).__init__()
+        set_style_sheet(self,os.path.join(get_css_path(),"dark_style1.qss"))
         self.value = 0
         if max:
             self.setMax(max)
