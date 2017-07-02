@@ -23,6 +23,8 @@ class ChecksUIWidget(form, base):
     CHECKNAMEICON = QtGui.QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/name_tag.png"))
     DESCRIPTIONICON = QtGui.QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/description.png"))
     LOGICON = QtGui.QPixmap(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/log.png"))
+    RUNICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/run.png"))
+    FIXICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/fix.png"))    
 
     def __init__(self, battery_checker_list=None):
         """Summary
@@ -33,12 +35,19 @@ class ChecksUIWidget(form, base):
         super(ChecksUIWidget, self).__init__()
         self.setupUi(self)
         self.__defaultStateWindow()
+        self.__connectDefaultSignals()
         self.__addTabs()
     
+    def __connectDefaultSignals(self):
+        self.runallBT.clicked.connect(self.runAll)
+        self.fixallBT.clicked.connect(self.fixAll)
+
     def __defaultStateWindow(self):
         self.nametag_icon.setPixmap(self.CHECKNAMEICON)
         self.description_icon.setPixmap(self.DESCRIPTIONICON)
         self.log_icon.setPixmap(self.LOGICON)
+        self.runallBT.setIcon(self.RUNICON)
+        self.fixallBT.setIcon(self.FIXICON)
 
     def __addTabs(self):
         batteriesChecks = checks_configuration.ALLBATTERIES
@@ -59,6 +68,20 @@ class ChecksUIWidget(form, base):
             scrollArea.setWidget(scrollWidget)
             self.checksTab.addTab(scrollArea, battery.name)    
 
+    def runAll(self):
+        currentWidget = self.checksTab.currentWidget()
+        for widget in currentWidget.findChildren(CheckWidget):
+            if widget.checkObject.state == widget.checkObject.CHECK_PASSED:
+                continue
+            widget.runCheck()
+
+    def fixAll(self):
+        currentWidget = self.checksTab.currentWidget()
+        for widget in currentWidget.findChildren(CheckWidget):
+            if widget.checkObject.state == widget.checkObject.CHECK_PASSED or not widget.checkObject.fixable:
+                continue
+            widget.fixCheck()
+
 
 form, base = gui_loader.load_ui_type(os.path.join(
     os.path.dirname(__file__), "gui", "check_widget.ui"))
@@ -67,10 +90,11 @@ form, base = gui_loader.load_ui_type(os.path.join(
 class CheckWidget(form, base):
 
     STATES = {
-        -1: "border:1px outset; border-color: #880E4F; border-radius: 2px; background-color:#E91E63",
-        0 : "border:1px outset; border-color: #0D47A1; border-radius: 2px; background-color:#2196F3",
-        1 : "border:1px outset; border-color: #1B5E20; border-radius: 2px; background-color:#4CAF50",
-        2 : "border:1px outset; border-color: #E65100; border-radius: 2px; background-color:#FF9800"
+       -1          : "border:1px outset; border-color: #880E4F; border-radius: 2px; background-color:#E91E63",
+        0          : "border:1px outset; border-color: #0D47A1; border-radius: 2px; background-color:#2196F3",
+        1          : "border:1px outset; border-color: #1B5E20; border-radius: 2px; background-color:#4CAF50",
+        2          : "border:1px outset; border-color: #E65100; border-radius: 2px; background-color:#FF9800",
+        "disabled" : "border:1px outset; border-color: #212121; border-radius: 2px; background-color:#9E9E9E"
     }
     RUNICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/run.png"))
     FIXICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/fix.png"))
@@ -108,10 +132,13 @@ class CheckWidget(form, base):
 
     def setWidgetState(self):
         self.mainUI.logTE.setText(self.checkObject.output)
-        self.setStyleSheet(self.STATES[self.checkObject.state])
         self.fixBT.setEnabled(self.checkObject.fixable)
         affectedElems_bool = True if self.checkObject.affectedElements != [] else False
         self.selBT.setEnabled(affectedElems_bool)
+        if self.checkObject.disable:
+            self.setStyleSheet(self.STATES["disabled"])
+        else:
+            self.setStyleSheet(self.STATES[self.checkObject.state])
 
     def runCheck(self):
         self.__refreshUI()
@@ -136,11 +163,19 @@ class CheckWidget(form, base):
 
     def mousePressEvent(self, event):
         '''re-implemented to suppress Right-Clicks from selecting items.'''
-        self.__refreshUI() 
-        # if event.type() == QtCore.QEvent.MouseButtonPress:
-        #     if event.button() == QtCore.Qt.RightButton:
-        #         return
-        #     else:
+        if event.type() == QtCore.QEvent.MouseButtonPress:
+            if event.button() == QtCore.Qt.RightButton:
+                if self.checkObject.state == self.checkObject.DEFAULT_STATE:
+                    self.checkObject.disable = not self.checkObject.disable
+                    if self.checkObject.disable:
+                        self.setStyleSheet(self.STATES["disabled"])
+                        self.runBT.setEnabled(False)
+                    else:
+                        self.setStyleSheet(self.STATES[self.checkObject.state])
+                        self.runBT.setEnabled(True)
+            else:
+                if not self.checkObject.disable:
+                    self.__refreshUI() 
         super(CheckWidget, self).mousePressEvent(event)        
 
     def __refreshUI(self):

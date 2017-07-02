@@ -24,6 +24,7 @@ class BaseCheck(object):
         self._name = ""
         self._description = None
         self._fixable = False
+        self._disable = False
         self._affectedElements = list()
         self._output = ""
         self.CHECK_FAILLED = -1
@@ -103,6 +104,32 @@ class BaseCheck(object):
         """
         if value in [self.DEFAULT_STATE, self.CHECK_PASSED, self.READY_TO_FIX, self.CHECK_FAILLED]:
             self._state = value
+
+    @property
+    def disable(self):
+        """Summary
+        
+        Args:
+            value (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
+        return self._disable        
+
+    @disable.setter
+    def disable(self, value):
+        """Summary
+        
+        Args:
+            value (TYPE): Description
+        
+        Returns:
+            TYPE: Description
+        """
+        if not isinstance(value, bool):
+            raise TypeError(value)  
+        self._disable = value
 
     @property
     def name(self):
@@ -198,7 +225,7 @@ class BaseCheck(object):
         if not isinstance(value, str):
             raise TypeError("Not Supported Type %s" % type(value))
         if "start" in args:
-            self._output += "### {} ###\n\n".format(self.name)
+            self._output += "### {} ###\n".format(self.name)
         self._output += "{}\n".format(value)
         if "final" in args:
             self._output += "##########\n\n"        
