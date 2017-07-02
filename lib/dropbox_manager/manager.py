@@ -35,7 +35,7 @@ class DropboxManager(object):
     __subfolder = "WORK"
     __base_path = "P:/"
     def __init__(self, token, base_path="", subfolder = ""):
-        import dropbox
+        from Framework.lib.ext_lib import dropbox
         self.DropBox = dropbox
         self.__client = self.DropBox.client.DropboxClient(token)
         self.__dpx = self.DropBox.dropbox.Dropbox(token)
