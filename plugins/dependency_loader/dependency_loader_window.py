@@ -13,7 +13,7 @@ import time
 import threading
 
 #=========================================================================
-# TODO: Separate Logic from the UI
+# TODO: Separate Logic from the UI, this is a fucking shit
 #=========================================================================
 # "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
 CSS_PATH = get_css_path()
@@ -68,7 +68,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         if not selected_item:
             raise Exception("Select a row!")
 
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(selected_item[0].text())
 
     def reset_state(self):
@@ -219,7 +219,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
                             "Path:\n %s \n FOLDERS: %s" % (file_path, folders_list))
 
         if window.get_response():
-            folder = file_path.rsplit("/",1)[0]
+            folder = file_path.rsplit("/",2)[0]
             for working_folder in DATA.WORKING_FOLDERS:
                 self.create_path_rout(folder +'/'+ working_folder)
 
