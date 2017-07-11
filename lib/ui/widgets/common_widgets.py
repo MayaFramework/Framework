@@ -34,9 +34,12 @@ class MessageWindow(QtWidgets.QDialog):
 		msg (str): String to fill the container info
 
     """
+    ERROR_LEVEL = "ERROR"
+    WARNING_LEVEL = "WARNING"
+    INFO_LEVEL = "INFO"
     name_btn_left = 'Cancel'
     name_btn_right = 'Continue'
-    _level_supported = ['ERROR', 'INFO', 'WARNING']
+    _level_supported = [ERROR_LEVEL, INFO_LEVEL, WARNING_LEVEL]
 
     def __init__(self, title, level='INFO', msg=None):
         super(MessageWindow, self).__init__()
@@ -198,14 +201,16 @@ class ProgressBar(QtWidgets.QProgressBar):
     def getMax(self):
         return self.maximum
 
-
+if __name__ == "__main__":
 # EXAMPLE Progress Bar
-# import time
-# app = QtWidgets.QApplication(sys.argv)
-# processBar = ProgressBar(100)
-# for x in range(0, 100):
-# 	time.sleep(0.1)
-# 	processBar.update()
+# 	import time
+# 	processBar = ProgressBar(100)
+# 	for x in range(0, 100):
+# 		time.sleep(0.1)
+# 		processBar.update()
 
-    # # a = MessageWindow(title = 'Publisher Message',level='ERROR', msg='Aqui estamos asd asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd \n asdasdas \n  asd asdasd asd asd ad as \n ')
+	app = QtWidgets.QApplication(sys.argv)
+	a = MessageWindow(title='Publisher Message',
+					level='ERROR',
+					msg='message')
     # b = ReporterWindow(title = ' reporter', level = 'WARNING', msg='My Message to send into some ddbb ')

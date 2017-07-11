@@ -20,8 +20,8 @@ CSS_PATH = get_css_path()
 ICO_PATH = get_icon_path()
 
 
-ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
-form, base = gui_loader.load_ui_type(ui_file)
+# ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
+# form, base = gui_loader.load_ui_type(ui_file)
 
 
 def setStyleSheet(uiClass, cssFile):
@@ -29,7 +29,7 @@ def setStyleSheet(uiClass, cssFile):
     uiClass.setStyleSheet(file)
 
 
-class DependencyLoaderWidget(form, QtWidgets.QDialog):
+class DependencyLoaderWidget(QtWidgets.QDialog):
     dropboxManager = None
     _correct_downloaded = []
     _failed_downloaded = []
@@ -38,7 +38,8 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
 
     def __init__(self):
         super(DependencyLoaderWidget, self).__init__()
-        self.setupUi(self)
+#         self.setupUi(self)
+        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
         self.dropboxManager = DropboxManager(
@@ -245,5 +246,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     from Framework.lib.gui_loader import gui_loader
+#     DependencyLoaderWidget().show()
+#     app.exec_()
     obj = gui_loader.get_default_container(DependencyLoaderWidget(), "Update All")
     obj.exec_()

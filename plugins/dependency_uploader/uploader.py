@@ -11,17 +11,31 @@ class Uploader(object):
     '''
     This class handles the way of uploading the current maya work and their dependencies
     '''
+    FILTER_PATH = "/mps/"
+    FILTERED_KEY = "filtered"
+    NOT_FILTERED_KEY = "not_filtered"
     def __init__(self):
         self.dpx = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
         self._ma_reader = MaReader()
-        self.get_dependencies(file)
 
-    def get_dependencies(self, file):
-        file = r"P:\bm2\elm\gafasGato_TEST\sha\high\shading\chk\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-        if not file.endswith(".ma"):
+    def get_dependencies(self, file_path):
+        if not file_path.endswith(".ma"):
             return False
 
-        dependencies = self._ma_reader.get_references(file)
+        dependencies = self._ma_reader.get_references(file_path)
+        if dependencies and isinstance(dependencies, dict):
+            aux_dict = {}
+            aux_dict[self.FILTERED_KEY] = []
+            aux_dict[self.NOT_FILTERED_KEY] = []
+            for dependency in dependencies:
+                if self.FILTER_PATH in dependency:
+                    aux_dict[self.FILTERED_KEY].append(dependency)
+                else:
+                    aux_dict[self.NOT_FILTERED_KEY].append(dependency)
+
+            dependencies = aux_dict
+
+
         return dependencies
 
     def upload_files(self, files, call_back_func=None, **callback_args):
