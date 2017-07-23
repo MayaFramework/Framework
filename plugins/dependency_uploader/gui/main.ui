@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>620</width>
-    <height>308</height>
+    <width>773</width>
+    <height>315</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,10 +21,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>0</number>
+    <number>6</number>
    </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
@@ -34,6 +37,15 @@
      </item>
      <item>
       <widget class="QLineEdit" name="path_line_edit">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Set a Ma file or a single file doesnt care if its a ma it will uploaded.</string>
+       </property>
        <property name="text">
         <string>P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma</string>
        </property>
@@ -64,6 +76,65 @@
     </layout>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Set maximum threads, means how many files will be uploading at the same time.</string>
+       </property>
+       <property name="text">
+        <string>Threads</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="threads_spin_box">
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Set maximum threads, means how many files will be uploading at the same time.</string>
+       </property>
+       <property name="maximum">
+        <number>20</number>
+       </property>
+       <property name="value">
+        <number>4</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QTreeWidget" name="inspection_tree">
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -82,8 +153,11 @@
      </property>
      <item>
       <widget class="QPushButton" name="add_row_btn">
+       <property name="toolTip">
+        <string>Add more files to be uploaded in the same process</string>
+       </property>
        <property name="text">
-        <string>Add Row</string>
+        <string>Add file to download</string>
        </property>
        <property name="iconSize">
         <size>
@@ -117,6 +191,9 @@
          <height>30</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Analize dependencies from the file defined above. Just works with ma files.</string>
+       </property>
        <property name="text">
         <string>Analize file for dependencies</string>
        </property>
@@ -142,8 +219,11 @@
          <height>30</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Upload all the files defined in the list and in the main box.</string>
+       </property>
        <property name="text">
-        <string>Upload File!</string>
+        <string>Upload File &amp; Dependencies!</string>
        </property>
        <property name="iconSize">
         <size>

@@ -4,7 +4,7 @@ from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui, QtXml, QtCompat
 # from cmn.cmn.python.lib.ui.QT import  QtCore, QtWidgets, QtGui, QtXml
 from Framework import get_css_path, get_environ_file, get_icon_path, get_uis_path
 
-
+from Framework.lib import ui
 
 
 IMAGE_PATH = get_icon_path()
@@ -151,14 +151,12 @@ def get_default_container(widget, name='APP NAME', style=True, simple_bar=True):
         main_layout.addWidget(widget)
     dialog.setLayout(main_layout)
     # Set Style
-    css_file = os.path.join(CSS_PATH, "dark_style1.qss")
+    
     if style:
-        with open(css_file, 'r') as style_file:
-            dialog.setStyleSheet(style_file.read())
+        ui.apply_resource_style(dialog)
 
     return dialog
 
-# form, base = load_ui_type(os.path.join(UIS_PATH, "simple_bar.ui"))
 
 
 class SimpleBar(QtWidgets.QDialog):
@@ -166,9 +164,6 @@ class SimpleBar(QtWidgets.QDialog):
     def __init__(self, name):
         super(SimpleBar, self).__init__()
         loadUiWidget(os.path.join(UIS_PATH, "simple_bar.ui"), self)
-#         self.setupUi(self)
-        # with open(r"C:\project\dev\cmn\cmn\python\lib\ui\uis\stylesheet.css") as file:
-        #   self.setStyleSheet(file.read())
         self.__init_icons()
         self.name.setText(str(name))
         self.set_style()

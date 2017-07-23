@@ -31,25 +31,27 @@ import os
 class DropboxManager(object):
     __client = None
     __dpx = None
-    __base_path = None
+    _base_path = None
     __subfolder = "WORK"
-    __base_path = "P:/"
+    _base_path = "P:"
     def __init__(self, token, base_path="", subfolder = ""):
         from Framework.lib.ext_lib import dropbox
         self.DropBox = dropbox
         self.__client = self.DropBox.client.DropboxClient(token)
         self.__dpx = self.DropBox.dropbox.Dropbox(token)
         if base_path:
-            self.__base_path = base_path
+            self._base_path = base_path
         if subfolder:
             self.__subfolder = subfolder
     def uploadFile(self, local_file):
-        if not local_file.startswith(self.__base_path):
+        if not local_file.startswith(self._base_path):
             raise Exception("Wrong repository")
 
-        dropbox_path = self.getDropboxPath(local_file.split(self.__base_path, 1)[1])
+        dropbox_path = self.getDropboxPath(self.normpath(local_file).split(self._base_path, 1)[1])
         with open(local_file, 'rb') as my_file:
-            self.__client.put_file(dropbox_path, my_file)
+            response = self.__client.put_file(dropbox_path, my_file,overwrite=True)
+            print response
+            return response
 
     def downloadFile(self, path):
         dropbox_path = self.getDropboxPath(path)
@@ -78,9 +80,6 @@ class DropboxManager(object):
         for file in files:
             self.uploadFile(self.normpath(file))
 
-    def downloadFiles(self, files):
-        for file in files:
-            self.getFile(self.normpath(file))
 
     def normpath(self, path):
         path = os.path.normpath(path).replace("\\", "/")
@@ -89,7 +88,7 @@ class DropboxManager(object):
     def getDropboxPath(self,path):
         base,file_name = path.rsplit("/", 1)
         path = os.path.join(base.lower() ,file_name)
-        if path.startswith(self.__base_path.lower()):
+        if path.startswith(self._base_path.lower()):
             path = path.split("/", 1)[1]
 
         if self.__subfolder:
@@ -109,16 +108,16 @@ class DropboxManager(object):
             path = os.path.join(base.lower() ,file_name).split("/",1)[1]
 
             if path.startswith(self.__subfolder.lower()) :
-                return self.normpath(os.path.join(self.__base_path, path.split("/",1)[1]))
+                return self.normpath(os.path.join(self._base_path, path.split("/",1)[1]))
             else:
-                return self.normpath(os.path.join(self.__base_path, path))
+                return self.normpath(os.path.join(self._base_path, path))
         else:
             if path.startswith(self.__subfolder.lower()):
                 base,file_name = path.rsplit("/", 1)
-                return  self.normpath(os.path.join(self.__base_path,base.split("/",1)[1].lower(),file_name))
-            elif path.startswith(self.__base_path):
+                return  self.normpath(os.path.join(self._base_path,base.split("/",1)[1].lower(),file_name))
+            elif path.startswith(self._base_path):
                 base,file_name = path.rsplit("/", 1)
-                return self.normpath(os.path.join(base.lower().replace(self.__base_path.lower(), self.__base_path.upper()),file_name))
+                return self.normpath(os.path.join(base.lower().replace(self._base_path.lower(), self._base_path.upper()),file_name))
 
 
     def getChildrenFromFolder(self,folder):
@@ -137,6 +136,9 @@ class DropboxManager(object):
 
 
 
-#
-# dpx = DropboxManager(token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+if __name__ =="__main__":
+    dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACWFj1dK-eg6oDDYFu8a9EdloBJFw8SAOVL7KtK2WqDAl4")
+    file = r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011 - Copy.zip"
+    dpx.uploadFile(file)
+
 # dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")
