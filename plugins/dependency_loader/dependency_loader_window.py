@@ -1,7 +1,6 @@
 import sys
 import os
 import subprocess
-import PySide
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ma_utils.reader import MaReader
@@ -14,15 +13,15 @@ import time
 import threading
 
 #=========================================================================
-# TODO: Separate Logic from the UI
+# TODO: Separate Logic from the UI, this is a fucking shit
 #=========================================================================
 # "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
 CSS_PATH = get_css_path()
 ICO_PATH = get_icon_path()
 
 
-ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
-form, base = gui_loader.load_ui_type(ui_file)
+# ui_file = os.path.join(os.path.dirname(__file__), "gui", "main.ui")
+# form, base = gui_loader.load_ui_type(ui_file)
 
 
 def setStyleSheet(uiClass, cssFile):
@@ -30,7 +29,7 @@ def setStyleSheet(uiClass, cssFile):
     uiClass.setStyleSheet(file)
 
 
-class DependencyLoaderWidget(form, QtWidgets.QDialog):
+class DependencyLoaderWidget(QtWidgets.QDialog):
     dropboxManager = None
     _correct_downloaded = []
     _failed_downloaded = []
@@ -39,7 +38,8 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
 
     def __init__(self):
         super(DependencyLoaderWidget, self).__init__()
-        self.setupUi(self)
+#         self.setupUi(self)
+        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
         self.dropboxManager = DropboxManager(
@@ -69,7 +69,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         if not selected_item:
             raise Exception("Select a row!")
 
-        clipboard = QtGui.QApplication.clipboard()
+        clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(selected_item[0].text())
 
     def reset_state(self):
@@ -94,7 +94,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
             print e
             return False
 
-    def get_file_depend_dependencies(self, file):
+    def get_file_depndencies(self, file):
         dependencies = self.get_dependencies(file)
         if not dependencies:
             return False
@@ -152,7 +152,7 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
             if result:
                 self._correct_downloaded.append(file)
                 if file.endswith(".ma"):
-                    self.get_file_depend_dependencies(file)
+                    self.get_file_depndencies(file)
             else:
                 self._failed_downloaded.append(file)
 
@@ -210,20 +210,20 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         self.set_loading_visible(True)
         self.reset_state()
         self.create_default_folders_on_target(self.get_current_text())
-        self.get_file_depend_dependencies(self.get_current_text())
+        self.get_file_depndencies(self.get_current_text())
 
     def create_default_folders_on_target(self, file_path):
-#         folders_list = ",".join(["wip","mps","out","ref","chk"])
+#       folders_list = ",".join(["wip","mps","out","ref","chk"])
         folders_list = ",".join(DATA.WORKING_FOLDERS)
         window = MessageWindow("Create Starter Folders","Warning",
                       msg="Do you want to create previous folders on the target"+\
                             "Path:\n %s \n FOLDERS: %s" % (file_path, folders_list))
 
         if window.get_response():
-            folder = file_path.rsplit("/",1)[0]
+            folder = file_path.rsplit("/",2)[0]
             for working_folder in DATA.WORKING_FOLDERS:
                 self.create_path_rout(folder +'/'+ working_folder)
-            
+
     def create_path_rout(self,path_rout):
         if not os.path.exists(path_rout):
             os.makedirs(path_rout)
@@ -243,8 +243,10 @@ class DependencyLoaderWidget(form, QtWidgets.QDialog):
         label.setMovie(movie)
         movie.start()
 
-
-app = QtWidgets.QApplication(sys.argv)
-from Framework.lib.gui_loader import gui_loader
-obj = gui_loader.get_maya_container(DependencyLoaderWidget(), "Update All")
-obj.exec_()
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    from Framework.lib.gui_loader import gui_loader
+#     DependencyLoaderWidget().show()
+#     app.exec_()
+    obj = gui_loader.get_default_container(DependencyLoaderWidget(), "Update All")
+    obj.exec_()

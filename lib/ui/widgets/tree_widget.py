@@ -1,17 +1,22 @@
 """
 Module to manage tree widgets faster.
 
-author: [miguel.molledo@summus.es]
+author: miguel.molledo
 
 """
 
 import sys 
+import os
 import pprint
 
-from cmn.cmn.python.lib.ui.QT import QtWidgets, QtCore, Qt
+from Framework.lib.ui.qt.QT import QtGui, QtWidgets, QtCore
+from Framework import get_icon_path
+ICO_PATH = get_icon_path()
 
 def tree_widget(headers, elements=[], tree=None,  elements_checked = 0, children_checked = 0):
     """
+    NOTE: 
+    KIND OF DEPRECATED BETTER USE FILL_TREE
     Method to fill a tree widget or create a new one with the headers and elements defined
     
     Args:
@@ -114,9 +119,118 @@ def tree_widget(headers, elements=[], tree=None,  elements_checked = 0, children
                             if children_checked:
                                 child_item.setCheckState(column,get_qt_check_state(children_checked))
                             tree_item.addChild(child_item)
+                    
                     tree.addTopLevelItem(tree_item)
                     row+=1
     return tree
+
+
+
+def fill_tree(tree, data, headers):
+    tree.setColumnCount(len(headers))
+    tree.setHeaderLabels(headers)
+    recursive_advance_tree(tree, data)
+
+def recursive_tree(tree, data):
+    '''
+    Works for one header and with this kind of dictionaries
+        data_example = [
+        {"value":"rig",
+         "checked":1,
+         "children":[
+             {"value":"geo",
+              "checked":2,
+              "children":[]
+              },
+             {"value":"expr",
+              "checked":2,
+              "children":[]
+              }
+             ]
+         },
+        {"value":"controller",
+         "checked":1,
+         "children":[
+             {"value":"bones",
+              "checked":2,
+              "children":[]
+              },
+             {"value":"references",
+              "checked":2,
+              "children":[]
+              }
+             ]
+         }
+        ]
+    '''
+#     row = len(data.keys())
+    column = 0
+    for row, value_info in enumerate(data):
+        tree_item = QtWidgets.QTreeWidgetItem(tree)
+#         tree_item = tree.topLevelItem(row)
+        tree_item.setText(0,value_info["value"])
+        if "checked" in value_info:
+            tree_item.setCheckState(column, get_qt_check_state(value_info["checked"]))
+        if "children" in value_info:
+            if isinstance(value_info["children"],list) and value_info["children"]:
+                recursive_tree(tree_item, value_info["children"])
+        if isinstance(tree, QtWidgets.QTreeWidget):
+            tree.addTopLevelItem(tree_item)
+        elif isinstance(tree, QtWidgets.QTreeWidgetItem):
+            tree.addChild(tree_item)
+    return tree
+
+
+def recursive_advance_tree(tree, data):
+    '''
+        {"value":{
+            0:{"checked": None,
+               "icon": spackage_ico_path,
+               "value":"RIG"},
+            1:{"checked": 2,
+               "icon": download_ico_path,
+               "text":"Load msg"},
+
+            2:{"checked": 2,
+               "icon": update_ico_path,
+               "text":"text message"},
+
+            3:{"checked": 2,
+               "icon": upload_ico_path,
+               "text":"text message"}
+            },
+    '''
+#     row = len(data.keys())
+    for row, value_info in enumerate(data):
+        tree_item = QtWidgets.QTreeWidgetItem(tree)
+#         tree_item = tree.topLevelItem(row)
+        if isinstance(value_info["value"], str):
+            tree_item.setText(0,value_info["value"])
+        elif isinstance(value_info["value"], dict):
+            for column, column_info in value_info["value"].iteritems():
+                # Set text
+                if "text" in column_info:
+                    tree_item.setText(column, column_info["text"])
+                # Set check box if exists
+                if "checked" in column_info:
+                    if isinstance(column_info["checked"], int):
+                        tree_item.setCheckState(column, get_qt_check_state(column_info["checked"]))
+                # Set icon
+                if "icon" in column_info:
+                    if os.path.exists(column_info["icon"]):
+                        tree_item.setIcon(column, (QtGui.QIcon(column_info["icon"])))
+            if "children" in value_info:
+                if isinstance(value_info["children"],list) and value_info["children"]:
+                    recursive_advance_tree(tree_item, value_info["children"])
+        tree_item.setExpanded(True)
+        if isinstance(tree, QtWidgets.QTreeWidget):
+            tree.addTopLevelItem(tree_item)
+        elif isinstance(tree, QtWidgets.QTreeWidgetItem):
+            tree.addChild(tree_item)
+    return tree
+
+# def get_number_state_from_qt_state
+
 
 
 def get_qt_check_state(state):
@@ -191,7 +305,7 @@ def set_color_by_state(tree,color_dict = dict):
                 0: unchecked
                 1: middlechecked
                 2: checked
-        
+
         Returns:
             TYPE: Description
         """
@@ -214,19 +328,18 @@ def set_color_by_state(tree,color_dict = dict):
     on_check_state_execute(tree,colorize)
 
 
-
 def set_color_tree_item(item,column,color):
     """
-    Asign color into the item
-    
+    Assign color into the item
+
     Args:
         item (QtWidgets.QTreewidgetItem): Qt Item to colorize
         column (int): Description
-        color (str): one of the colors supported 
+        color (str): one of the colors supported
 
     Returns:
         bool: True
-    
+
     Raises:
         Exception: Description
     """
@@ -270,78 +383,112 @@ def on_check_state_execute(tree,method):
                 child_item = item_widget.child(child_row)
                 method(child_item, column, child_item.checkState(column))
 
-# # ---------------------------------------------
-# # Example1
-# app = QtWidgets.QApplication(sys.argv)
-
-# column1 = ['element.1.1', 'element.1.2', 'element.1.3']
-# column2 = ['element.2.1', 'element.2.2', 'element.2.3']
-# column3 = ['element.3.1', 'element.3.2', 'element.3.3']
-# column4 = ['element.4.1', 'element.4.2', 'element.4.3']
-# headers = ['People', 'Guys', 'Penis']
 
 
-# data = [column1,column2, column3, column4]
+if __name__ == "__main__":
+    download_ico_path =  os.path.join(ICO_PATH,"downloading.png")
+    upload_ico_path = os.path.join(ICO_PATH, "warning.png")
+    update_ico_path = os.path.join(ICO_PATH, "miguel.png")
+    component_ico_path = os.path.join(ICO_PATH, "question.png")
+    spackage_ico_path = os.path.join(ICO_PATH, "question.png")
+    app = QtWidgets.QApplication(sys.argv)
+    data_example = [
+        {"value":{
+            0:{"checked": None,
+               "icon": spackage_ico_path,
+               "text":"RIG"},
+            1:{"checked": 2,
+               "icon": download_ico_path,
+               "text":"Load msg"},
 
-# my_tree = tree_widget(headers=headers, elements=data, elements_checked=1)
+            2:{"checked": 2,
+               "icon": update_ico_path,
+               "text":"text message"},
 
-# my_tree.show()
-# app.exec_()
+            3:{"checked": 2,
+               "icon": upload_ico_path,
+               "text":"text message"}
+            },
+#          "checked":1,
+         "children":[
+             {"value":{
+                0:{"checked": None,
+                   "icon": spackage_ico_path,
+                   "text":"MDL"},
+                1:{"checked": 2,
+                   "icon": download_ico_path,
+                   "text":"Load msg"},
+    
+                2:{"checked": 2,
+                   "icon": update_ico_path,
+                   "text":"Update msg"},
+    
+                3:{"checked": None,
+                   "icon": upload_ico_path,
+                   "text":"Publish msg"}
+                },
+            "children":[
+                    {"value":{
+                        0:{"checked": None,
+                           "icon": component_ico_path,
+                           "text":"GEO"},
+                        1:{"checked": 2,
+                           "icon": download_ico_path,
+                           "text":"Load msg"},
+            
+                        2:{"checked": 2,
+                           "icon": update_ico_path,
+                           "text":"Update msg"},
+            
+                        3:{"checked": None,
+                           "icon": upload_ico_path,
+                           "text":"Publish msg"}
+                                      }}
+                ]
+              },
+             {"value":{
+                0:{"checked": None,
+                   "icon": spackage_ico_path,
+                   "text":"SHD"},
+                1:{"checked": 2,
+                   "icon": download_ico_path,
+                   "text":"Load msg"},
+    
+                2:{"checked": 2,
+                   "icon": update_ico_path,
+                   "text":"Update msg"},
+    
+                3:{"checked": None,
+                   "icon": upload_ico_path,
+                   "text":"Publish msg"}
+                },
+            "children":[{"value":{
+                        0:{"checked": None,
+                           "icon": component_ico_path,
+                           "text":"EXPRESSIONS"},
+                        1:{"checked": 2,
+                           "icon": download_ico_path,
+                           "text":"Load msg"},
 
-
-# ---------------------------------------------
-# # Example 2
-# # #Working with list of list or a simple list always computes the quantity of rows related with the header count
-# app = QtWidgets.QApplication(sys.argv)
-
-# column1 = ['element.1.1', 'element.1.2', 'element.1.3']
-# column2 = ['element.2.1', 'element.2.2', 'element.2.3']
-# column3 = ['element.3.1', 'element.3.2', 'element.3.3']
-# column4 = ['element.4.1', 'element.4.2', 'element.4.3']
-# headers = ['People', 'Guys', 'Penis']
-# prefix = ['A','B','C','D','E','F']
-# data = {}
-# data['Guys'] = {}
-# data['Guys'] = column1
-# data['People'] = {}
-# for x in column2:
-#     data['People'][x] = [x+i for i in prefix]
-# data['Penis'] = {}
-
-# for x in column2:
-#     data['Penis'][x] = [x+i for i in prefix]
-# my_tree = tree_widget(headers=headers, elements=data, children_checked=1)
-# checkes_options = get_elements_checked(my_tree)
-# import os
-# file = r"C:\Users\mmolledo\Downloads\test_01\UI\stylesheet.css"
-# with open(os.path.normpath(file)) as file:
-#     my_tree.setStyleSheet(file.read())
-
-# my_tree.show()
-# app.exec_()
-# my_tree.show()
-
-# TEMPLATE UIS
-# from cmn.cmn.python.lib.ui import ui_loader
-# print dir(ui_loader)
-# container = ui_loader.get_maya_container(my_tree, name = "Example Name Tree Tool")
-# container.show()
-
-# app.exec_()
-# # # # ---------------------------------------------
-# # # Example 3
-# app = QtWidgets.QApplication(sys.argv)
-
-# headers= ['LOGG']
-# data = {}
-# data['LOGG'] = {
-#                         "SEQ.0001":['Checkout','Publish','CheckIn'],
-#                         "SEQ.0950":['Checkout','Publish','CheckIn']
-# }
-# color_dict = {0:'gray',1:'yellow',2:'blue',}
-# my_tree = tree_widget(headers=headers, elements=data, elements_checked=1, children_checked=0)
-# set_color_by_state(my_tree,color_dict)
-
-# my_tree.show()
-# app.exec_()
-
+                        2:{"checked": 2,
+                           "icon": update_ico_path,
+                           "text":"Update msg"},
+            
+                        3:{"checked": None,
+                           "icon": upload_ico_path,
+                           "text":"Publish msg"}
+                        },
+                    "children":[
+                        
+                            ]
+              }
+                
+                ]
+              },
+                     ]
+            }]
+    tree = QtWidgets.QTreeWidget()
+    fill_tree(tree, data_example, headers=["Inspection", "Load", "Update", "Publish"])
+    print get_elements_checked(tree)
+    tree.show()
+    app.exec_()
