@@ -1,8 +1,7 @@
 """
 Module to manage tree widgets faster.
-
-author: miguel.molledo
-
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
 """
 
 import sys 

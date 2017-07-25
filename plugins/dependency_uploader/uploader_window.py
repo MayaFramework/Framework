@@ -1,7 +1,7 @@
 '''
 Created on Jul 2, 2017
-
-@author: Miguel
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
 '''
 import os
 import sys
@@ -195,8 +195,6 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
     def fill_list_widget(self):
         for file_path in self._file_path_list:
             self.add_item_in_list(self.dependency_list, file_path)
-
-        
 
     def get_item(self, file):
         result = self.dependency_list.findItems(file, QtCore.Qt.MatchExactly)

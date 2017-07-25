@@ -1,3 +1,8 @@
+"""
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
+"""
+
 import sys
 import os
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui, QtXml, QtCompat

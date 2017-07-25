@@ -1,7 +1,10 @@
+"""
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
+"""
 import inspect
 import os
 from subprocess import check_output
-
 
 def get_current_file():
     return os.path.abspath(inspect.getsourcefile(lambda:0))
