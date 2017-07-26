@@ -1,11 +1,13 @@
 import os
 import re
-from toolbar_config import toolbar_config
-from baseIcon import Button
+
 import controller
-reload(toolbar_config)
+from baseIcon import Button
 from Framework.lib.gui_loader import gui_loader
-from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
+from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
+from toolbar_config import toolbar_config
+
+reload(toolbar_config)
 
 TOOLBAR_CFG_DATA = controller.toolbar_cfg_data()
 COLOR = TOOLBAR_CFG_DATA.get("accent_color")
@@ -87,10 +89,3 @@ class ToolsLauncherUI(form, base):
         toolbar_data = controller.toolbar_cfg_data()
         toolbar_data["accent_color"] = hex_color
         controller.save_toolbar_cfg_data(toolbar_data)
-        
-        
-        
-
-
-
-

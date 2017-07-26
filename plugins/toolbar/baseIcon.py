@@ -1,8 +1,8 @@
 import os
 import random
 
+from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
 from toolbar_config import colors
-from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 
 
 class Button(QtWidgets.QPushButton):

@@ -1,7 +1,7 @@
+import getpass
+import json
 import os
 import sys
-import json
-import getpass
 
 CONFIG_PATH = os.path.join(os.getenv("APPDATA"),"MayaToolbar_cfg")
 
