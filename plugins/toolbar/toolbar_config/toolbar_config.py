@@ -10,5 +10,6 @@ TOOLS = [
     baseIcon.TestButton(),
     baseIcon.TestButton(),
     baseIcon.TestButton(),
+    baseIcon.TestButton(),
     baseIcon.TestButton()
 ]

@@ -37,7 +37,7 @@ class Button(QtWidgets.QPushButton):
     @name.setter
     def name(self, button_name):
         self._name = button_name
-        self.setText(self._name)
+        self.setText("  {}".format(self._name))
 
     @property
     def icon(self):
@@ -46,7 +46,8 @@ class Button(QtWidgets.QPushButton):
     @icon.setter
     def icon(self, button_icon):
         self._icon = button_icon
-        self.setIcon(QtGui.QPixmap(self._icon))
+        self.setIconSize(QtCore.QSize(32, 32))
+        self.setIcon(QtGui.QIcon(self._icon))
 
     @property
     def clicked_command(self):
@@ -104,21 +105,37 @@ class Button(QtWidgets.QPushButton):
         self._pressed_command()
         
     def __setStyleSheet(self):
-        stylesheet = colors.COLORS.get(random.randint(0, len(colors.COLORS.keys())-1))
-        print stylesheet
-        self.setStyleSheet(stylesheet)
+        bold_font = QtGui.QFont()
+        bold_font.setBold(True)
+        self.setFont(bold_font)
+        # default_stylesheet = "border:0px; background-color:transparent; padding-left: 10px; text-align: left" # border-left-color:#2196F3" 
+        # stylesheet = colors.COLORS.get(random.randint(0, len(colors.COLORS.keys())-1))
+        # self.setStyleSheet(STYLESHEET)
+
+    # def enterEvent(self, event):
+    #     stylesheet = "border: 5px; border-left-style: solid; border-left-color: #2196F3;background-color:transparent; padding-left: 10px; text-align: left"
+    #     self.setStyleSheet(stylesheet)
+    #     super(Button, self).enterEvent(event)
+
+    # def leaveEvent(self, event):
+    #     stylesheet = "border:0px; background-color:transparent; padding-left: 10px; text-align: left"
+    #     self.setStyleSheet(stylesheet)
+    #     super(Button, self).leaveEvent(event)        
 
 class TestButton(Button):
 
     def __init__(self):
         super(TestButton, self).__init__()
-        self.name = "TestButton"
+        self.name = "Checks"
+        self.icon = os.path.join(os.path.dirname(__file__), "gui", "icons", "checks.png")
         self.clicked_command = self.click        
         self.pressed_command = self.pressed
         self.release_command = self.released
 
     def click(self):
-        print "CLICK"
+        from Framework.lib.new_checks import model, checks_configuration, baseCheck
+        ui = model.ChecksUIWidget()
+        ui.show()
     
     def pressed(self):
         print "PRESSED"
