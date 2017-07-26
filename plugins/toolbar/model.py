@@ -89,3 +89,13 @@ class ToolsLauncherUI(form, base):
         toolbar_data = controller.toolbar_cfg_data()
         toolbar_data["accent_color"] = hex_color
         controller.save_toolbar_cfg_data(toolbar_data)
+
+
+# EXAMPLE!!!
+
+# from Framework.plugins.toolbar import baseIcon, model, controller
+# reload(baseIcon)
+# reload(controller)
+# reload(model)
+# ui = model.ToolsLauncherUI()
+# ui.show()
