@@ -5,10 +5,10 @@
 
 
 import os, sys, json
-def read_json(file):
-    if not os.path.isfile(file):
+def read_json(file_path):
+    if not os.path.isfile(file_path):
         raise Exception("Not file Found on the system: %s"%file)
-    with open(file) as f:
+    with open(file_path) as f:
         d = json.load(f)
         return d
 

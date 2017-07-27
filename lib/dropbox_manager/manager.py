@@ -169,13 +169,13 @@ class DropboxManager(object):
             path = os.path.join(base.lower() ,file_name).split("/",1)[1]
 
             if path.startswith(self.__subfolder.lower()) :
-                return self.normpath(os.path.join(self._base_path, path.split("/",1)[1]))
+                return self.normpath(os.path.join(self._base_path + "/", path.split("/",1)[1]))
             else:
-                return self.normpath(os.path.join(self._base_path, path))
+                return self.normpath(os.path.join(self._base_path + "/", path))
         else:
             if path.startswith(self.__subfolder.lower()):
                 base,file_name = path.rsplit("/", 1)
-                return  self.normpath(os.path.join(self._base_path,base.split("/",1)[1].lower(),file_name))
+                return  self.normpath(os.path.join(self._base_path + "/",base.split("/",1)[1].lower(),file_name))
             elif path.startswith(self._base_path):
                 base,file_name = path.rsplit("/", 1)
                 return self.normpath(os.path.join(base.lower().replace(self._base_path.lower(), self._base_path.upper()),file_name))

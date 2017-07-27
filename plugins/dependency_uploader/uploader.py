@@ -8,6 +8,7 @@ from pprint import pprint
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.ma_utils.reader import MaReader
 import os
+from Framework import get_environ_config
 class Uploader(object):
     '''
     This class handles the way of uploading the current maya work and their dependencies
@@ -16,7 +17,8 @@ class Uploader(object):
     FILTERED_KEY = "filtered"
     NOT_FILTERED_KEY = "not_filtered"
     def __init__(self):
-        self.dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACWFj1dK-eg6oDDYFu8a9EdloBJFw8SAOVL7KtK2WqDAl4")
+        self._config = get_environ_config()
+        self.dpx = DropboxManager(self._config["dpx_token"])
         self._ma_reader = MaReader()
 
     def get_dependencies(self, file_path):
