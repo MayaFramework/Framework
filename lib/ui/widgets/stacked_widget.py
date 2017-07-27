@@ -1,10 +1,12 @@
 """Summary
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
 """
 import sys
 import os
 import pprint
-from cmn.cmn.python.lib.ui.QT import QtWidgets, QtCore, Qt
-from cmn.cmn.python.lib.ui import ui_loader
+from Framework.lib.ui.qt.QT import QtGui, QtWidgets, QtCore
+from Framework.lib.gui_loader import gui_loader as ui_loader
 
 from cmn.cmn.python.lib import ui
 UIS_PATH = ui.get_uis_path()

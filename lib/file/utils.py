@@ -1,3 +1,9 @@
+"""
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
+"""
+
+
 import os, sys, json
 def read_json(file):
     if not os.path.isfile(file):

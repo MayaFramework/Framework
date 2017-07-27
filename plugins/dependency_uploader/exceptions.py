@@ -1,7 +1,8 @@
 '''
 Created on Jul 11, 2017
 
-@author: Miguel
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
 '''
 
 
