@@ -10,15 +10,15 @@ from Framework import get_css_path, get_environ_file, get_icon_path, get_uis_pat
 IMAGE_PATH = get_icon_path()
 UIS_PATH = get_uis_path()
 CSS_PATH = get_css_path()
-# try:
-#     import pyside2uic as uic
-# except:
-# #     from Framework.lib import pysideuic as uic
-#     import pysideuic as uic
-# 
-# # print uic
-# import xml.etree.ElementTree as xml
-# from cStringIO import StringIO
+try:
+    import pyside2uic as uic
+except:
+#     from Framework.lib import pysideuic as uic
+    import pysideuic as uic
+
+# print uic
+import xml.etree.ElementTree as xml
+from cStringIO import StringIO
 
 def loadUiWidget(uifilename, parent=None):
     """
@@ -42,31 +42,31 @@ def loadUiWidget(uifilename, parent=None):
     # uifile.close()
 
     return oUi
-# def load_ui_type(uiFile):
-#     """Summary
-# 
-#     Args:
-#         uiFile (TYPE): Description
-# 
-#     Returns:
-#         TYPE: Description
-#     """
-# 
-#     parsed = xml.parse(uiFile)
-#     widget_class = parsed.find('widget').get('class')
-#     form_class = parsed.find('class').text
-# 
-#     with open(uiFile, 'r') as f:
-#         o = StringIO()
-#         frame = {}
-#         uic.compileUi(f, o, indent=0)
-#         pyc = compile(o.getvalue(), '<string>', 'exec')
-#         exec pyc in frame
-#         # Fetch the base_class and form class based on their type in the xml
-#         # from designer
-#         form_class = frame['Ui_%s' % form_class]
-#         base_class = eval('QtWidgets.%s' % widget_class)
-#     return form_class, base_class
+def load_ui_type(uiFile):
+    """Summary
+
+    Args:
+        uiFile (TYPE): Description
+
+    Returns:
+        TYPE: Description
+    """
+
+    parsed = xml.parse(uiFile)
+    widget_class = parsed.find('widget').get('class')
+    form_class = parsed.find('class').text
+
+    with open(uiFile, 'r') as f:
+        o = StringIO()
+        frame = {}
+        uic.compileUi(f, o, indent=0)
+        pyc = compile(o.getvalue(), '<string>', 'exec')
+        exec pyc in frame
+        # Fetch the base_class and form class based on their type in the xml
+        # from designer
+        form_class = frame['Ui_%s' % form_class]
+        base_class = eval('QtWidgets.%s' % widget_class)
+    return form_class, base_class
 
 '''
 #===============================================================================
