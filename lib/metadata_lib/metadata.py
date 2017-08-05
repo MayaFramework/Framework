@@ -9,6 +9,7 @@ class Metadata(object):
         self.scene_path = None
         self.scene_version = None
         self.dependencies = None
+        self.image = None
 
     def __getitem__(self, value):
         return self.__dict__[value]    
