@@ -12,9 +12,7 @@ import time
 reload(temp_config)
 reload(gui_loader)
 
-
 PROJECT_ROOT = r"P:/"
-
 
 form, base = gui_loader.load_ui_type(os.path.join(
     os.path.dirname(__file__), "gui", "main.ui"))
