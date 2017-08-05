@@ -1,5 +1,6 @@
 """Summary
-
+@author: Miguel Molledo
+@Direction: miguel.molledo.alvarez@gmail.com
 Attributes:
     checker_widget (TYPE): Description
     general_batery_check (TYPE): Description
