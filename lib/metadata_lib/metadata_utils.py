@@ -54,3 +54,20 @@ def get_metadata_of_scene():
 def open_maya_file(metadata_file):
     metadata_data = make_metadata_from_local(metadata_file)
     cmds.file(os.path.normpath(metadata_data.scene_path))
+
+
+def generate_snapshot(image_path):
+    cmds.playblast( frame=1,
+                    format="image",
+                    completeFilename="{}".format(image_path),
+                    sequenceTime=0,
+                    clearCache=1,
+                    viewer=0,
+                    offScreen=True,
+                    fp=0,
+                    percent=100,
+                    compression="png",
+                    quality=100,
+                    widthHeight=(240,175),
+                    showOrnaments=False )
+    return image_path
