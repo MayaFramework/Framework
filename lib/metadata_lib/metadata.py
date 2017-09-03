@@ -1,5 +1,9 @@
 import os
 import json
+import metadata_utils
+
+import getpass
+from datetime import datetime
 
 
 class Metadata(object):
@@ -53,10 +57,10 @@ class Metadata(object):
 class MetadataLocal(Metadata):
     def __init__(self, metadata=None):
         super(MetadataLocal, self).__init__()
-        if metadata:
-            if not isinstance(metadata, dict):
-                raise TypeError("Metadata should be a dict")
-            self.metadata = metadata
+        # if metadata:
+        #     if not isinstance(metadata, dict):
+        #         raise TypeError("Metadata should be a dict")
+        self.metadata = metadata
 
     def save_metadata(self, path):
         if not os.path.isdir(path):
@@ -73,6 +77,29 @@ class MetadataLocal(Metadata):
         metadata_file = self.save_metadata(metadata_folder)
         return metadata_file
 
+    @staticmethod    
+    def generate_metadata(metadata_path):
+        # metadata_path = metadata_utils.generate_metadata_path(scene_path)
+        metadata = None
+        if os.path.isfile(metadata_path):
+            with open(metadata_path) as json_data:
+                metadata_data = json.load(json_data)            
+            metadata = MetadataLocal(metadata_data)
+        return metadata
+
+    @staticmethod
+    def generate_metadata_from_scene(scene_path, save=True):
+        maya_metadata = {
+            "author" : getpass.getuser(),
+            "modified": str(datetime.now()).split(".")[0],
+            "scene_path": scene_path,
+            "scene_version": scene_path.split(".")[1], # Necesitamos marcar un naming convention para las versiones
+            "dependencies": ["Caca", "Culo", "Pedo", "Pis"]
+        }
+        local_metadata = MetadataLocal(maya_metadata)
+        if save:
+            metadata_file = local_metadata.save_local_metadata()
+        return local_metadata
 
 
 
