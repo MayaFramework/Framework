@@ -43,6 +43,9 @@ class Metadata(object):
     def scene_name(self):
         return os.path.basename(self.scene_path).rsplit(".", 1)[0]
 
+    def keys(self):
+        return self.__dict__.keys()
+
     def get(self, key):
         return self.__dict__[key]
 
