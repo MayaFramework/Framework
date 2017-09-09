@@ -36,7 +36,7 @@ class Uploader(object):
             aux_dict[self.FILTERED_KEY] = []
             aux_dict[self.NOT_FILTERED_KEY] = []
             for dependency in dependencies:
-                if self.FILTER_PATH in dependency:
+                if self.FILTER_PATH in dependency and os.path.exists(dependency):
                     aux_dict[self.FILTERED_KEY].append(dependency)
                 else:
                     aux_dict[self.NOT_FILTERED_KEY].append(dependency)

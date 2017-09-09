@@ -177,7 +177,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         try:
             if not self.dropboxManager:
                 self.dropboxManager = DropboxManager(
-                    token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+                    token=self._config["dpx_token"])
 
             item.setIcon(QtGui.QIcon(
                 os.path.join(ICO_PATH, "downloading.png")))
@@ -217,8 +217,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_update_btn_clicked(self):
         self.set_loading_visible(True)
         self.reset_state()
-        self.create_default_folders_on_target(self.get_current_text())
-        self.get_file_depndencies(self.get_current_text())
+        current_path_file = self.dropboxManager.getTargetPath(self.get_current_text())
+        if not os.path.exists(current_path_file):
+            self.dropboxManager.downloadFile(current_path_file)
+        self.create_default_folders_on_target(current_path_file)
+        self.get_file_depndencies(current_path_file)
 
     def create_default_folders_on_target(self, file_path):
 #       folders_list = ",".join(["wip","mps","out","ref","chk"])
@@ -241,7 +244,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
         command = '"{0}" -file "{1}"'.format(maya_path,
-                                             self.get_current_text())
+                                             self.dropboxManager.getTargetPath(self.get_current_text()))
         f_util.execute_command(command)
 
     def set_loading_gif(self, label):

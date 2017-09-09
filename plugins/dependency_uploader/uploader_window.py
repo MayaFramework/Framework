@@ -54,7 +54,7 @@ class UploaderWindow(QtWidgets.QDialog):
         files_to_upload = self.find_tree_selection()
         files_to_upload.append(self.get_file_path())
         files_text = "\n".join(files_to_upload)
-        message = "You are going to upload these files, are you agree?\n %s " % files_text
+        message = "You are going to upload these files, do you agree?\n %s " % files_text
         prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
         if not prompt.get_response():
             return
