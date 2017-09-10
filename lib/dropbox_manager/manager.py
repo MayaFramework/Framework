@@ -132,7 +132,11 @@ class DropboxManager(object):
         hard code at the beginning of this class
         for something less ugly 
         """
-        base,file_name = file_path.rsplit("/", 1)
+        if file_path.startswith("/"):
+            base,file_name = file_path[1:].split("/", 1)
+        else:
+            base, file_name = file_path.split("/", 1)
+            
         path = os.path.join(base.lower() ,file_name)
         if path.startswith(self._base_path.lower()):
             path = path.split("/", 1)[1]
@@ -164,9 +168,13 @@ class DropboxManager(object):
             return response
 
     def getTargetPath(self, path):
+        path = self.normpath(path)
         if path.startswith("/"):
-            base,file_name = path.rsplit("/", 1)
-            path = os.path.join(base.lower() ,file_name).split("/",1)[1]
+            base,file_name = path[1:].split("/", 1)
+#         else:
+#             base,file_name = path.split("/", 1)
+
+            path = self.normpath(os.path.join(base.lower() ,file_name))
 
             if path.startswith(self.__subfolder.lower()) :
                 return self.normpath(os.path.join(self._base_path + "/", path.split("/",1)[1]))
@@ -174,12 +182,11 @@ class DropboxManager(object):
                 return self.normpath(os.path.join(self._base_path + "/", path))
         else:
             if path.startswith(self.__subfolder.lower()):
-                base,file_name = path.rsplit("/", 1)
-                return  self.normpath(os.path.join(self._base_path + "/",base.split("/",1)[1].lower(),file_name))
+                base,file_name = path.split("/", 1)
+                return  self.normpath(os.path.join(self._base_path + "/",file_name))
             elif path.startswith(self._base_path):
-                base,file_name = path.rsplit("/", 1)
-                return self.normpath(os.path.join(base.lower().replace(self._base_path.lower(), self._base_path.upper()),file_name))
-
+                disk,base,file_name = path.split("/", 2)
+                return self.normpath(os.path.join(disk.upper()+"/",base.lower(), file_name))
 
     def getChildrenFromFolder(self,folder):
         folder = self.getDropboxPath(folder)
@@ -200,6 +207,13 @@ class DropboxManager(object):
 if __name__ == "__main__":
     dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACWFj1dK-eg6oDDYFu8a9EdloBJFw8SAOVL7KtK2WqDAl4")
     file_path = r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    print dpx.existFile(file_path)
+    print dpx.getTargetPath(file_path)
+    file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+    print dpx.getTargetPath(file_path)
+    file_path = r"work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+    print dpx.getTargetPath(file_path)
+    file_path = r"\\work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+    print dpx.getTargetPath(file_path)
+
 
 # dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")

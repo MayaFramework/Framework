@@ -66,6 +66,7 @@ class Uploader(object):
         try to move the file from the source to the target
         upload the new file ino the source path
         """
+        file_path = self.dpx.normpath(file_path)
         if not self.check_file_structure(file_path):
             return False
         # check folder

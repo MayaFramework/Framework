@@ -244,7 +244,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
         command = '"{0}" -file "{1}"'.format(maya_path,
-                                             self.dropboxManager.getTargetPath(self.get_current_text()))
+                                             str(self.dropboxManager.getTargetPath(self.get_current_text())))
         f_util.execute_command(command)
 
     def set_loading_gif(self, label):

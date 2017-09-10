@@ -149,6 +149,8 @@ class UploaderWindow(QtWidgets.QDialog):
         """
         tree_info = tree_widget.get_elements_checked(self.inspection_tree)
         aux_list = []
+        if not "Files" in tree_info:
+            return aux_list
         for path, value in tree_info["Files"].iteritems():
             # TODO Here check how to get the value from CheckState to after return the state
             if (value["CheckState"] == 2) and os.path.exists(path):
