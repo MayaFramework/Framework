@@ -71,9 +71,13 @@ class UploaderWindow(QtWidgets.QDialog):
         new_row = NewRowPrompt()
         new_row.exec_()
         file_path = new_row.get_file_path()
+        #Check return
         if not file_path:
             return
-
+        file_path = self.uploader.dpx.normpath(file_path)
+        #check if currently exists in the list
+        if self.inspection_tree.findItems(file_path, QtCore.Qt.MatchExactly, 0):
+            return
         tree_item = QtWidgets.QTreeWidgetItem(self.inspection_tree)
         tree_item.setText(0, file_path)
         tree_item.setCheckState(0, QtCore.Qt.Checked)
