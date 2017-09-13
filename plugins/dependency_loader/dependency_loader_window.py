@@ -10,7 +10,7 @@ from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ma_utils.reader import MaReader
 from Framework.lib.dropbox_manager.manager import DropboxManager
-from Framework import get_environ_file, get_css_path, get_icon_path
+from Framework import get_environ_file, get_css_path, get_icon_path, get_environ_config
 from Framework.lib.file import utils as f_util
 from Framework.lib.ui.widgets.common_widgets import MessageWindow
 import DATA
@@ -44,11 +44,12 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def __init__(self):
         super(DependencyLoaderWidget, self).__init__()
 #         self.setupUi(self)
+        self._config = get_environ_config()
         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
         self.dropboxManager = DropboxManager(
-            token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+            token=self._config["dpx_token"])
         # Loading Text and Movie
         self.set_loading_gif(self.loading_label)
         self.downloading_text.setText("Downloading...")
@@ -133,6 +134,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                 t.start()
 
     def add_item_in_list(self, key):
+        if key.startswith("P:bm2"):
+            print "VERGA"
         listItem = QtWidgets.QListWidgetItem(key)
         listItem.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "question.png")))
         self.dependency_list.addItem(listItem)
@@ -174,7 +177,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         try:
             if not self.dropboxManager:
                 self.dropboxManager = DropboxManager(
-                    token="MspKxtKRUgAAAAAAAAAHPJW-Ckdm7XX_jX-sZt7RyGfIC7a7egwG-JqtxVNzOSJZ")
+                    token=self._config["dpx_token"])
 
             item.setIcon(QtGui.QIcon(
                 os.path.join(ICO_PATH, "downloading.png")))
@@ -214,8 +217,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_update_btn_clicked(self):
         self.set_loading_visible(True)
         self.reset_state()
-        self.create_default_folders_on_target(self.get_current_text())
-        self.get_file_depndencies(self.get_current_text())
+        current_path_file = self.dropboxManager.getTargetPath(self.get_current_text())
+        if not os.path.exists(current_path_file):
+            self.dropboxManager.downloadFile(current_path_file)
+        self.create_default_folders_on_target(current_path_file)
+        self.get_file_depndencies(current_path_file)
 
     def create_default_folders_on_target(self, file_path):
 #       folders_list = ",".join(["wip","mps","out","ref","chk"])
@@ -238,7 +244,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
         command = '"{0}" -file "{1}"'.format(maya_path,
-                                             self.get_current_text())
+                                             str(self.dropboxManager.getTargetPath(self.get_current_text())))
         f_util.execute_command(command)
 
     def set_loading_gif(self, label):
