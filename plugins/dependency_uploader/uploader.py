@@ -36,7 +36,7 @@ class Uploader(object):
             aux_dict[self.FILTERED_KEY] = []
             aux_dict[self.NOT_FILTERED_KEY] = []
             for dependency in dependencies:
-                if self.FILTER_PATH in dependency:
+                if self.FILTER_PATH in dependency and os.path.exists(dependency):
                     aux_dict[self.FILTERED_KEY].append(dependency)
                 else:
                     aux_dict[self.NOT_FILTERED_KEY].append(dependency)
@@ -66,6 +66,7 @@ class Uploader(object):
         try to move the file from the source to the target
         upload the new file ino the source path
         """
+        file_path = self.dpx.normpath(file_path)
         if not self.check_file_structure(file_path):
             return False
         # check folder

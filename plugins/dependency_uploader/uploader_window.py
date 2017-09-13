@@ -54,7 +54,7 @@ class UploaderWindow(QtWidgets.QDialog):
         files_to_upload = self.find_tree_selection()
         files_to_upload.append(self.get_file_path())
         files_text = "\n".join(files_to_upload)
-        message = "You are going to upload these files, are you agree?\n %s " % files_text
+        message = "You are going to upload these files, do you agree?\n %s " % files_text
         prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
         if not prompt.get_response():
             return
@@ -71,9 +71,13 @@ class UploaderWindow(QtWidgets.QDialog):
         new_row = NewRowPrompt()
         new_row.exec_()
         file_path = new_row.get_file_path()
+        #Check return
         if not file_path:
             return
-
+        file_path = self.uploader.dpx.normpath(file_path)
+        #check if currently exists in the list
+        if self.inspection_tree.findItems(file_path, QtCore.Qt.MatchExactly, 0):
+            return
         tree_item = QtWidgets.QTreeWidgetItem(self.inspection_tree)
         tree_item.setText(0, file_path)
         tree_item.setCheckState(0, QtCore.Qt.Checked)
@@ -149,6 +153,8 @@ class UploaderWindow(QtWidgets.QDialog):
         """
         tree_info = tree_widget.get_elements_checked(self.inspection_tree)
         aux_list = []
+        if not "Files" in tree_info:
+            return aux_list
         for path, value in tree_info["Files"].iteritems():
             # TODO Here check how to get the value from CheckState to after return the state
             if (value["CheckState"] == 2) and os.path.exists(path):
