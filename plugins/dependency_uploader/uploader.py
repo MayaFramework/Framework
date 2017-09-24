@@ -82,7 +82,7 @@ class Uploader(object):
                 """
                 self.dpx.moveFile(resource_file=file_path,target_file=target, autorename=True)
             except Exception as e:
-                msg = "Trying to move a file that could be no exists [THX DROPBOX♥]"
+                msg = "Trying to move a file that could be no exists [THX DROPBOX]"
                 print msg
                 print e
         result = self.dpx.uploadFile(file_path, overwrite=True)
