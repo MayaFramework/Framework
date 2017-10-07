@@ -47,7 +47,7 @@ class Metadata(object):
         return self.__dict__.keys()
 
     def get(self, key):
-        return self.__dict__[key]
+        return self.__dict__.get(key, None)
 
     def remove(self, key):
         self.__dict__.pop(key, None)

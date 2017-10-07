@@ -34,8 +34,22 @@ class Scene(object):
                         "{}.metadata".format(scene_name.rsplit(".", 1)[0])
                         ).replace("\\", '/')
 
+    @property
+    def scene_modified(self):
+        return cmds.file(q=True, modified=True)
+
+    @property
+    def notes(self):
+        return self.metadata.notes
+
+    def add_notes(self, notes):
+        self.metadata.notes = notes
+        self.metadata.save_local_metadata()
+
     def save_scene(self, force=True, create_snapshot=False):
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
+        if not self.scene_modified:
+            raise Exception("Nothing to save")
         mel.eval("incrementAndSaveScene 0")
         self.scene_path = cmds.file(q=True, sn=True)
         if not self.metadata:

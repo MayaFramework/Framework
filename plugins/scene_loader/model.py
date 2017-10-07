@@ -4,7 +4,8 @@ from functools import partial
 
 import controller
 from Framework.lib.gui_loader import gui_loader
-from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
+# from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
 from Framework.lib.metadata_lib import metadata, metadata_utils
 from core import scene, folder
 
@@ -51,10 +52,15 @@ class SceneLoaderUI(form, base):
 
     @scene_selected.setter
     def scene_selected(self, value):
+        if not isinstance(value, scene.Scene):
+            raise Exception
         self.__scene_selected = value
 
     def __default_state_window(self):
         self.__populate_initial_combo()
+        self.saveLocalBT.setIcon(self.OPENSCENE)
+
+        self.sceneLW.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
     def __connect_default_signals(self):
         self.categoryCB.activated.connect(self.__category_changed)
@@ -62,10 +68,13 @@ class SceneLoaderUI(form, base):
         self.secondLevelLW.itemClicked.connect(partial(self.__selection_changed, self.secondLevelLW))
         self.thirdLevelLW.itemClicked.connect(partial(self.__selection_changed, self.thirdLevelLW))
         self.fourthLevelLW.itemClicked.connect(partial(self.__selection_changed, self.fourthLevelLW))
-        self.fifthLevelLW.itemClicked.connect(partial(self.__selection_changed, self.fifthLevelLW))
+        # self.fifthLevelLW.itemClicked.connect(partial(self.__selection_changed, self.fifthLevelLW))
+        self.fifthLevelLW.itemClicked.connect(self.__fill_maya_files)
         self.sceneLW.itemClicked.connect(self.__scene_selectedCB)
+        self.sceneLW.customContextMenuRequested.connect(self.__scene_context_menu)
+        self.notesBT.clicked.connect(self.__add_notes)
 
-        self.loadSceneBT.clicked.connect(self.load_scene)
+        # self.loadSceneBT.clicked.connect(self.load_scene)
         self.saveLocalBT.clicked.connect(self.save_scene)
 
     def __populate_initial_combo(self):
@@ -102,11 +111,22 @@ class SceneLoaderUI(form, base):
             self.dateLB.setText(scene_item.metadata.modified)
             self.scene_image_pixmap.setPixmap(QtGui.QPixmap(scene_item.metadata.image))
             self.userLB.setText(scene_item.metadata.author)
+        else:
+            self.dateLB.setText("")
+            self.scene_image_pixmap.setPixmap(QtGui.QPixmap(""))
+            self.userLB.setText("")
 
     def __populate_lists(self, list_widget, paths):
+        """
+        Populate the given list with the following paths
+        :param list_widget: str QListWidgetItem objectName
+        :param paths: list Paths
+        :return:
+        """
         self.__clean(list_widget)
         for path in paths:
             list_item = QtWidgets.QListWidgetItem()
+            list_widget.addItem(list_item)            
             if os.path.isdir(path):
                 item_obj = folder.Folder(path)
                 list_item.setData(QtCore.Qt.UserRole, item_obj)
@@ -114,8 +134,16 @@ class SceneLoaderUI(form, base):
             elif path.endswith(".ma") or path.endswith(".mb"):
                 item_obj = scene.Scene(path)
                 list_item.setData(QtCore.Qt.UserRole, item_obj)
-                list_item.setText(item_obj.scene_name)                
-            list_widget.addItem(list_item)
+                # list_item.setText(item_obj.scene_name)
+                scene_widget = SceneWidget(item_obj)
+                list_item.setSizeHint(QtCore.QSize(0,30))
+                list_widget.setItemWidget(list_item, scene_widget)
+
+    def __fill_maya_files(self, list_item):
+        item_data = list_item.data(QtCore.Qt.UserRole)
+        if isinstance(item_data, folder.Folder):
+            self.__populate_lists(self.sceneLW, item_data.children_maya_files)
+        self.final_path = item_data.folder_path
 
     def __clean(self, list_widget):
         found = False
@@ -127,6 +155,30 @@ class SceneLoaderUI(form, base):
             else:
                 found = True
                 list_widget.clear()
+
+    def __scene_context_menu(self, pos):
+        item = self.sceneLW.itemAt(pos)
+        disabled = False if item else True
+        menu = self.__generate_menu(disabled)
+        menu.move(self.sceneLW.mapToGlobal(pos))
+        menu.exec_()
+
+    def __generate_menu(self, disabled=False):
+        menu = QtWidgets.QMenu()
+        menu.addAction("Create new scene", self.__generate_new_scene)
+        note = menu.addAction("Create Note")
+        if disabled:
+            note.setEnabled(not disabled)
+        return menu
+
+    def __add_notes(self):
+        notes = "TEST NOTES"
+        if notes:
+            self.scene_selected.add_notes(notes)
+
+    def __generate_new_scene(self):
+        new_scene = controller.generate_new_scene(self.final_path)
+        print new_scene
 
     def load_scene(self):
         if self.scene_selected:
@@ -156,3 +208,37 @@ class SceneItem(QtWidgets.QListWidgetItem):
 
     def __default_state_window(self):
         self.setText(self.scene_obj.scene_name)
+
+
+form, base = gui_loader.load_ui_type(os.path.join(
+    os.path.dirname(__file__), "gui", "scene_widget.ui")) 
+
+       
+class SceneWidget(form, base):
+
+    def __init__(self, scene_obj):
+        super(SceneWidget, self).__init__()
+        self.setupUi(self)
+        self.scene_obj = scene_obj
+
+        self.__default_state_window()
+        self.__connect_default_signals()
+
+    @property
+    def metadata(self):
+        return self.scene_obj.metadata
+
+    def __default_state_window(self):
+        self.sceneLB.setText(self.scene_obj.scene_name)
+        if self.metadata:
+            self.iconLB.setPixmap(QtGui.QPixmap(self.metadata.image))
+
+    def __connect_default_signals(self):
+        self.openBT.clicked.connect(self.open_scene)
+
+    def open_scene(self):
+        self.scene_obj.load_scene()
+
+    def mousePressEvent(self, event):
+        super(SceneWidget, self).mousePressEvent(event)
+        # print "test"

@@ -16,3 +16,10 @@ class Folder(object):
     def children_full_path(self):
         return sorted([os.path.join(self.folder_path, child).replace("\\", "/") for child in os.listdir(self.folder_path) \
                 if os.path.isdir(os.path.join(self.folder_path, child).replace("\\", "/")) or child.endswith(".ma")])
+
+    @property
+    def children_maya_files(self):
+        maya_files = [os.path.join(self.folder_path, child).replace("\\", "/") for child in os.listdir(self.folder_path) \
+                        if child.endswith(".ma")]
+        maya_files.sort(key=lambda s: os.path.getmtime(s), reverse=True)
+        return maya_files
