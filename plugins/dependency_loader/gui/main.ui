@@ -62,7 +62,7 @@
         <item>
          <widget class="QLineEdit" name="path">
           <property name="text">
-           <string>C:\Users\Miguel\Downloads\bm2_shoani_seq_tst_sot_0300_animation_default_scene_out.ma</string>
+           <string/>
           </property>
          </widget>
         </item>

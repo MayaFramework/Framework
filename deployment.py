@@ -11,6 +11,13 @@ pip.main(['install', package_name])
 package_name='dropbox'
 pip.main(['install', package_name])
 # 
+package_name='requests'
+pip.main(['install', package_name])
+# 
+package_name='urllib3'
+pip.main(['install', package_name])
+# 
+
 
 
 
