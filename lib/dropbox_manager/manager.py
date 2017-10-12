@@ -31,7 +31,7 @@ dpx.downloadFiles(["s:/project/test/audiotest.m4v", "s:/project/test/fileTest.tx
 
 
 import os
-
+import re
 
 class DropboxManager(object):
     __client = None
@@ -41,8 +41,9 @@ class DropboxManager(object):
     _base_path = "P:"
     def __init__(self, token, base_path="", subfolder = ""):
         from Framework.lib.ext_lib import dropbox
+#         import dropbox
         self.DropBox = dropbox
-        self.__client = self.DropBox.client.DropboxClient(token)
+#         self.__client = self.DropBox.client.DropboxClient(token)
         self.__dpx = self.DropBox.dropbox.Dropbox(token)
         if base_path:
             self._base_path = base_path
@@ -57,9 +58,15 @@ class DropboxManager(object):
         if not local_file.startswith(self._base_path):
             raise Exception("Wrong repository")
 
+        if overwrite:
+            mode= self.DropBox.dropbox.files.WriteMode.overwrite
+        else:
+            mode= self.DropBox.dropbox.files.WriteMode.add
+
+
         dropbox_path = self.getDropboxPath(local_file)
         with open(local_file, 'rb') as my_file:
-            response = self.__client.put_file(dropbox_path, my_file, overwrite=overwrite)
+            response = self.__dpx.files_upload(my_file.read(), dropbox_path, mode=mode)
             if response:
                 msg = "UPLOADED FILE: %s" % local_file
                 print msg
@@ -82,7 +89,7 @@ class DropboxManager(object):
 
         try:
             print "DOWNLOADING the file: %s" % dropbox_path
-            self.__dpx.files_download_to_file(target_path,dropbox_path)
+            self.__dpx.files_download_to_file(target_path, dropbox_path)
             print "DOWNLOADING FINISHED"
         except Exception as e:
             message = "Something was wrong downloading the file: %s " % dropbox_path
@@ -143,11 +150,11 @@ class DropboxManager(object):
 
         if self.__subfolder:
             if path.startswith(self.__subfolder.lower()):
-               return self.DropBox.client.format_path(self.normpath(path))
+               return os.path.abspath(self.normpath(path))
             else:
-                return "/" + self.__subfolder.lower() + self.DropBox.client.format_path(self.normpath(path))
+                return "/" + self.__subfolder.lower() + self.format_path(self.normpath(path))
         else:
-            return self.DropBox.client.format_path(self.normpath(path))
+            return self.format_path(self.normpath(path))
 
     def existFile(self,file_path):
         try:
@@ -166,6 +173,24 @@ class DropboxManager(object):
             msg = "MOVED File from: %s to %s" % (resource_file, target_file)
             print msg
             return response
+
+
+    def format_path(self, path):
+        """Normalize path for use with the Dropbox API.
+    
+        This function turns multiple adjacent slashes into single
+        slashes, then ensures that there's a leading slash but
+        not a trailing slash.
+        """
+        if not path:
+            return path
+    
+        path = re.sub(r'/+', '/', path)
+    
+        if path == '/':
+            return ''
+        else:
+            return '/' + path.strip('/')
 
     def getTargetPath(self, path):
         path = self.normpath(path)
@@ -190,11 +215,13 @@ class DropboxManager(object):
 
     def getChildrenFromFolder(self,folder):
         folder = self.getDropboxPath(folder)
-        metadata = self.__client.metadata(folder)
+#         metadata = self.__client.metadata(folder)
+        metadata = self.__dpx.files_list_folder(folder)
         children_path = []
-        for my_data in metadata["contents"]:
-            if len(metadata["contents"]) >1:
-                children_path.append(my_data["path"])
+        for file_metadata in metadata.entries:
+            # Try to find a method defin within metadata but it looks bad
+            if len(file_metadata.path_display.split(".")) == 2:
+                children_path.append(file_metadata.path_display)
         return children_path
 
 
@@ -205,15 +232,23 @@ class DropboxManager(object):
 
 
 if __name__ == "__main__":
-    dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACWFj1dK-eg6oDDYFu8a9EdloBJFw8SAOVL7KtK2WqDAl4")
     file_path = r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    print dpx.getTargetPath(file_path)
-    file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    print dpx.getTargetPath(file_path)
-    file_path = r"work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    print dpx.getTargetPath(file_path)
-    file_path = r"\\work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    print dpx.getTargetPath(file_path)
-
+    dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACZUnt8Ik2KLYN3IX8wzD9j7281aOBECKuMJRzYXlLxiAQ")
+    
+#     print dpx.getDropboxPath(file_path)
+#     dpx.downloadFile(file_path)
+#     dpx.cleanBasePath(file_path)
+#     dpx.uploadFile(file_path, overwrite=True)
+    print dpx.getChildrenFromFolder(file_path.rsplit("\\",1)[0])
+# #     print dpx.getTargetPath(file_path)
+# #     file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+# #     print dpx.getTargetPath(file_path)
+# #     file_path = r"work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+# #     print dpx.getTargetPath(file_path)
+# #     file_path = r"\\work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+# #     print dpx.getTargetPath(file_path)
+#     path = "/work/BM2/elm"
+#     print dpx.getAllrecursiveChildren(dpx.normpath(path))
+#     "work/bm2/elm/gafasGato_TEST/sha/high/shading/wip/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_wip_0011.ma"
 
 # dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")

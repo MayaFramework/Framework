@@ -19,10 +19,6 @@ ICON_PATH = get_icon_path()
 
 
 
-# def setStyleSheet(uiClass, cssFile):
-#     file = open(cssFile).read()
-#     uiClass.setStyleSheet(file)
-
 
 class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
@@ -94,11 +90,15 @@ class UploaderWindow(QtWidgets.QDialog):
 
     def get_file_path(self):
         file_path = self.path_line_edit.text()
+        while file_path.startswith(" ") or file_path.endswith(" "):
+            file_path = file_path.replace(" ", "")
         if not file_path:
             raise Exception("Nothing defined in the file path box")
         if not os.path.exists(file_path):
             raise Exception("Not file path found on local disk: %s " % file_path)
-        return file_path
+
+        self.path_line_edit.setText(file_path)
+        return self.uploader.dpx.normpath(file_path)
 
     def fill_tree_widget(self, file_path):
         self.inspection_tree.clear()
@@ -289,9 +289,12 @@ class NewRowPrompt(QtWidgets.QDialog):
 
     def get_file_path(self):
         file_path =self.file_path_lineEdit.text()
+        while file_path.startswith(" ") or file_path.endswith(" "):
+            file_path = file_path.replace(" ", "")
         if not os.path.exists(file_path):
             return ""
         else:
+            self.file_path_lineEdit.setText(file_path)
             return file_path
 
 

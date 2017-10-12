@@ -16,10 +16,23 @@ class Uploader(object):
     FILTER_PATH = "/mps/"
     FILTERED_KEY = "filtered"
     NOT_FILTERED_KEY = "not_filtered"
+    _work_environ = ""
     def __init__(self):
         self._config = get_environ_config()
         self.dpx = DropboxManager(self._config["dpx_token"])
         self._ma_reader = MaReader()
+
+
+    @property
+    def work_environ(self):
+        """
+        Work environ works to know which dependencies are the target to be uploaded
+        """
+        return self._work_environ
+    
+    @work_environ.setter
+    def work_environ(self, value):
+        self._work_environ = value if isinstance(value, (str,unicode)) else ""
 
     def get_dependencies(self, file_path):
         """
@@ -30,13 +43,14 @@ class Uploader(object):
         if not file_path.endswith(".ma"):
             return False
 
+        self.work_environ = file_path.rsplit("/",2)[0]
         dependencies = self._ma_reader.get_references(file_path)
         if dependencies and isinstance(dependencies, dict):
             aux_dict = {}
             aux_dict[self.FILTERED_KEY] = []
             aux_dict[self.NOT_FILTERED_KEY] = []
             for dependency in dependencies:
-                if self.FILTER_PATH in dependency and os.path.exists(dependency):
+                if self.pass_filter(dependency):
                     aux_dict[self.FILTERED_KEY].append(dependency)
                 else:
                     aux_dict[self.NOT_FILTERED_KEY].append(dependency)
@@ -45,6 +59,30 @@ class Uploader(object):
 
 
         return dependencies
+
+    def pass_filter(self, file_path):
+        """
+        Args:
+            file_path(str/unicode): File Root
+
+        return:
+            True: if it pass every check
+            False: if it didnt pass any check
+
+        """
+        # check Format
+        if not isinstance(file_path, (str, unicode)):
+            return False
+
+        # Check if the content exists
+        if not os.path.exists(file_path):
+            return False
+
+        # Check work environ
+        if file_path.startswith(self.work_environ):
+            return False
+
+        return True
 
     def upload_files(self, files, call_back_func=None, **callback_args):
         """
@@ -110,4 +148,7 @@ class Uploader(object):
         return True
 
 if __name__ == "__main__":
-    Uploader()
+    a = Uploader()
+    path = a.dpx.normpath(r"P:\bm2\seq\tst\sho\440\render\out\bm2_shoscn_seq_tst_sho_440_scncmp_gato_turnArroundNeutralLigh_out.ma")
+    print path.split("/")[-3]
+    
