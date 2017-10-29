@@ -40,6 +40,18 @@ class Uploader(object):
         and later organize this result for keys filtered or not filtered
         FILTER_PATH Used to filter the result
         """
+        def filter_dependency(dependency, aux_dict):
+            """
+            This method pass checks and order dependencies inserting them into  
+            the  correct keys
+            """
+            if self.pass_filter(dependency):
+                if dependency not in aux_dict[self.FILTERED_KEY]:
+                    aux_dict[self.FILTERED_KEY].append(dependency)
+            else:
+                if dependency not in aux_dict[self.NOT_FILTERED_KEY]:
+                    aux_dict[self.NOT_FILTERED_KEY].append(dependency)
+
         if not file_path.endswith(".ma"):
             return False
 
@@ -50,15 +62,15 @@ class Uploader(object):
             aux_dict[self.FILTERED_KEY] = []
             aux_dict[self.NOT_FILTERED_KEY] = []
             for dependency in dependencies:
-                if self.pass_filter(dependency):
-                    aux_dict[self.FILTERED_KEY].append(dependency)
+                dependency = self.dpx.normpath(dependency)
+                if "/mps/" in dependency and os.path.exists(dependency.rsplit("/",1)[0]):
+                    sub_dependencies = self.get_children_files_from_local_folder(dependency.rsplit("/",1)[0])
+                    for x in sub_dependencies:
+                        filter_dependency(x, aux_dict)
                 else:
-                    aux_dict[self.NOT_FILTERED_KEY].append(dependency)
+                    filter_dependency(dependency, aux_dict)
 
-            dependencies = aux_dict
-
-
-        return dependencies
+            return aux_dict
 
     def pass_filter(self, file_path):
         """
@@ -79,7 +91,7 @@ class Uploader(object):
             return False
 
         # Check work environ
-        if file_path.startswith(self.work_environ):
+        if not file_path.startswith(self.work_environ):
             return False
 
         return True
@@ -146,9 +158,16 @@ class Uploader(object):
         if not file.startswith(self.dpx._base_path):
             return False
         return True
+    
+    def get_children_files_from_local_folder(self, directory):
+
+        return [self.dpx.normpath(os.path.join(directory, file_name))for file_name in os.listdir(directory) 
+                        if os.path.exists(os.path.join(directory,file_name))]
+    
 
 if __name__ == "__main__":
     a = Uploader()
     path = a.dpx.normpath(r"P:\bm2\seq\tst\sho\440\render\out\bm2_shoscn_seq_tst_sho_440_scncmp_gato_turnArroundNeutralLigh_out.ma")
     print path.split("/")[-3]
-    
+
+

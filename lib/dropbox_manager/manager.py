@@ -216,7 +216,11 @@ class DropboxManager(object):
     def getChildrenFromFolder(self,folder):
         folder = self.getDropboxPath(folder)
 #         metadata = self.__client.metadata(folder)
-        metadata = self.__dpx.files_list_folder(folder)
+        try:
+            metadata = self.__dpx.files_list_folder(folder)
+        except Exception as e:
+            print e
+            return []
         children_path = []
         for file_metadata in metadata.entries:
             # Try to find a method defin within metadata but it looks bad
@@ -232,14 +236,14 @@ class DropboxManager(object):
 
 
 if __name__ == "__main__":
-    file_path = r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-    dpx = DropboxManager(token="5e9ZZ9cN4roAAAAAAAACZUnt8Ik2KLYN3IX8wzD9j7281aOBECKuMJRzYXlLxiAQ")
-    
+    file_path = r"P:/bm2/lib/LIG/preLightingSet/neutralLig/main/mps"
+    dpx = DropboxManager()
+#     file_path  = r"P:/bm2/seq/tst/sho/1000/hair/mps/v02"
 #     print dpx.getDropboxPath(file_path)
 #     dpx.downloadFile(file_path)
 #     dpx.cleanBasePath(file_path)
 #     dpx.uploadFile(file_path, overwrite=True)
-    print dpx.getChildrenFromFolder(file_path.rsplit("\\",1)[0])
+    print dpx.getChildrenFromFolder(file_path)
 # #     print dpx.getTargetPath(file_path)
 # #     file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
 # #     print dpx.getTargetPath(file_path)
