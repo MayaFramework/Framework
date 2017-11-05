@@ -73,16 +73,16 @@ class PathRoot(bb.Union):
     :ivar home: Paths are relative to the authenticating user's home directory,
         whether or not that user belongs to a team.
     :ivar member_home: Paths are relative to the authenticating team member's
-        home directory. (This results in ``PathRootError.invalid`` if the user
-        does not belong to a team.).
+        home directory. (This results in :field:`PathRootError.invalid' if the
+        user does not belong to a team.)
     :ivar str team: Paths are relative to the given team directory. (This
         results in :field:`PathRootError.invalid` if the user is not a member of
-        the team associated with that path root id.).
+        the team associated with that path root id.)
     :ivar user_home: Paths are relative to the user's home directory. (This
-        results in ``PathRootError.invalid`` if the belongs to a team.).
-    :ivar str namespace_id: Paths are relative to given namespace id (This
+        results in ``PathRootError.invalid`` if the belongs to a team.)
+    :ivar str shared_folder: Paths are relative to given shared folder id (This
         results in :field:`PathRootError.no_permission` if you don't have access
-        to this namespace.).
+        to  this shared folder.)
     """
 
     _catch_all = 'other'
@@ -107,15 +107,15 @@ class PathRoot(bb.Union):
         return cls('team', val)
 
     @classmethod
-    def namespace_id(cls, val):
+    def shared_folder(cls, val):
         """
-        Create an instance of this class set to the ``namespace_id`` tag with
+        Create an instance of this class set to the ``shared_folder`` tag with
         value ``val``.
 
         :param str val:
         :rtype: PathRoot
         """
-        return cls('namespace_id', val)
+        return cls('shared_folder', val)
 
     def is_home(self):
         """
@@ -149,13 +149,13 @@ class PathRoot(bb.Union):
         """
         return self._tag == 'user_home'
 
-    def is_namespace_id(self):
+    def is_shared_folder(self):
         """
-        Check if the union tag is ``namespace_id``.
+        Check if the union tag is ``shared_folder``.
 
         :rtype: bool
         """
-        return self._tag == 'namespace_id'
+        return self._tag == 'shared_folder'
 
     def is_other(self):
         """
@@ -169,7 +169,7 @@ class PathRoot(bb.Union):
         """
         Paths are relative to the given team directory. (This results in
         ``PathRootError.invalid`` if the user is not a member of the team
-        associated with that path root id.).
+        associated with that path root id.)
 
         Only call this if :meth:`is_team` is true.
 
@@ -179,18 +179,18 @@ class PathRoot(bb.Union):
             raise AttributeError("tag 'team' not set")
         return self._value
 
-    def get_namespace_id(self):
+    def get_shared_folder(self):
         """
-        Paths are relative to given namespace id (This results in
-        ``PathRootError.no_permission`` if you don't have access to this
-        namespace.).
+        Paths are relative to given shared folder id (This results in
+        ``PathRootError.no_permission`` if you don't have access to  this shared
+        folder.)
 
-        Only call this if :meth:`is_namespace_id` is true.
+        Only call this if :meth:`is_shared_folder` is true.
 
         :rtype: str
         """
-        if not self.is_namespace_id():
-            raise AttributeError("tag 'namespace_id' not set")
+        if not self.is_shared_folder():
+            raise AttributeError("tag 'shared_folder' not set")
         return self._value
 
     def __repr__(self):
@@ -271,12 +271,10 @@ PathRootError_validator = bv.Union(PathRootError)
 
 Date_validator = bv.Timestamp(u'%Y-%m-%d')
 DisplayName_validator = bv.String(min_length=1, pattern=u'[^/:?*<>"|]*')
-DisplayNameLegacy_validator = bv.String(min_length=1)
 DropboxTimestamp_validator = bv.Timestamp(u'%Y-%m-%dT%H:%M:%SZ')
 EmailAddress_validator = bv.String(max_length=255, pattern=u"^['&A-Za-z0-9._%+-]+@[A-Za-z0-9-][A-Za-z0-9.-]*.[A-Za-z]{2,15}$")
 NamePart_validator = bv.String(min_length=1, max_length=100, pattern=u'[^/:?*<>"|]*')
 NamespaceId_validator = bv.String(pattern=u'[-_0-9a-zA-Z:]+')
-OptionalNamePart_validator = bv.String(max_length=100, pattern=u'[^/:?*<>"|]*')
 PathRootId_validator = NamespaceId_validator
 SessionId_validator = bv.String()
 SharedFolderId_validator = NamespaceId_validator
@@ -288,14 +286,14 @@ PathRoot._home_validator = bv.Void()
 PathRoot._member_home_validator = bv.Void()
 PathRoot._team_validator = PathRootId_validator
 PathRoot._user_home_validator = bv.Void()
-PathRoot._namespace_id_validator = PathRootId_validator
+PathRoot._shared_folder_validator = PathRootId_validator
 PathRoot._other_validator = bv.Void()
 PathRoot._tagmap = {
     'home': PathRoot._home_validator,
     'member_home': PathRoot._member_home_validator,
     'team': PathRoot._team_validator,
     'user_home': PathRoot._user_home_validator,
-    'namespace_id': PathRoot._namespace_id_validator,
+    'shared_folder': PathRoot._shared_folder_validator,
     'other': PathRoot._other_validator,
 }
 

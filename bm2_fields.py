@@ -1,0 +1,6 @@
+PROJECT_FIELDS = ["bm2"]
+WORK_TYPE_FIELDS= ["elmsha"]
+GROUP_FIELDS= ["elm"]
+AREA_FIELDS = ["shading"]
+STEP_FIELDS = ["high"]
+PARTITION_FIELDS = ["chk","out"]

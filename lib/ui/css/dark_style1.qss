@@ -38,7 +38,6 @@ QToolTip
     border: 1px solid #3A3939;
     background-color: rgb(90, 102, 117);
     color: white;
-    padding: 1px;
     opacity: 200;
 }
 

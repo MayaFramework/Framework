@@ -17,16 +17,24 @@ import time
 CSS_PATH = get_css_path()
 ICON_PATH = get_icon_path()
 
+'''
+:Example 
+    work/bm2/elm/gafasgato_test/sha/high/shading/chk/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma
+    
+    template path :
+    {project}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}_.{ext}
 
+:TODO
+- Order list by icons state not by name
+- Check name convention and fix the maya file
 
-# def setStyleSheet(uiClass, cssFile):
-#     file = open(cssFile).read()
-#     uiClass.setStyleSheet(file)
+'''
 
 
 class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
+    CURRENT_AREA_WORK_PATH = ""
     def __init__(self):
         super(UploaderWindow, self).__init__()
         self.setWindowTitle(self.TOOL_NAME)
@@ -39,10 +47,16 @@ class UploaderWindow(QtWidgets.QDialog):
         self._init_widget()
 
     def _init_widget(self):
-        self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"file.png")))
         self.upload_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "upload.png")))
         self.analize_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "search.png")))
         self.add_row_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "add_color.png")))
+        self.check_name_convention_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "fix.png")))
+        
+        self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"file.png")))
+        self.warning_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"warning.png")))
+        self.question_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"question.png")))
+        self.error_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
+        
 
     @QtCore.Slot()
     def on_analize_btn_clicked(self):
@@ -70,7 +84,8 @@ class UploaderWindow(QtWidgets.QDialog):
     def on_add_row_btn_clicked(self):
         new_row = NewRowPrompt()
         new_row.exec_()
-        file_path = new_row.get_file_path()
+        file_path = self.uploader.dpx.normpath(new_row.get_file_path())
+        
         #Check return
         if not file_path:
             return
@@ -81,7 +96,11 @@ class UploaderWindow(QtWidgets.QDialog):
         tree_item = QtWidgets.QTreeWidgetItem(self.inspection_tree)
         tree_item.setText(0, file_path)
         tree_item.setCheckState(0, QtCore.Qt.Checked)
-        tree_item.setIcon(0, QtGui.QIcon(os.path.join(ICON_PATH,"file_add.png")))
+        if file_path.startswith(self.CURRENT_AREA_WORK_PATH):
+            tree_item.setIcon(0, QtGui.QIcon(os.path.join(ICON_PATH,"file_add.png")))
+        else:
+            tree_item.setIcon(0, QtGui.QIcon(os.path.join(ICON_PATH,"warning.png")))
+
         self.inspection_tree.addTopLevelItem(tree_item)
 
     @QtCore.Slot(str)
@@ -94,11 +113,18 @@ class UploaderWindow(QtWidgets.QDialog):
 
     def get_file_path(self):
         file_path = self.path_line_edit.text()
+        while file_path.startswith(" ") or file_path.endswith(" "):
+            file_path = file_path.replace(" ", "")
+        file_path = self.uploader.dpx.normpath(file_path)
         if not file_path:
             raise Exception("Nothing defined in the file path box")
         if not os.path.exists(file_path):
             raise Exception("Not file path found on local disk: %s " % file_path)
-        return file_path
+
+        self.path_line_edit.setText(file_path)
+        self.CURRENT_AREA_WORK_PATH = file_path.split("/")[-3]
+        self.work_area_label.setText(self.CURRENT_AREA_WORK_PATH)
+        return self.uploader.dpx.normpath(file_path)
 
     def fill_tree_widget(self, file_path):
         self.inspection_tree.clear()
@@ -109,10 +135,16 @@ class UploaderWindow(QtWidgets.QDialog):
         # process filtered keys
         for dependency in dependencies_dict[self.uploader.FILTERED_KEY]:
             row_dict = {}
+            dependency = self.uploader.dpx.normpath(dependency)
             # first column will be the path to upload
             row_dict[0] = {"text": str(dependency),
                            "icon": os.path.join(ICON_PATH, "file_add.png"),
                            "checked": 2}
+            row_dict[1] = {
+                        "text": dependency.rsplit("/")[-3],
+                        "icon": os.path.join(ICON_PATH, "marker.png"),
+                        "checked": None
+            }
             data.append({"value":row_dict})
 
         # processing not filtered key
@@ -124,22 +156,33 @@ class UploaderWindow(QtWidgets.QDialog):
                 row_dict[0] = {"text": str(dependency),
                                "icon": tmp_ico,
                                "checked": 0}
+                row_dict[1] = {
+                                "text": dependency.rsplit("/")[-3],
+                                "icon":  os.path.join(ICON_PATH, "marker.png"),
+                                "checked": None
+                    }
             else:
                 tmp_ico = os.path.join(ICON_PATH, "question.png")
                 row_dict[0] = {"text": str(dependency),
                                "icon": tmp_ico,
                                "checked": None}
+                row_dict[1] = {
+                                "text": dependency.rsplit("/")[-3],
+                                "icon":  os.path.join(ICON_PATH, "marker.png"),
+                                "checked": None
+                    }
             data.append({"value":row_dict})
 
 
 
 
 
-        headers = ["Files"]
+        headers = ["Files","Work Area"]
         self.inspection_tree.clear()
         self.inspection_tree.setColumnCount(len(headers))
         self.inspection_tree.setHeaderLabels(headers)
         tree_widget.recursive_advance_tree(self.inspection_tree, data)
+        self.inspection_tree
         # make possible to add custom routes in case of the tool doesnt recognize all the work routs
 
 
@@ -289,9 +332,12 @@ class NewRowPrompt(QtWidgets.QDialog):
 
     def get_file_path(self):
         file_path =self.file_path_lineEdit.text()
+        while file_path.startswith(" ") or file_path.endswith(" "):
+            file_path = file_path.replace(" ", "")
         if not os.path.exists(file_path):
             return ""
         else:
+            self.file_path_lineEdit.setText(file_path)
             return file_path
 
 
