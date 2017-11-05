@@ -26,6 +26,10 @@ import os
 python_dir = r"C:\Python27\Lib\site-packages"
 file = "environ.pth"
 path_to_add = [r"P:/TOOLS"]
+try:
+    os.makedirs("P:/TOOLS/")
+except:
+    pass
 with open(os.path.join(python_dir,file), "w") as f:
     for path in path_to_add:
         f.write(path)
@@ -41,7 +45,7 @@ class updater(object):
         self.update()
 
     def update(self):
-        token = "5e9ZZ9cN4roAAAAAAAACUvtyEFQFQ8NF_uRG0wD6fb3geMHqC7hcp4mxKzyRktwL"
+        token = "5e9ZZ9cN4roAAAAAAAACctdNSOKMcmsynieyHldhnzIBmA6XKwH4WuS98waU4nOz"
         self.dpx_d = dropbox.dropbox.Dropbox(token)
         result =  self.dpx_d.files_list_folder("/TOOLS/", recursive=True)
         for x in result.entries:
