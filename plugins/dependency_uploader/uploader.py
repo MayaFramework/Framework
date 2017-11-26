@@ -19,7 +19,7 @@ class Uploader(object):
     _work_environ = ""
     def __init__(self):
         self._config = get_environ_config()
-        self.dpx = DropboxManager(self._config["dpx_token"])
+        self.dpx = DropboxManager(self._config["test_dpx_token"])
         self._ma_reader = MaReader()
 
 
@@ -168,6 +168,6 @@ class Uploader(object):
 if __name__ == "__main__":
     a = Uploader()
     path = a.dpx.normpath(r"P:\bm2\seq\tst\sho\440\render\out\bm2_shoscn_seq_tst_sho_440_scncmp_gato_turnArroundNeutralLigh_out.ma")
-    print path.split("/")[-3]
+    print path
 
 

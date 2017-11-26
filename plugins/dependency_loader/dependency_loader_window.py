@@ -20,7 +20,7 @@ import threading
 #=========================================================================
 # TODO: Separate Logic from the UI, this is a fucking shit
 #=========================================================================
-# "C:\Users\Miguel\Downloads\bm2_shoscn_seq_tst_sot_0300_scncmp_default_scene_out.ma"
+# "work/bm2/elm/gafasgato_test/sha/high/shading/chk/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
 CSS_PATH = get_css_path()
 ICO_PATH = get_icon_path()
 
@@ -49,7 +49,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         self.context_menu_list()
         self.dropboxManager = DropboxManager(
-            token=self._config["dpx_token"])
+            token=self._config["test_dpx_token"])
         # Loading Text and Movie
         self.set_loading_gif(self.loading_label)
         self.downloading_text.setText("Downloading...")

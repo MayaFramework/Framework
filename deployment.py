@@ -9,7 +9,7 @@ pip.main(['install', package_name])
 # 
 
 package_name='dropbox'
-pip.main(['install', package_name])
+pip.main(['install', package_name, "-U"])
 # 
 package_name='requests'
 pip.main(['install', package_name])
@@ -45,7 +45,7 @@ class updater(object):
         self.update()
 
     def update(self):
-        token = "5e9ZZ9cN4roAAAAAAAACctdNSOKMcmsynieyHldhnzIBmA6XKwH4WuS98waU4nOz"
+        token = "5e9ZZ9cN4roAAAAAAAACdfeZo9IR2Bs2HbA-9AFgcwFYd0d7Iur5gY9So6Z5Rw_i"
         self.dpx_d = dropbox.dropbox.Dropbox(token)
         result =  self.dpx_d.files_list_folder("/TOOLS/", recursive=True)
         for x in result.entries:

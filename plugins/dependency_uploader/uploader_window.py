@@ -8,6 +8,7 @@ import sys
 from Framework.lib import ui
 from Framework.lib.gui_loader import gui_loader
 from uploader import Uploader
+from uploader_exceptions import *
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework import get_environ_file, get_css_path, get_icon_path
 from Framework.lib.ui.widgets import tree_widget, common_widgets
@@ -34,7 +35,7 @@ ICON_PATH = get_icon_path()
 class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
-    CURRENT_AREA_WORK_PATH = ""
+    CURRENT_AREA_WORK_PATH = " "
     def __init__(self):
         super(UploaderWindow, self).__init__()
         self.setWindowTitle(self.TOOL_NAME)
@@ -52,7 +53,7 @@ class UploaderWindow(QtWidgets.QDialog):
         self.add_row_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "add_color.png")))
         self.check_name_convention_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "fix.png")))
         
-        self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"file.png")))
+        self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
         self.warning_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"warning.png")))
         self.question_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"question.png")))
         self.error_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
@@ -84,10 +85,10 @@ class UploaderWindow(QtWidgets.QDialog):
     def on_add_row_btn_clicked(self):
         new_row = NewRowPrompt()
         new_row.exec_()
-        file_path = self.uploader.dpx.normpath(new_row.get_file_path())
+        file_path = new_row.get_file_path()
         
         #Check return
-        if not file_path:
+        if not file_path or not os.path.exists(file_path):
             return
         file_path = self.uploader.dpx.normpath(file_path)
         #check if currently exists in the list
@@ -105,22 +106,30 @@ class UploaderWindow(QtWidgets.QDialog):
 
     @QtCore.Slot(str)
     def on_path_line_edit_textChanged(self, file_path):
+        if not os.path.exists(file_path):
+            self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
+            return
+
         if file_path.endswith('.ma'):
             self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"maya_icon.png")))
         else:
             self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"file.png")))
-            self.inspection_tree.clear()
+
+
+    @QtCore.Slot()
+    def on_clear_btn_clicked(self):
+        self.inspection_tree.clear()
+        self.path_line_edit.setText("")
 
     def get_file_path(self):
         file_path = self.path_line_edit.text()
         while file_path.startswith(" ") or file_path.endswith(" "):
             file_path = file_path.replace(" ", "")
-        file_path = self.uploader.dpx.normpath(file_path)
         if not file_path:
             raise Exception("Nothing defined in the file path box")
         if not os.path.exists(file_path):
             raise Exception("Not file path found on local disk: %s " % file_path)
-
+        file_path = self.uploader.dpx.normpath(file_path)
         self.path_line_edit.setText(file_path)
         self.CURRENT_AREA_WORK_PATH = file_path.split("/")[-3]
         self.work_area_label.setText(self.CURRENT_AREA_WORK_PATH)
@@ -335,9 +344,8 @@ class NewRowPrompt(QtWidgets.QDialog):
         while file_path.startswith(" ") or file_path.endswith(" "):
             file_path = file_path.replace(" ", "")
         if not os.path.exists(file_path):
-            return ""
+            return None
         else:
-            self.file_path_lineEdit.setText(file_path)
             return file_path
 
 

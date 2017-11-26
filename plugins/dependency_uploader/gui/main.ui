@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>793</width>
+    <width>633</width>
     <height>362</height>
    </rect>
   </property>
@@ -26,7 +26,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
-      <number>0</number>
+      <number>3</number>
      </property>
      <item>
       <widget class="QLabel" name="label_2">
@@ -77,6 +77,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="label">
        <property name="minimumSize">
@@ -258,6 +261,19 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QToolButton" name="clear_btn">
+       <property name="minimumSize">
+        <size>
+         <width>70</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Clear Content</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -269,9 +285,6 @@
    </item>
    <item>
     <widget class="QTreeWidget" name="inspection_tree">
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
-     </property>
      <column>
       <property name="text">
        <string notr="true">1</string>
@@ -290,7 +303,7 @@
         <string>Add more files to be uploaded in the same process</string>
        </property>
        <property name="text">
-        <string>Add file to download</string>
+        <string>Add file to Upload</string>
        </property>
        <property name="iconSize">
         <size>
