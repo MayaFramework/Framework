@@ -10,11 +10,9 @@ import metadata
 def generate_metadata_path(scene_path):
     scene_name = os.path.basename(scene_path)
     scene_folder = os.path.dirname(scene_path)
-    return os.path.normpath(
-            os.path.join(scene_folder, "metadata", 
+    return os.path.join(scene_folder, "metadata", 
                         "{}.metadata".format(scene_name.split(".")[0])
-                        )
-            )
+                        ).replace("\\", "/")
 
 
 def make_metadata_from_local(metadata_file):

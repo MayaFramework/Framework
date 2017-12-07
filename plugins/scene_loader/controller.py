@@ -38,3 +38,10 @@ def generate_snapshot(image_path):
 
 def generate_paths_info2(path):
     return sorted(os.listdir(path))
+
+
+def generate_new_scene(scene_path):
+    root, show, department, asset, task, details, main, folder = scene_path.split("/")
+    scene_path = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_default_none_{folder}.ma".format(
+        show=show.lower(), department=department, task=task, asset=asset, details=details, main=main, folder=folder)
+    return scene_path

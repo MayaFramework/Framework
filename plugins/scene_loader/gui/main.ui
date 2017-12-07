@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>524</width>
-    <height>506</height>
+    <width>624</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Scene Loader</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_5">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <item>
     <widget class="QFrame" name="frame">
      <property name="sizePolicy">
@@ -22,7 +25,22 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>215</height>
+      </size>
+     </property>
      <layout class="QVBoxLayout" name="verticalLayout_7">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
       <item>
        <widget class="QComboBox" name="categoryCB"/>
       </item>
@@ -140,7 +158,72 @@
           </layout>
          </widget>
         </item>
+        <item>
+         <widget class="QWidget" name="widget_6" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <property name="spacing">
+            <number>3</number>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="fifthLevelBT_2">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Scene Type</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="fifthLevelLW"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame_3">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>20</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">.QFrame{background-color: rgb(99, 180, 255);}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color:white</string>
+        </property>
+        <property name="text">
+         <string>Scene Information</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -160,6 +243,12 @@
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
            <widget class="QLabel" name="sceneNameLB">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>SCENE</string>
             </property>
@@ -191,9 +280,16 @@
            </layout>
           </item>
           <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QPushButton" name="pushButton_4">
+             <widget class="QPushButton" name="notesBT">
               <property name="text">
                <string>NOTES</string>
               </property>
@@ -261,7 +357,10 @@
               </size>
              </property>
              <property name="text">
-              <string>ICON</string>
+              <string/>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -271,7 +370,14 @@
        </layout>
       </item>
       <item>
-       <widget class="QTabWidget" name="scenesTW"/>
+       <widget class="QListWidget" name="sceneLW">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>170</height>
+         </size>
+        </property>
+       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -289,49 +395,18 @@
             <height>30</height>
            </size>
           </property>
-          <property name="text">
-           <string>...</string>
+          <property name="toolTip">
+           <string>Save scene</string>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="saveWipBT">
-          <property name="minimumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
+          <property name="statusTip">
+           <string>Save scene</string>
           </property>
           <property name="text">
            <string>...</string>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="saveChkBT">
-          <property name="minimumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-          <property name="autoRaise">
-           <bool>false</bool>
+          <property name="icon">
+           <iconset>
+            <normaloff>icons/open_scene.png</normaloff>icons/open_scene.png</iconset>
           </property>
          </widget>
         </item>
@@ -347,25 +422,6 @@
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QToolButton" name="loadSceneBT">
-          <property name="minimumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>30</width>
-            <height>30</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>...</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </item>
