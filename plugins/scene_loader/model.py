@@ -1,21 +1,18 @@
 import os
-import re
 from functools import partial
 
 import controller
+import temp_config
+from Framework.lib.dropbox_manager.manager import DropboxManager
+from Framework import get_environ_config
 from Framework.lib.gui_loader import gui_loader
-# from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
 from PySide2 import QtCore, QtGui, QtWidgets
-from Framework.lib.metadata_lib import metadata, metadata_utils
 from core import scene, folder
 
-import maya.cmds as cmds
-import temp_config
-import time
 reload(temp_config)
 reload(gui_loader)
 
-PROJECT_ROOT = r"P:/BM2"
+PROJECT_ROOT = "bm2"
 
 form, base = gui_loader.load_ui_type(os.path.join(
     os.path.dirname(__file__), "gui", "main.ui"))
@@ -31,6 +28,10 @@ class SceneLoaderUI(form, base):
     def __init__(self):
         super(SceneLoaderUI, self).__init__()
         self.setupUi(self)
+
+        self._config = get_environ_config()
+        # self.dpx = DropboxManager(self._config["test_dpx_token"])
+        self.dpx = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
 
         self.__final_path = None
         self.__scene_selected = None
@@ -78,23 +79,25 @@ class SceneLoaderUI(form, base):
         self.saveLocalBT.clicked.connect(self.save_scene)
 
     def __populate_initial_combo(self):
-        for path in os.listdir(PROJECT_ROOT):
-            full_path = os.path.join(PROJECT_ROOT, path)
-            folder_obj = folder.Folder(full_path)
-            self.categoryCB.addItem(path, folder_obj)
+        initial_folders = self.dpx.getFolderChildrenFromFolder(PROJECT_ROOT)
+        print initial_folders
+        for path in initial_folders:
+            print path
+            folder_obj = folder.Folder(path, self.dpx)
+            self.categoryCB.addItem(path.split("/")[-1], folder_obj)
 
     def __category_changed(self, index):
         folder_obj = self.categoryCB.itemData(index)
         self.final_path = folder_obj.folder_path
-        children = folder_obj.children
-        children_full_path = folder_obj.children_full_path
+        # children = folder_obj.children
+        children_full_path = folder_obj.folders_from_db
         self.__populate_lists(self.firstLevelLW, children_full_path)
 
     def __selection_changed(self, list_widget, item):
         item_data = item.data(QtCore.Qt.UserRole)
         if isinstance(item_data, folder.Folder):
             index = self.LISTWIDGETS.index(list_widget.objectName()) + 1
-            self.__populate_lists(eval("self.{}".format(self.LISTWIDGETS[index])), item_data.children_full_path)
+            self.__populate_lists(eval("self.{}".format(self.LISTWIDGETS[index])), item_data.folders_from_db)
         elif isinstance(item_data, scene.Scene):
             print "scene"
         self.final_path = item_data.folder_path
@@ -126,23 +129,23 @@ class SceneLoaderUI(form, base):
         self.__clean(list_widget)
         for path in paths:
             list_item = QtWidgets.QListWidgetItem()
-            list_widget.addItem(list_item)            
-            if os.path.isdir(path):
-                item_obj = folder.Folder(path)
-                list_item.setData(QtCore.Qt.UserRole, item_obj)
-                list_item.setText(item_obj.dir_name)
-            elif path.endswith(".ma") or path.endswith(".mb"):
+            list_widget.addItem(list_item)
+            if path.endswith(".ma") or path.endswith(".mb"):
                 item_obj = scene.Scene(path)
                 list_item.setData(QtCore.Qt.UserRole, item_obj)
                 # list_item.setText(item_obj.scene_name)
                 scene_widget = SceneWidget(item_obj)
                 list_item.setSizeHint(QtCore.QSize(0,30))
                 list_widget.setItemWidget(list_item, scene_widget)
+            else:
+                item_obj = folder.Folder(path, self.dpx)
+                list_item.setData(QtCore.Qt.UserRole, item_obj)
+                list_item.setText(item_obj.dir_name)
 
     def __fill_maya_files(self, list_item):
         item_data = list_item.data(QtCore.Qt.UserRole)
         if isinstance(item_data, folder.Folder):
-            self.__populate_lists(self.sceneLW, item_data.children_maya_files)
+            self.__populate_lists(self.sceneLW, item_data.maya_files_from_db)
         self.final_path = item_data.folder_path
 
     def __clean(self, list_widget):

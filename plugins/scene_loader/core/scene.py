@@ -13,6 +13,7 @@ class Scene(object):
         if not scene_path:
             scene_path = cmds.file(sn=True, q=True).replace("\\", "/")
         self.scene_path = scene_path
+        self.local_scene_path = scene_path.replace("/work", "P:/")
         self.metadata = metadata.MetadataLocal.generate_metadata(self.metadata_path)
     
     @property
@@ -35,12 +36,25 @@ class Scene(object):
                         ).replace("\\", '/')
 
     @property
+    def metadata_local_path(self):
+        scene_name = os.path.basename(self.local_scene_path)
+        scene_folder = os.path.dirname(self.local_scene_path)
+        return os.path.join(scene_folder, "metadata",
+                        "{}.metadata".format(scene_name.rsplit(".", 1)[0])
+                        ).replace("\\", '/')
+
+    @property
     def scene_modified(self):
         return cmds.file(q=True, modified=True)
 
     @property
     def notes(self):
         return self.metadata.notes
+
+    def get_metadata_key(self, key):
+        if hasattr(self.metadata, key):
+            return getattr(self.metadata, key)
+        return None
 
     def add_notes(self, notes):
         self.metadata.notes = notes
@@ -60,7 +74,11 @@ class Scene(object):
         self.metadata.save_local_metadata()
 
     def load_scene(self):
-        cmds.file(self.scene_path, o=True, f=True)
+        print self.local_scene_path
+        print self.metadata_path
+        if not os.path.exists(self.local_scene_path):
+            print "NOOOOOO EXISTE!!! NECESITA DESCARGARSE"
+        # cmds.file(self.scene_path, o=True, f=True)
 
     def incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()

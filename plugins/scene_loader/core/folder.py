@@ -1,8 +1,10 @@
 import os
 
 class Folder(object):
-    def __init__(self, folder_path):
+    def __init__(self, folder_path, dropbox_instance):
         self.folder_path = folder_path
+        self.local_folder_path = folder_path.replace("/work", "P:/")
+        self.dropbox_instance = dropbox_instance
 
     @property
     def dir_name(self):
@@ -11,6 +13,14 @@ class Folder(object):
     @property
     def children(self):
         return os.listdir(self.folder_path)
+
+    @property
+    def folders_from_db(self):
+        return self.dropbox_instance.getFolderChildrenFromFolder(self.local_folder_path)
+
+    @property
+    def maya_files_from_db(self):
+        return self.dropbox_instance.getChildrenFromFolder(self.local_folder_path)
 
     @property
     def children_full_path(self):

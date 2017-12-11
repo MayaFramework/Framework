@@ -228,6 +228,23 @@ class DropboxManager(object):
                 children_path.append(file_metadata.path_display)
         return children_path
 
+    def getFolderChildrenFromFolder(self, folder):
+        # TODO Change this shitty method
+        if folder == "bm2":
+            folder = "/work/bm2/"
+        else:
+            folder = self.getDropboxPath(folder)
+        #         metadata = self.__client.metadata(folder)
+        try:
+            metadata = self.__dpx.files_list_folder(folder)
+        except Exception as e:
+            print e
+            return []
+        children_path = []
+        for file_metadata in metadata.entries:
+            if len(file_metadata.path_display.split(".")) != 2:
+                children_path.append(file_metadata.path_display)
+        return sorted(children_path)
 
     def getAllrecursiveChildren(self, folder):
         children = self.__dpx.files_list_folder(folder, recursive=True)
