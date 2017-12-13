@@ -20,7 +20,8 @@ form, base = gui_loader.load_ui_type(os.path.join(
 
 class SceneLoaderUI(form, base):
 
-    OPENSCENE = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/open_scene.png"))
+    SAVEICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/save_icon.png"))
+    PUBLISHICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/publish_icon.png"))
     LISTWIDGETS = ["firstLevelLW", "secondLevelLW", "thirdLevelLW", "fourthLevelLW", "fifthLevelLW", "sceneLW"]
 
     saved_scene = QtCore.Signal()
@@ -59,7 +60,8 @@ class SceneLoaderUI(form, base):
 
     def __default_state_window(self):
         self.__populate_initial_combo()
-        self.saveLocalBT.setIcon(self.OPENSCENE)
+        self.saveLocalBT.setIcon(self.SAVEICON)
+        self.publishBT.setIcon(self.PUBLISHICON)
 
         self.sceneLW.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
 
@@ -77,30 +79,30 @@ class SceneLoaderUI(form, base):
 
         # self.loadSceneBT.clicked.connect(self.load_scene)
         self.saveLocalBT.clicked.connect(self.save_scene)
+        self.publishBT.clicked.connect(self.publish_scene)
 
     def __populate_initial_combo(self):
         initial_folders = self.dpx.getFolderChildrenFromFolder(PROJECT_ROOT)
         print initial_folders
         for path in initial_folders:
-            print path
             folder_obj = folder.Folder(path, self.dpx)
             self.categoryCB.addItem(path.split("/")[-1], folder_obj)
 
     def __category_changed(self, index):
         folder_obj = self.categoryCB.itemData(index)
-        self.final_path = folder_obj.folder_path
+        self.final_path = folder_obj.remote_path
         # children = folder_obj.children
-        children_full_path = folder_obj.folders_from_db
+        children_full_path = folder_obj.remote_children_folders
         self.__populate_lists(self.firstLevelLW, children_full_path)
 
     def __selection_changed(self, list_widget, item):
         item_data = item.data(QtCore.Qt.UserRole)
         if isinstance(item_data, folder.Folder):
             index = self.LISTWIDGETS.index(list_widget.objectName()) + 1
-            self.__populate_lists(eval("self.{}".format(self.LISTWIDGETS[index])), item_data.folders_from_db)
+            self.__populate_lists(eval("self.{}".format(self.LISTWIDGETS[index])), item_data.remote_children_folders)
         elif isinstance(item_data, scene.Scene):
             print "scene"
-        self.final_path = item_data.folder_path
+        self.final_path = item_data.remote_path
 
     def __scene_selectedCB(self, scene_item):
         item_data = scene_item.data(QtCore.Qt.UserRole)
@@ -112,12 +114,19 @@ class SceneLoaderUI(form, base):
         self.sceneNameLB.setText(scene_item.scene_name)
         if scene_item.metadata:
             self.dateLB.setText(scene_item.metadata.modified)
-            self.scene_image_pixmap.setPixmap(QtGui.QPixmap(scene_item.metadata.image))
             self.userLB.setText(scene_item.metadata.author)
+            self.__set_scene_image(scene_item)
+            print "dONEEEEE"
         else:
             self.dateLB.setText("")
             self.scene_image_pixmap.setPixmap(QtGui.QPixmap(""))
             self.userLB.setText("")
+
+    def __set_scene_image(self, scene_item):
+        ba = QtCore.QByteArray.fromBase64(str(scene_item.metadata.image))
+        img = QtGui.QPixmap()
+        img.loadFromData(ba)
+        self.scene_image_pixmap.setPixmap(img)
 
     def __populate_lists(self, list_widget, paths):
         """
@@ -145,8 +154,23 @@ class SceneLoaderUI(form, base):
     def __fill_maya_files(self, list_item):
         item_data = list_item.data(QtCore.Qt.UserRole)
         if isinstance(item_data, folder.Folder):
-            self.__populate_lists(self.sceneLW, item_data.maya_files_from_db)
-        self.final_path = item_data.folder_path
+            self.__clean(self.sceneLW)
+            # progress_bar = QtWidgets.QProgressDialog("Analyzing files", "Cancel", 0, len(item_data.remote_children_maya_files), self)
+
+            for index, path in enumerate(item_data.remote_children_maya_files):
+                list_item = QtWidgets.QListWidgetItem()
+                self.sceneLW.addItem(list_item)
+                item_obj = scene.Scene(path)
+                list_item.setData(QtCore.Qt.UserRole, item_obj)
+                # list_item.setText(item_obj.scene_name)
+                scene_widget = SceneWidget(item_obj)
+                list_item.setSizeHint(scene_widget.sizeHint())
+                self.sceneLW.setItemWidget(list_item, scene_widget)
+                # progress_bar.setValue(index)
+                # if progress_bar.wasCanceled():
+                #     break
+
+        self.final_path = item_data.remote_path
 
     def __clean(self, list_widget):
         found = False
@@ -190,7 +214,12 @@ class SceneLoaderUI(form, base):
     def save_scene(self):
         if self.scene_selected:
             self.scene_selected.save_scene()
-            self.saved_scene.emit()
+            # self.saved_scene.emit()
+
+    def publish_scene(self):
+        if self.scene_selected:
+            self.scene_selected.save_scene(create_snapshot=True, publish=True)
+            # self.saved_scene.emit()
 
 class SceneItem(QtWidgets.QListWidgetItem):
 
@@ -219,6 +248,8 @@ form, base = gui_loader.load_ui_type(os.path.join(
        
 class SceneWidget(form, base):
 
+    OPENICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/open_icon.png"))
+
     def __init__(self, scene_obj):
         super(SceneWidget, self).__init__()
         self.setupUi(self)
@@ -233,14 +264,21 @@ class SceneWidget(form, base):
 
     def __default_state_window(self):
         self.sceneLB.setText(self.scene_obj.scene_name)
+        self.openBT.setIcon(self.OPENICON)
         if self.metadata:
-            self.iconLB.setPixmap(QtGui.QPixmap(self.metadata.image))
+            self.__set_image()
 
     def __connect_default_signals(self):
         self.openBT.clicked.connect(self.open_scene)
 
+    def __set_image(self):
+        ba = QtCore.QByteArray.fromBase64(str(self.metadata.image))
+        img = QtGui.QPixmap()
+        img.loadFromData(ba)
+        self.iconLB.setPixmap(img)
+
     def open_scene(self):
-        self.scene_obj.load_scene()
+        self.scene_obj.open_scene()
 
     def mousePressEvent(self, event):
         super(SceneWidget, self).mousePressEvent(event)

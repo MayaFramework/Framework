@@ -6,7 +6,7 @@ import getpass
 from datetime import datetime
 
 
-class Metadata(object):
+class BaseMetadata(object):
     def __init__(self):
         self.author = None
         self.modified = None
@@ -53,13 +53,13 @@ class Metadata(object):
         self.__dict__.pop(key, None)
         return vars(self)
 
-    def save_metadata(self):
+    def save_metadata(self, path):
         raise Exception("INHERETED METHOD")
 
 
-class MetadataLocal(Metadata):
+class Metadata(BaseMetadata):
     def __init__(self, metadata=None):
-        super(MetadataLocal, self).__init__()
+        super(Metadata, self).__init__()
         # if metadata:
         #     if not isinstance(metadata, dict):
         #         raise TypeError("Metadata should be a dict")
@@ -80,28 +80,29 @@ class MetadataLocal(Metadata):
         metadata_file = self.save_metadata(metadata_folder)
         return metadata_file
 
-    @staticmethod    
-    def generate_metadata(metadata_path):
-        # metadata_path = metadata_utils.generate_metadata_path(scene_path)
-        metadata = None
+    def save_dropbox_metadata(self, local_metadata_path, dpx_instance=None):
+        dpx_instance.uploadFile(local_metadata_path)
+
+    @classmethod
+    def generate_metadata(cls, metadata_path):
+        metadata_data = None
         if os.path.isfile(metadata_path):
             with open(metadata_path) as json_data:
-                metadata_data = json.load(json_data)            
-            metadata = MetadataLocal(metadata_data)
-        return metadata
+                metadata_data = json.load(json_data)
+        return cls(metadata_data)
 
-    @staticmethod
-    def generate_metadata_from_scene(scene_path, save=True):
+    @classmethod
+    def generate_metadata_from_scene(cls, scene_path, save=True):
         maya_metadata = {
             "author" : getpass.getuser(),
             "modified": str(datetime.now()).split(".")[0],
             "scene_path": scene_path,
             "scene_version": scene_path.split(".")[1], # Necesitamos marcar un naming convention para las versiones
-            "dependencies": ["Caca", "Culo", "Pedo", "Pis"]
+            "dependencies": []
         }
-        local_metadata = MetadataLocal(maya_metadata)
+        local_metadata = cls(maya_metadata)
         if save:
-            metadata_file = local_metadata.save_local_metadata()
+            local_metadata.save_local_metadata()
         return local_metadata
 
 

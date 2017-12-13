@@ -32,6 +32,9 @@ dpx.downloadFiles(["s:/project/test/audiotest.m4v", "s:/project/test/fileTest.tx
 
 import os
 import re
+from Framework.lib.ext_lib import dropbox
+from Framework.lib.ext_lib.dropbox import files
+
 
 class DropboxManager(object):
     __client = None
@@ -40,7 +43,6 @@ class DropboxManager(object):
     __subfolder = "WORK"
     _base_path = "P:"
     def __init__(self, token, base_path="", subfolder = ""):
-        from Framework.lib.ext_lib import dropbox
 #         import dropbox
         self.DropBox = dropbox
 #         self.__client = self.DropBox.client.DropboxClient(token)
@@ -50,7 +52,7 @@ class DropboxManager(object):
         if subfolder:
             self.__subfolder = subfolder
 
-    def uploadFile(self, local_file, overwrite=True):
+    def uploadFile(self, local_file, overwrite=True, target_file=None):
         """
         Get the correct file_path from dropbox
         Upload file using overwrite key to be forced on the upload
@@ -242,9 +244,27 @@ class DropboxManager(object):
             return []
         children_path = []
         for file_metadata in metadata.entries:
-            if len(file_metadata.path_display.split(".")) != 2:
+            if isinstance(file_metadata, files.FolderMetadata):
                 children_path.append(file_metadata.path_display)
         return sorted(children_path)
+
+    def getFilesChildren(self, folder, extension=None):
+        folder = self.getDropboxPath(folder)
+        try:
+            metadata = self.__dpx.files_list_folder(folder)
+        except Exception as e:
+            print e
+            return []
+        children_path = []
+        for file_metadata in metadata.entries:
+            # Try to find a method defin within metadata but it looks bad
+            if isinstance(file_metadata, files.FileMetadata):
+                if extension:
+                    if os.path.splitext(file_metadata.path_display)[-1] == extension:
+                        children_path.append(file_metadata.path_display)
+                else:
+                    children_path.append(file_metadata.path_display)
+        return children_path
 
     def getAllrecursiveChildren(self, folder):
         children = self.__dpx.files_list_folder(folder, recursive=True)

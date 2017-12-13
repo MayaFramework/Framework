@@ -20,7 +20,7 @@ def make_metadata_from_local(metadata_file):
         raise Exception("{} must be a valid Metadata File".format(os.path.basename(metadata_file)))
     with open(metadata_file) as json_data:
         metadata_data = json.load(json_data)
-    return metadata.MetadataLocal(metadata_data)
+    return metadata.Metadata(metadata_data)
 
 
 def is_metadata_file(metadata_file):
@@ -35,7 +35,7 @@ def generate_metadata_from_scene(save=True):
         "scene_version": "001", # Necesitamos marcar un naming convention para las versiones
         "dependencies": ["Caca", "Culo", "Pedo", "Pis"]
     }
-    local_metadata = metadata.MetadataLocal(maya_metadata)
+    local_metadata = metadata.Metadata(maya_metadata)
     if save:
         metadata_file = local_metadata.save_local_metadata()
         return local_metadata, metadata_file
