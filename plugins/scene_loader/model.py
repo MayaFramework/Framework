@@ -8,6 +8,10 @@ from Framework import get_environ_config
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 from core import scene, folder
+from Framework.plugins.scene_loader.gui.new_note_dialog import NewNoteDialog
+from Framework.plugins.scene_loader.gui.show_notes_dialog import NotesDialog
+
+
 
 reload(temp_config)
 reload(gui_loader)
@@ -75,7 +79,7 @@ class SceneLoaderUI(form, base):
         self.fifthLevelLW.itemClicked.connect(self.__fill_maya_files)
         self.sceneLW.itemClicked.connect(self.__scene_selectedCB)
         self.sceneLW.customContextMenuRequested.connect(self.__scene_context_menu)
-        self.notesBT.clicked.connect(self.__add_notes)
+        self.notesBT.clicked.connect(self.__show_notes)
 
         # self.loadSceneBT.clicked.connect(self.load_scene)
         self.saveLocalBT.clicked.connect(self.save_scene)
@@ -83,7 +87,6 @@ class SceneLoaderUI(form, base):
 
     def __populate_initial_combo(self):
         initial_folders = self.dpx.getFolderChildrenFromFolder(PROJECT_ROOT)
-        print initial_folders
         for path in initial_folders:
             folder_obj = folder.Folder(path, self.dpx)
             self.categoryCB.addItem(path.split("/")[-1], folder_obj)
@@ -116,7 +119,6 @@ class SceneLoaderUI(form, base):
             self.dateLB.setText(scene_item.metadata.modified)
             self.userLB.setText(scene_item.metadata.author)
             self.__set_scene_image(scene_item)
-            print "dONEEEEE"
         else:
             self.dateLB.setText("")
             self.scene_image_pixmap.setPixmap(QtGui.QPixmap(""))
@@ -175,13 +177,15 @@ class SceneLoaderUI(form, base):
     def __clean(self, list_widget):
         found = False
         for lw in self.LISTWIDGETS:
-            if list_widget.objectName() != lw and not found:
-                continue
-            elif list_widget.objectName() != lw and found:
-                list_widget.clear()
+            lw_object = getattr(self, lw)
+            if list_widget.objectName() != lw:
+                if not found:
+                    continue
+                else:
+                    lw_object.clear()
             else:
                 found = True
-                list_widget.clear()
+                lw_object.clear()
 
     def __scene_context_menu(self, pos):
         item = self.sceneLW.itemAt(pos)
@@ -193,19 +197,28 @@ class SceneLoaderUI(form, base):
     def __generate_menu(self, disabled=False):
         menu = QtWidgets.QMenu()
         menu.addAction("Create new scene", self.__generate_new_scene)
-        note = menu.addAction("Create Note")
+        note = menu.addAction("Create Note", self.__add_notes)
         if disabled:
             note.setEnabled(not disabled)
         return menu
 
     def __add_notes(self):
-        notes = "TEST NOTES"
-        if notes:
-            self.scene_selected.add_notes(notes)
+        dialog = NewNoteDialog()
+        accepted = dialog.exec_()
+        if accepted:
+            note = dialog.noteTE.toPlainText()
+            if note != "":
+                self.scene_selected.add_notes(note)
+
+    def __show_notes(self):
+        if self.scene_selected:
+            notes = self.scene_selected.notes
+            if notes != []:
+                dialog = NotesDialog(notes)
+                dialog.exec_()
 
     def __generate_new_scene(self):
         new_scene = controller.generate_new_scene(self.final_path)
-        print new_scene
 
     def load_scene(self):
         if self.scene_selected:

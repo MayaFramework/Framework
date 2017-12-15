@@ -1,5 +1,6 @@
 import getpass
 import os
+import re
 from datetime import datetime
 import base64
 
@@ -10,6 +11,8 @@ from Framework.lib.dropbox_manager.manager import DropboxManager
 
 
 class Scene(object):
+
+    OLDVERSIONREGEX = "\d{3}(?=\.)"
 
     def __init__(self, scene_path=None):
 
@@ -82,11 +85,16 @@ class Scene(object):
     def notes(self):
         return self.metadata.notes
 
+    @property
+    def has_old_version_naming(self):
+        return True if re.search(Scene.OLDVERSIONREGEX, self.scene_name) else False
+
     def get_metadata_attribute(self, attribute):
         return self.metadata.get(attribute)
 
     def add_notes(self, notes):
-        self.metadata.notes = notes
+        self.metadata.notes.insert(0, notes)
+        print "saving"
         self.metadata.save_local_metadata()
 
     def save_scene(self, force=True, create_snapshot=False, publish=False):
@@ -94,14 +102,20 @@ class Scene(object):
         if not self.scene_modified:
             raise Exception("Nothing to save")
 
+        if self.has_old_version_naming:
+            cleaned_scene_name = self.clean_old_version_naming()
+            cmds.file(rename=cleaned_scene_name)
+            cmds.file(s=True)
+
         mel.eval("incrementAndSaveScene 0")
         self.local_path = cmds.file(q=True, sn=True)
 
         if not self.metadata:
             self.metadata = metadata.Metadata.generate_metadata_from_scene(self.local_path)
             self.metadata.image = self.generate_snapshot()
+            self.metadata.notes = list()
         else:
-            self.incremental_save(create_snapshot=create_snapshot)
+            self.metadata_incremental_save(create_snapshot=create_snapshot)
 
         self.metadata.save_local_metadata()
 
@@ -120,7 +134,7 @@ class Scene(object):
                 self.dpx.downloadFile(self.local_path)
         cmds.file(self.local_path, o=True, f=True)
 
-    def incremental_save(self, create_snapshot=False):
+    def metadata_incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()
         self.metadata.modified = str(datetime.now()).split(".")[0]
         self.metadata.scene_path = cmds.file(q=True, sn=True)
@@ -162,3 +176,9 @@ class Scene(object):
         new_scene_path = cmds.file(q=True, sn=True)
         version_number = new_scene_path.split(".")[1]
         return version_number
+
+    def clean_old_version_naming(self):
+        current_scene_name = self.scene_name
+        current_old_version = re.search(Scene.OLDVERSIONREGEX, current_scene_name).group(0)
+        new_scene_name = self.local_path.replace(current_old_version, ".0001")
+        return new_scene_name
