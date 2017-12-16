@@ -10,6 +10,8 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from core import scene, folder
 from Framework.plugins.scene_loader.gui.new_note_dialog import NewNoteDialog
 from Framework.plugins.scene_loader.gui.show_notes_dialog import NotesDialog
+import logging
+import maya.cmds as cmds
 
 
 
@@ -36,6 +38,7 @@ class SceneLoaderUI(form, base):
 
         self._config = get_environ_config()
         # self.dpx = DropboxManager(self._config["test_dpx_token"])
+        self._logger = logging.getLogger(__name__)
         self.dpx = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
 
         self.__final_path = None
@@ -51,6 +54,10 @@ class SceneLoaderUI(form, base):
     @final_path.setter
     def final_path(self, value):
         self.__final_path = value
+
+    @property
+    def final_local_path(self):
+        return self.final_path.replace("/work/", "P:/")
 
     @property
     def scene_selected(self):
@@ -218,7 +225,14 @@ class SceneLoaderUI(form, base):
                 dialog.exec_()
 
     def __generate_new_scene(self):
-        new_scene = controller.generate_new_scene(self.final_path)
+        new_scene = controller.generate_new_scene(self.final_local_path)
+        try: os.makedirs(self.final_local_path)
+        except: pass
+        cmds.file(new=True, f=True)
+        cmds.file(rename="{}/{}".format(self.final_local_path, new_scene))
+        cmds.file(save=True, f=True)
+        new_scene = scene.Scene(cmds.file(q=True, sn=True))
+        new_scene.save_scene()
 
     def load_scene(self):
         if self.scene_selected:
@@ -262,6 +276,7 @@ form, base = gui_loader.load_ui_type(os.path.join(
 class SceneWidget(form, base):
 
     OPENICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/open_icon.png"))
+    DOWNLOAD = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/download_icon.png"))
 
     def __init__(self, scene_obj):
         super(SceneWidget, self).__init__()
@@ -278,11 +293,13 @@ class SceneWidget(form, base):
     def __default_state_window(self):
         self.sceneLB.setText(self.scene_obj.scene_name)
         self.openBT.setIcon(self.OPENICON)
+        self.downloadBT.setIcon(self.DOWNLOAD)
         if self.metadata:
             self.__set_image()
 
     def __connect_default_signals(self):
         self.openBT.clicked.connect(self.open_scene)
+        self.downloadBT.clicked.connect(self.download_scene)
 
     def __set_image(self):
         ba = QtCore.QByteArray.fromBase64(str(self.metadata.image))
@@ -292,6 +309,9 @@ class SceneWidget(form, base):
 
     def open_scene(self):
         self.scene_obj.open_scene()
+
+    def download_scene(self):
+        self.scene_obj.download_scene()
 
     def mousePressEvent(self, event):
         super(SceneWidget, self).mousePressEvent(event)

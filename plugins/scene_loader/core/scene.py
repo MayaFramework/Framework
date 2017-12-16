@@ -8,6 +8,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 from Framework.lib.metadata_lib import metadata, metadata_utils
 from Framework.lib.dropbox_manager.manager import DropboxManager
+from Framework.lib.logger import logger
 
 
 class Scene(object):
@@ -31,7 +32,7 @@ class Scene(object):
                 self.dpx.downloadFile(self.local_metadata_path)
                 self.metadata = metadata.Metadata.generate_metadata(self.local_metadata_path)
             else:
-                print "No Metadata available for {}".format(self.scene_name)
+                logger.warning("No Metadata available for {}".format(self.scene_name))
         else:
             self.metadata = metadata.Metadata.generate_metadata(self.local_metadata_path)
 
@@ -99,8 +100,8 @@ class Scene(object):
 
     def save_scene(self, force=True, create_snapshot=False, publish=False):
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
-        if not self.scene_modified:
-            raise Exception("Nothing to save")
+        # if not self.scene_modified:
+        #     raise Exception("Nothing to save")
 
         if self.has_old_version_naming:
             cleaned_scene_name = self.clean_old_version_naming()
@@ -122,17 +123,22 @@ class Scene(object):
         self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
         if publish:
-            print ">>> PUBLISHING"
+            logger.info("PUBLISHING")
             self.dpx.moveFile(self.local_path, self.local_path.replace(self.scene_type, "chk"))
             self.dpx.moveFile(self.local_metadata_path, self.local_metadata_path.replace(self.scene_type, "chk"))
             self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
     def open_scene(self):
         if not os.path.exists(self.local_path):
-            # This method should work either with local or remote metadata
-            if self.dpx.existFile(self.local_path):
-                self.dpx.downloadFile(self.local_path)
+            self.download_scene()
         cmds.file(self.local_path, o=True, f=True)
+
+    def download_scene(self):
+        # if not os.path.exists(self.local_path):
+        #     # This method should work either with local or remote metadata
+        if self.dpx.existFile(self.local_path):
+            self.dpx.downloadFile(self.local_path)
+            logger.info("Scene downloaded!")
 
     def metadata_incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()
@@ -164,7 +170,6 @@ class Scene(object):
 
     @staticmethod
     def has_version(scene_path):
-        # TODO IMPROVE WITH REGEX
         scene_splitted = scene_path.split(".")
         if len(scene_splitted) == 2:
             return False
