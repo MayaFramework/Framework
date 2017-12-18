@@ -311,6 +311,13 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <widget class="QCheckBox" name="maDependCB">
+              <property name="text">
+               <string>Force MA dependencies</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -370,7 +377,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QListWidget" name="sceneLW">
+       <widget class="BackgroundList" name="sceneLW">
         <property name="maximumSize">
          <size>
           <width>16777215</width>
@@ -477,6 +484,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BackgroundList</class>
+   <extends>QListWidget</extends>
+   <header>Framework.plugins.scene_loader.gui.scenes_lw</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

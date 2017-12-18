@@ -9,11 +9,10 @@ import maya.mel as mel
 from Framework.lib.metadata_lib import metadata, metadata_utils
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.logger import logger
+from Framework.lib.ma_utils.reader import MaReader
 
 
 class Scene(object):
-
-    OLDVERSIONREGEX = "\d{3}(?=\.)"
 
     def __init__(self, scene_path=None):
 
@@ -88,7 +87,22 @@ class Scene(object):
 
     @property
     def has_old_version_naming(self):
-        return True if re.search(Scene.OLDVERSIONREGEX, self.scene_name) else False
+        OLDVERSIONREGEX = "{}\d{{3}}(?=\.)".format(self.scene_type)
+        return True if re.search(OLDVERSIONREGEX, self.scene_name) else False
+
+    @property
+    def dependencies(self):
+        if self.metadata:
+            return self.metadata.dependencies
+        return None
+
+    def get_ma_dependencies(self):
+        return MaReader.get_references(self.local_path)
+
+    def get_ma_dependencies_recursive(self):
+        dependencies_list = list()
+        all_references = MaReader.get_all_references(dependencies_list, self.dpx, self.local_path)
+        return all_references
 
     def get_metadata_attribute(self, attribute):
         return self.metadata.get(attribute)
@@ -104,6 +118,7 @@ class Scene(object):
         #     raise Exception("Nothing to save")
 
         if self.has_old_version_naming:
+            print "IM HERE"
             cleaned_scene_name = self.clean_old_version_naming()
             cmds.file(rename=cleaned_scene_name)
             cmds.file(s=True)
@@ -115,6 +130,7 @@ class Scene(object):
             self.metadata = metadata.Metadata.generate_metadata_from_scene(self.local_path)
             self.metadata.image = self.generate_snapshot()
             self.metadata.notes = list()
+            self.metadata.dependencies = self.get_ma_dependencies_recursive()
         else:
             self.metadata_incremental_save(create_snapshot=create_snapshot)
 
@@ -128,9 +144,26 @@ class Scene(object):
             self.dpx.moveFile(self.local_metadata_path, self.local_metadata_path.replace(self.scene_type, "chk"))
             self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
-    def open_scene(self):
+    def open_scene(self, force_ma_dependencies=False):
         if not os.path.exists(self.local_path):
             self.download_scene()
+
+        if force_ma_dependencies:
+            logger.info("Force MA dependencies checked on. Getting MA dependencies")
+            dependencies = self.get_ma_dependencies_recursive()
+            for dependency in dependencies:
+                if not os.path.exists(dependency):
+                    if self.dpx.existFile(dependency):
+                        self.dpx.downloadFile(dependency)
+            logger.info("Dependencies Donwloaded")
+
+        if self.dependencies and not force_ma_dependencies:
+            for dependencies in self.dependencies:
+                if not os.path.exists(dependencies):
+                    if self.dpx.existFile(dependencies):
+                        self.dpx.downloadFile(dependencies)
+            logger.info("Dependencies Donwloaded")
+
         cmds.file(self.local_path, o=True, f=True)
 
     def download_scene(self):
@@ -140,12 +173,14 @@ class Scene(object):
             self.dpx.downloadFile(self.local_path)
             logger.info("Scene downloaded!")
 
+
+
     def metadata_incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()
         self.metadata.modified = str(datetime.now()).split(".")[0]
         self.metadata.scene_path = cmds.file(q=True, sn=True)
         self.metadata.scene_version = self.__get_incremented_version()  # Necesitamos marcar un naming convention para las versiones
-        self.metadata.dependencies = ["Caca", "Culo", "Pedo", "Pis"]
+        self.metadata.dependencies = self.get_ma_dependencies_recursive()
         if create_snapshot:
             self.metadata.image = self.generate_snapshot()
 
@@ -183,7 +218,8 @@ class Scene(object):
         return version_number
 
     def clean_old_version_naming(self):
+        OLDVERSIONREGEX = "{}\d{{3}}(?=\.)".format(self.scene_type)
         current_scene_name = self.scene_name
-        current_old_version = re.search(Scene.OLDVERSIONREGEX, current_scene_name).group(0)
+        current_old_version = re.search(OLDVERSIONREGEX, current_scene_name).group(0)
         new_scene_name = self.local_path.replace(current_old_version, ".0001")
         return new_scene_name

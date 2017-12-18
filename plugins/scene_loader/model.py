@@ -152,7 +152,7 @@ class SceneLoaderUI(form, base):
                 item_obj = scene.Scene(path)
                 list_item.setData(QtCore.Qt.UserRole, item_obj)
                 # list_item.setText(item_obj.scene_name)
-                scene_widget = SceneWidget(item_obj)
+                scene_widget = SceneWidget(item_obj, main_ui=self)
                 list_item.setSizeHint(QtCore.QSize(0,30))
                 list_widget.setItemWidget(list_item, scene_widget)
             else:
@@ -172,7 +172,7 @@ class SceneLoaderUI(form, base):
                 item_obj = scene.Scene(path)
                 list_item.setData(QtCore.Qt.UserRole, item_obj)
                 # list_item.setText(item_obj.scene_name)
-                scene_widget = SceneWidget(item_obj)
+                scene_widget = SceneWidget(item_obj, main_ui=self)
                 list_item.setSizeHint(scene_widget.sizeHint())
                 self.sceneLW.setItemWidget(list_item, scene_widget)
                 # progress_bar.setValue(index)
@@ -278,10 +278,11 @@ class SceneWidget(form, base):
     OPENICON = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/open_icon.png"))
     DOWNLOAD = QtGui.QIcon(os.path.join(os.path.dirname(os.path.realpath(__file__)), "gui/icons/download_icon.png"))
 
-    def __init__(self, scene_obj):
+    def __init__(self, scene_obj, main_ui):
         super(SceneWidget, self).__init__()
         self.setupUi(self)
         self.scene_obj = scene_obj
+        self.main_ui = main_ui
 
         self.__default_state_window()
         self.__connect_default_signals()
@@ -308,7 +309,8 @@ class SceneWidget(form, base):
         self.iconLB.setPixmap(img)
 
     def open_scene(self):
-        self.scene_obj.open_scene()
+        force_ma_dependencies = self.main_ui.maDependCB.isChecked()
+        self.scene_obj.open_scene(force_ma_dependencies=force_ma_dependencies)
 
     def download_scene(self):
         self.scene_obj.download_scene()
