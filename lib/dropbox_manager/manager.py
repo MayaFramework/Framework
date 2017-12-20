@@ -161,6 +161,7 @@ class DropboxManager(object):
     def existFile(self,file_path):
         try:
             dpx_local_path = self.getDropboxPath(file_path)
+            print dpx_local_path
             self.__dpx.files_get_metadata(dpx_local_path)
             return True
         except Exception as e:
@@ -274,13 +275,14 @@ class DropboxManager(object):
 
 if __name__ == "__main__":
     file_path = r"P:/bm2/lib/LIG/preLightingSet/neutralLig/main/mps"
-    dpx = DropboxManager()
+    dpx = DropboxManager(token='MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI')
 #     file_path  = r"P:/bm2/seq/tst/sho/1000/hair/mps/v02"
 #     print dpx.getDropboxPath(file_path)
 #     dpx.downloadFile(file_path)
 #     dpx.cleanBasePath(file_path)
 #     dpx.uploadFile(file_path, overwrite=True)
-    print dpx.getChildrenFromFolder(file_path)
+    print(dpx.existFile(r'/work/bm2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip044.ma'))
+#     print dpx.getChildrenFromFolder()
 # #     print dpx.getTargetPath(file_path)
 # #     file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
 # #     print dpx.getTargetPath(file_path)

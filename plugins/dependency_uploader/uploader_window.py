@@ -7,6 +7,9 @@ import os
 import sys
 from Framework.lib import ui
 from Framework.lib.gui_loader import gui_loader
+from custom_row_widget import NewRowPrompt
+from advance_options_widget import AdvanceOptionsWidget
+from uploader_background_widget import UploaderBackgroundWidget
 from uploader import Uploader
 from uploader_exceptions import *
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
@@ -15,6 +18,8 @@ from Framework.lib.ui.widgets import tree_widget, common_widgets
 from exceptions import *
 import threading
 import time
+from pip._vendor.distlib._backport.tarfile import calc_chksums
+
 CSS_PATH = get_css_path()
 ICON_PATH = get_icon_path()
 
@@ -46,26 +51,41 @@ class UploaderWindow(QtWidgets.QDialog):
 #         self.setupUi(self)
         self.uploader = Uploader()
         self._init_widget()
-
     def _init_widget(self):
         self.upload_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "upload.png")))
         self.analize_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "search.png")))
         self.add_row_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "add_color.png")))
         self.check_name_convention_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "fix.png")))
         
-        self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
+        self.ico_path_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"file_add.png")))
+        self.clear_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"eraser.png")))
         self.warning_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"warning.png")))
         self.question_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"question.png")))
         self.error_leyend.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
         
+        self.set_actions_menu_for_inspection_tree()
+        self.inspection_tree.resizeColumnToContents(1)
+        self.inspection_tree.resizeColumnToContents(0)
+        
+
+    @QtCore.Slot()
+    def on_ico_path_btn_clicked(self):
+        file_selected = QtWidgets.QFileDialog.getOpenFileNames(self, ("Open File"), "P:/bm2", ("Objects (*.ma )"))[0]
+        if not file_selected:
+            raise Exception("Not Path Found")
+        self.path_line_edit.setText(file_selected[0])
 
     @QtCore.Slot()
     def on_analize_btn_clicked(self):
         file_path = self.get_file_path()
+        if not file_path.endswith(".ma"):
+            raise Exception("Not File Ma file extension")
         self.fill_tree_widget(file_path)
 
     @QtCore.Slot()
     def on_upload_btn_clicked(self):
+        
+        #check files and confirmation from the user
         files_to_upload = self.find_tree_selection()
         files_to_upload.append(self.get_file_path())
         files_text = "\n".join(files_to_upload)
@@ -73,9 +93,17 @@ class UploaderWindow(QtWidgets.QDialog):
         prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
         if not prompt.get_response():
             return
+        # get chk and out options
+        advance_options_widget = AdvanceOptionsWidget()
+        advance_options_widget.exec_()
+        chk = advance_options_widget.chk_state
+        out = advance_options_widget.out_state
+        print chk, out
         self.uploader_background_widget = UploaderBackgroundWidget(file_path_list=files_to_upload,
                                                                    max_threads=self.threads_spin_box.value())
 
+        self.uploader_background_widget.chk_state = chk
+        self.uploader_background_widget.out_state = out
         self.uploader_background_widget.show()
         self.uploader_background_widget.execute_upload_process()
 
@@ -107,19 +135,67 @@ class UploaderWindow(QtWidgets.QDialog):
     @QtCore.Slot(str)
     def on_path_line_edit_textChanged(self, file_path):
         if not os.path.exists(file_path):
-            self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
+            self.ico_path_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"error.png")))
             return
 
         if file_path.endswith('.ma'):
-            self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"maya_icon.png")))
+            self.ico_path_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"maya_icon.png")))
         else:
-            self.icon_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"file.png")))
+            self.ico_path_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"file.png")))
 
 
     @QtCore.Slot()
     def on_clear_btn_clicked(self):
         self.inspection_tree.clear()
         self.path_line_edit.setText("")
+
+    @QtCore.Slot()
+    def on_check_name_convention_btn_clicked(self):
+        path = self.get_file_path()
+        print self.uploader.dpx.getDropboxPath(path)
+        self.check_name_convention(path)
+    def check_name_convention(self, file_path):
+        '''
+        :Example 
+        work/bm2/elm/gafasgato_test/sha/high/shading/chk/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma
+        
+        template path :
+        {project}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}_.{ext}
+        '''
+        file_path = "work/bm2/elm/gafasgato_test/sha/high/shading/chk/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
+        print file_path
+        #=======================================================================
+        # base_path
+        #=======================================================================
+        fields = os.path.dirname(file_path).split("/")
+        project = fields[1]
+        group = fields[2]
+        name = fields[3]
+        area = fields[4]
+        step = fields[5]
+        layer = fields[6]
+        pipe = fields[7]
+        partition = ''
+        description = ''
+        worktype = group+area
+        print project, group, name, area, step, layer, pipe, partition, description, worktype
+        print '_'.join([project,worktype, group, name, area, step, layer, pipe])
+        #=======================================================================
+        # file_name
+        #=======================================================================
+        file_name = os.path.basename(file_path).split("_")
+        project = ''
+        worktype = ''
+        group = ''
+        name = ''
+        area = ''
+        step = ''
+        layer = ''
+        partition = ''
+        description = ''
+        pipe = ''
+
+
 
     def get_file_path(self):
         file_path = self.path_line_edit.text()
@@ -136,7 +212,6 @@ class UploaderWindow(QtWidgets.QDialog):
         return self.uploader.dpx.normpath(file_path)
 
     def fill_tree_widget(self, file_path):
-        self.inspection_tree.clear()
         dependencies_dict = self.uploader.get_dependencies(file_path)
         if not dependencies_dict:
             raise MaDepdencyException("Downloading: %s"%file_path)
@@ -191,8 +266,19 @@ class UploaderWindow(QtWidgets.QDialog):
         self.inspection_tree.setColumnCount(len(headers))
         self.inspection_tree.setHeaderLabels(headers)
         tree_widget.recursive_advance_tree(self.inspection_tree, data)
-        self.inspection_tree
+        
         # make possible to add custom routes in case of the tool doesnt recognize all the work routs
+        self.inspection_tree.resizeColumnToContents(1)
+        self.inspection_tree.resizeColumnToContents(0)
+        self.inspection_tree.header().setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.inspection_tree.header().setResizeMode(0,QtWidgets.QHeaderView.Stretch)
+        self.inspection_tree.header().setResizeMode(1,QtWidgets.QHeaderView.Fixed)
+#         
+#         self.inspection_tree.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+#         self.inspection_tree.header().setSectionResizeMode(0,QtWidgets.QHeaderView.Stretch)
+#         self.inspection_tree.header().setSectionResizeMode(1,QtWidgets.QHeaderView.Fixed)
+# #         
+        self.inspection_tree.setColumnWidth(1, 100)
 
 
     def find_tree_selection(self):
@@ -214,7 +300,56 @@ class UploaderWindow(QtWidgets.QDialog):
         return aux_list
 
 
+    def set_actions_menu_for_inspection_tree(self):
+#         menu = QtWidgets.QMenu(self)
+#         quitAction = menu.addAction("Quit")
+#         action = menu.exec_(self.mapToGlobal(event.pos()))
+        self.inspection_tree.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        remove_action = QtWidgets.QAction(self)
+        remove_action.setText("Remove Files")
+        remove_action.triggered.connect(self.remove_row_from_inspection_tree)
+        self.inspection_tree.addAction(remove_action)
+        
+        copy_action = QtWidgets.QAction(self)
+        copy_action.setText("Copy Files")
+        copy_action.triggered.connect(self.copy_files_from_inspection_tree)
+        self.inspection_tree.addAction(copy_action)
+        
+        
+        select_action = QtWidgets.QAction(self)
+        select_action.setText("Check Files Selected")
+        select_action.triggered.connect(self.check_selected_items_from_inspection_tree)
+        self.inspection_tree.addAction(select_action)
+        
+    def copy_files_from_inspection_tree(self):
+        selected_items = self.inspection_tree.selectedItems()
+        cb = QtWidgets.QApplication.clipboard()
+        cb.clear(mode=cb.Cliboard)
+        result = []
+        for item in selected_items:
+            result.append(item.text(0))
+        if len(result)==1:
+            text = result[0]
+        elif len(result) > 1:
+            text = "; ".join(result)
+        cb.setText(text, mode=cb.Cliboard)
+        
+    def check_selected_items_from_inspection_tree(self):
 
+        selected_items = self.inspection_tree.selectedItems()
+        for item in selected_items:
+            if item.checkState(0) == QtCore.Qt.Checked:
+                item.setCheckState(0,QtCore.Qt.Unchecked)
+            else:
+                item.setCheckState(0,QtCore.Qt.Checked)
+
+    def remove_row_from_inspection_tree(self):
+        print "REMOVING"
+        selected_items = self.inspection_tree.selectedItems()
+        for item in selected_items:
+            print item.text(0)
+            self.inspection_tree.takeTopLevelItem(self.inspection_tree.indexOfTopLevelItem(item))
+ 
 
     def get_item(self, name):
         """
@@ -227,126 +362,7 @@ class UploaderWindow(QtWidgets.QDialog):
 
 
 
-class UploaderBackgroundWidget(QtWidgets.QDialog):
 
-    def __init__(self, file_path_list, max_threads=1):
-        super(UploaderBackgroundWidget,self).__init__()
-        if not isinstance(file_path_list, list) or not (len(file_path_list)>0):
-            raise UploadException("Not enough file_path defined on the list to upload")
-
-        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "uploader_background_widget.ui"), self)
-        ui.apply_resource_style(self)
-        self._file_path_list = list(set(file_path_list)) # Deleting repetitions
-        self.maximum_threads = max_threads
-        self.thread_spinBox.setValue(self.maximum_threads)
-        self.timeout = 60*60
-        self.uploader = Uploader()
-        self.current_threads = 0
-
-
-    def add_item_in_list(self, list_widget, key, ):
-        listItem = QtWidgets.QListWidgetItem(key)
-        listItem.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "question.png")))
-        self.dependency_list.addItem(listItem)
-        QtWidgets.QApplication.processEvents()
-
-    def fill_list_widget(self):
-        for file_path in self._file_path_list:
-            self.add_item_in_list(self.dependency_list, file_path)
-
-    def get_item(self, file):
-        result = self.dependency_list.findItems(file, QtCore.Qt.MatchExactly)
-        if result:
-            result = result[0]
-        return result
-
-    def upload(self):
-
-        if not self._file_path_list:
-            return True
-        for file in self._file_path_list:
-            if self.is_available_thread(self.timeout):
-            # check dependency_loader_window line 150
-                self.current_threads +=1
-                t = threading.Thread(target = self.upload_file, args = (file, ))
-                t.start()
-        # once we have recovered the list of files to upload execute the upload process
-        pass
-
-    def is_available_thread(self, timeout, period=0.25):
-        mustend = time.time() + timeout
-        while time.time() < mustend:
-            if self.current_threads <= self.maximum_threads:
-                return True
-            time.sleep(period)
-        return False
-
-    def upload_file(self, file):
-        item = self.get_item(file)
-        if not item:
-            return
-        try:
-            item.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "downloading.png")))
-            QtWidgets.QApplication.processEvents()
-            state = self.uploader.upload_file(file)
-            if state:
-                item.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "checked.png")))
-            else:
-                item.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "error.png")))
-
-        except Exception as e:
-            item.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "error.png")))
-            print e
-        finally:
-            QtWidgets.QApplication.processEvents()
-            self.current_threads -=1
-
-
-    def execute_upload_process(self):
-        self.fill_list_widget()
-        self.upload()
-
-
-
-
-class NewRowPrompt(QtWidgets.QDialog):
-    
-    def __init__(self):
-        super(NewRowPrompt, self).__init__()
-        ui.apply_resource_style(self)
-        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "add_row_widget.ui"), self)
-
-        self.ico_file_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH, "error.png")))
-
-    @QtCore.Slot(str)
-    def on_file_path_lineEdit_textChanged(self, file_path):
-        if os.path.exists(file_path):
-            self.ico_file_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"checked.png")))
-        else:
-            self.ico_file_path.setPixmap(QtGui.QPixmap(os.path.join(ICON_PATH,"error.png")))
-
-    @QtCore.Slot()
-    def on_save_btn_clicked(self):
-        file_path = self.file_path_lineEdit.text()
-        if not os.path.exists(file_path):
-            window = common_widgets.MessageWindow(title="Checking File Path",
-                                         level=common_widgets.MessageWindow.ERROR_LEVEL,
-                                         msg ="This file path doesn't exists: %s\n press CANCEL to modify the path otherwise it will close this view" % file_path)
-
-            if window.get_response():
-                self.close()
-            else:
-                return
-        self.close()
-
-    def get_file_path(self):
-        file_path =self.file_path_lineEdit.text()
-        while file_path.startswith(" ") or file_path.endswith(" "):
-            file_path = file_path.replace(" ", "")
-        if not os.path.exists(file_path):
-            return None
-        else:
-            return file_path
 
 
 

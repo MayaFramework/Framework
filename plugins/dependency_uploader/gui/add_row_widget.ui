@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
+    <width>501</width>
     <height>40</height>
    </rect>
   </property>
@@ -27,24 +27,15 @@
       <widget class="QLineEdit" name="file_path_lineEdit"/>
      </item>
      <item>
-      <widget class="QLabel" name="ico_file_path">
+      <widget class="QToolButton" name="add_btn">
        <property name="minimumSize">
         <size>
          <width>16</width>
          <height>16</height>
         </size>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
        <property name="text">
-        <string>TextLabel</string>
-       </property>
-       <property name="scaledContents">
-        <bool>true</bool>
+        <string>+</string>
        </property>
       </widget>
      </item>

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>633</width>
-    <height>362</height>
+    <height>363</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -52,7 +52,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="icon_path">
+      <widget class="QToolButton" name="ico_path_btn">
        <property name="minimumSize">
         <size>
          <width>32</width>
@@ -67,9 +67,6 @@
        </property>
        <property name="text">
         <string>file_ico</string>
-       </property>
-       <property name="scaledContents">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -272,6 +269,9 @@
        <property name="text">
         <string>Clear Content</string>
        </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
       </widget>
      </item>
     </layout>
@@ -285,9 +285,29 @@
    </item>
    <item>
     <widget class="QTreeWidget" name="inspection_tree">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <attribute name="headerCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="headerShowSortIndicator" stdset="0">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="headerStretchLastSection">
+      <bool>false</bool>
+     </attribute>
      <column>
       <property name="text">
-       <string notr="true">1</string>
+       <string notr="true">Files</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Work Area</string>
       </property>
      </column>
     </widget>
@@ -397,7 +417,7 @@
         <string>Upload all the files defined in the list and in the main box.</string>
        </property>
        <property name="text">
-        <string>Upload File &amp; Dependencies!</string>
+        <string>Upload File and Dependencies!</string>
        </property>
        <property name="iconSize">
         <size>
