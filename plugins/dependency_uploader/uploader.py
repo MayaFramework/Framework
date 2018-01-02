@@ -136,8 +136,7 @@ class Uploader(object):
                 print msg
                 print e
         result = self.dpx.uploadFile(file_path, overwrite=True)
-        if result:
-            return True
+        return result
 
     def get_parent_folder(self,path):
         """
