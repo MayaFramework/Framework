@@ -86,8 +86,9 @@ class UploaderWindow(QtWidgets.QDialog):
     def on_upload_btn_clicked(self):
         
         #check files and confirmation from the user
+        main_file = self.uploader.dpx.getTargetPath(self.get_file_path())
         files_to_upload = self.find_tree_selection()
-        files_to_upload.append(self.get_file_path())
+        files_to_upload.append(main_file)
         files_text = "\n".join(files_to_upload)
         message = "You are going to upload these files, do you agree?\n %s " % files_text
         prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
@@ -98,15 +99,29 @@ class UploaderWindow(QtWidgets.QDialog):
         advance_options_widget.exec_()
         chk = advance_options_widget.chk_state
         out = advance_options_widget.out_state
-        print chk, out
+        current_level = main_file.split("/")[-2]
+        
         self.uploader_background_widget = UploaderBackgroundWidget(file_path_list=files_to_upload,
                                                                    max_threads=self.threads_spin_box.value())
+
+
 
         self.uploader_background_widget.chk_state = chk
         self.uploader_background_widget.out_state = out
         self.uploader_background_widget.show()
         self.uploader_background_widget.execute_upload_process()
-
+        self.uploader_background_widget._custom_file_threads = []
+        if chk:
+            new_file = main_file.replace("/{0}/".format(current_level),"/chk/")
+            new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
+            self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
+ 
+        if out:
+            new_file = main_file.replace("/{0}/".format(current_level),"/out/")
+            new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
+            self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
+#         
+        
 
 
     @QtCore.Slot()

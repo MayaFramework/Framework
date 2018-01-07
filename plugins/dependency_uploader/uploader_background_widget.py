@@ -21,13 +21,14 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
 
         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "uploader_background_widget.ui"), self)
         ui.apply_resource_style(self)
-        self._file_path_list = list(set(file_path_list)) # Deleting repetitions
+        self.uploader = Uploader()
+        self._file_path_list = list(set([self.uploader.dpx.getTargetPath(x)for x in file_path_list])) # Deleting repetitions
         self.maximum_threads = max_threads
         self.thread_spinBox.setValue(self.maximum_threads)
         self.timeout = 60*60
-        self.uploader = Uploader()
         self.current_threads = 0
         self._threads = []
+        self._custom_file_threads = []
         self._chk_state = False
         self._out_state = False
         #BORRAR ESTO
@@ -41,7 +42,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.error_ico_path=os.path.join(ICON_PATH, "error.png")
 
 
-        
+  
     @property
     def chk_state(self):
         return self._chk_state
@@ -58,7 +59,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
     def out_state(self, value):
         self._out_state = bool(value)
     
-    def add_item_in_list(self, list_widget, key, ):
+    def add_item_in_list(self, list_widget, key):
         listItem = QtWidgets.QListWidgetItem(key)
         listItem.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "question.png")))
         self.dependency_list.addItem(listItem)
@@ -74,11 +75,30 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
             result = result[0]
         return result
 
-    def upload(self):
+    def upload_custom_file(self, file_path='', target_path=''):
+        local_target_path = self.uploader.dpx.getTargetPath(target_path)
+        self.add_item_in_list(self.dependency_list, local_target_path)
+        cThread = CustomQThread(self.upload_file, file_path=file_path, target_file=target_path)
+        cThread.file_path = local_target_path
+        cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
+        self._custom_file_threads.append(cThread)
+        for c_thread in self._custom_file_threads:
+            if not c_thread.file_path == local_target_path:
+                continue
+            if self.is_available_thread(self.timeout):
+                self.current_threads +=1
+                c_thread.start()
 
-        if not self._file_path_list:
+    def upload_path_list(self, file_path_list=[]):
+        """
+        Upload a file path list
+        """
+        if not file_path_list:
+            file_path_list = self._file_path_list
+        if not file_path_list:
             return True
-        for filename in self._file_path_list:
+        self._threads = []
+        for filename in file_path_list:
             cThread = CustomQThread(self.upload_file, file_path=filename)
             cThread.file_path = filename
             cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
@@ -100,18 +120,18 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         return False
 
     def update_logger(self, file_path, message):
-        # niapa arreglar el tema de QThreads
         self.log_text+= '\n{0}: \n   response:  {1}'.format(file_path, message)
         self.log_text_widget.setPlainText(self.log_text)
 
-    def upload_file(self, file_path):
+    def upload_file(self, file_path, target_file=''):
 
         response = None
         print "Uploading: %s" % file_path
         try:
-            response = self.uploader.upload_file(file_path)
+            response = self.uploader.upload_file(file_path, target_file=target_file)
             if response:
-                return (True, file_path, response)
+                r_file_path = self.uploader.dpx.getTargetPath(response.path_display)
+                return (True, r_file_path, response)
             else:
                 return (False, file_path, response)
         except Exception as e:
@@ -142,6 +162,6 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
 
     def execute_upload_process(self):
         self.fill_list_widget()
-        self.upload()
+        self.upload_path_list()
 
 

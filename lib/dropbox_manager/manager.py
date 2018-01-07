@@ -56,6 +56,8 @@ class DropboxManager(object):
         """
         Get the correct file_path from dropbox
         Upload file using overwrite key to be forced on the upload
+        Checks the local file size, if it has more than the chunk size split the file
+        in subprocess to upload piece by piece 
         """
         if not local_file.startswith(self._base_path):
             raise Exception("Wrong repository")
@@ -65,10 +67,36 @@ class DropboxManager(object):
         else:
             mode= self.DropBox.dropbox.files.WriteMode.add
 
-
-        dropbox_path = self.getDropboxPath(local_file)
+        if not target_file:
+            dropbox_path = self.getDropboxPath(local_file)
+        else:
+            dropbox_path = target_file
+        file_size = os.path.getsize(local_file)
         with open(local_file, 'rb') as my_file:
-            response = self.__dpx.files_upload(my_file.read(), dropbox_path, mode=mode)
+            CHUNK_SIZE = 4 * 1024 * 1024
+            if file_size <= CHUNK_SIZE:
+                response = self.__dpx.files_upload(my_file.read(), dropbox_path, mode=mode)
+            
+            else:
+                
+                upload_session_start_result = self.__dpx.files_upload_session_start(my_file.read(CHUNK_SIZE))
+                cursor = dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id,
+                                                           offset=my_file.tell())
+                commit = dropbox.files.CommitInfo(path=dropbox_path)
+            
+                # If the current processed byte is less than the latest byte keep processing
+                while my_file.tell() < file_size:
+                    if ((file_size - my_file.tell()) <= CHUNK_SIZE):
+                        # to save all the data to a file in Dropbox.
+                        response = self.__dpx.files_upload_session_finish(my_file.read(CHUNK_SIZE),
+                                                        cursor,
+                                                        commit)
+                    else:
+                        self.__dpx.files_upload_session_append(my_file.read(CHUNK_SIZE),
+                                                        cursor.session_id,
+                                                        cursor.offset)
+                        cursor.offset = my_file.tell()
+            print response
             if response:
                 msg = "UPLOADED FILE: %s" % local_file
                 print msg
@@ -274,24 +302,18 @@ class DropboxManager(object):
 
 
 if __name__ == "__main__":
-    file_path = r"P:/bm2/lib/LIG/preLightingSet/neutralLig/main/mps"
+    file_path = r"work/BM2/seq/tst/sho/700/previs/out/bm2_shopre_seq_tst_sho_700_previs_mortando_abc_out.abc"
     dpx = DropboxManager(token='MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI')
-#     file_path  = r"P:/bm2/seq/tst/sho/1000/hair/mps/v02"
-#     print dpx.getDropboxPath(file_path)
-#     dpx.downloadFile(file_path)
-#     dpx.cleanBasePath(file_path)
 #     dpx.uploadFile(file_path, overwrite=True)
-    print(dpx.existFile(r'/work/bm2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip044.ma'))
-#     print dpx.getChildrenFromFolder()
-# #     print dpx.getTargetPath(file_path)
-# #     file_path = r"\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-# #     print dpx.getTargetPath(file_path)
-# #     file_path = r"work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-# #     print dpx.getTargetPath(file_path)
-# #     file_path = r"\\work\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"
-# #     print dpx.getTargetPath(file_path)
-#     path = "/work/BM2/elm"
-#     print dpx.getAllrecursiveChildren(dpx.normpath(path))
-#     "work/bm2/elm/gafasGato_TEST/sha/high/shading/wip/bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_wip_0011.ma"
-
-# dpx.getChildrenFromFolder(r"P:/BM2/seq/tst/sho/300/footage/mps")
+    print dpx.getTargetPath(file_path)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

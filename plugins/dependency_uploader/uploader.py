@@ -19,7 +19,7 @@ class Uploader(object):
     _work_environ = ""
     def __init__(self):
         self._config = get_environ_config()
-        self.dpx = DropboxManager(self._config["dpx_token"])
+        self.dpx = DropboxManager(self._config["test_dpx_token"])
         self._ma_reader = MaReader()
 
 
@@ -108,7 +108,7 @@ class Uploader(object):
             if result and call_back_func:
                 call_back_func(**callback_args)
 
-    def upload_file(self, file_path):
+    def upload_file(self, file_path, target_file=''):
         """
         Upload the file and move the existing file to an old folder at the same level
         check the file structure
@@ -120,9 +120,12 @@ class Uploader(object):
         if not self.check_file_structure(file_path):
             return False
         # check folder
-        parent_folder = self.get_parent_folder(file_path)
+        if not target_file:
+            target_file =  self.dpx.getDropboxPath(file_path)
+            
+        parent_folder = self.get_parent_folder(target_file)
         if parent_folder in ["mps","chk","wip"]:
-            target = file_path.replace("/"+parent_folder+"/", "/"+os.path.join(parent_folder,"_old")+"/")
+            target = target_file.replace("/"+parent_folder+"/", "/"+os.path.join(parent_folder,"_old")+"/")
 #             if self.dpx.existFile(file_path):
             try:
                 """
@@ -135,7 +138,7 @@ class Uploader(object):
                 msg = "Trying to move a file that could be no exists [THX DROPBOX]"
                 print msg
                 print e
-        result = self.dpx.uploadFile(file_path, overwrite=True)
+        result = self.dpx.uploadFile(file_path, target_file=target_file,overwrite=True)
         return result
 
     def get_parent_folder(self,path):

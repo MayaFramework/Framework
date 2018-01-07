@@ -317,7 +317,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         f_util.execute_command(command)
 
     def set_loading_gif(self, label):
-
+        return
         movie = QtGui.QMovie(os.path.join(ICO_PATH, "gif", "loading.gif"))
         print os.path.join(ICO_PATH, "gif", "loading.gif")
 #         movie.setCacheMode(QtGui.QMovie.CacheAll)
