@@ -1053,17 +1053,8 @@ QToolButton:disabled {
 }
  
  
-QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
-padding-right: 20px; /* make way for the popup button */
-border: 1px transparent #4A4949;
-border-radius: 5px;
-}
- 
-QToolButton[popupMode="2"] { /* only for InstantPopup */
-padding-right: 10px; /* make way for the popup button */
-border: 1px transparent #4A4949;
-}
- 
+
+
  
 QToolButton:hover, QToolButton::menu-button:hover {
     color: #9BAAA9;

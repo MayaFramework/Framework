@@ -1,8 +1,9 @@
-'''
-Created on Dec 15, 2017
 
-@author: Miguel
-'''
+"""
+:author: Miguel Molledo Alvarez
+:email: miguel.molledo.alvarez@gmail.com
+"""
+
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.gui_loader import gui_loader
 import sys, time
