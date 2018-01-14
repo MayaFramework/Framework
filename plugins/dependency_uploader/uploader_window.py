@@ -115,7 +115,7 @@ class UploaderWindow(QtWidgets.QDialog):
             new_file = main_file.replace("/{0}/".format(current_level),"/chk/")
             new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
             self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
- 
+            
         if out:
             new_file = main_file.replace("/{0}/".format(current_level),"/out/")
             new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
