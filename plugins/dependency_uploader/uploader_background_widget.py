@@ -87,6 +87,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
                 continue
             if self.is_available_thread(self.timeout):
                 self.current_threads +=1
+                self.on_starting_download_file(file_path=c_thread.file_path)
                 c_thread.start()
 
     def upload_path_list(self, file_path_list=[]):
@@ -106,6 +107,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         for c_thread in self._threads:
             if self.is_available_thread(self.timeout):
                 self.current_threads +=1
+                self.on_starting_download_file(file_path=c_thread.file_path)
                 c_thread.start()
 
 
@@ -153,7 +155,6 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
 
 
     def on_starting_download_file(self, file_path):
-        print "start Thread"
         item = self.get_item(file_path)
         if not item:
             return

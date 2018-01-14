@@ -115,7 +115,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
             self.log_text+= '\n{0}: \n   response:  ERROR [{1}]'.format(file_path, str(message))
         elif state == DownloaderResponse.SUCCESS_STATE:
             self.log_text+= '\n{0}: \n   response:  {1}'.format(file_path, str("SUCCES"))
-
+        elif state == DownloaderResponse.IN_PROGRESS:
+            self.log_text += "\nDownloading:  {0}".format(file_path)
         self.log_text_widget.setPlainText(self.log_text)
         
         
@@ -192,8 +193,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         Calculates file_dependencies
         """
         file_list = []
-#         file_path = self.get_current_text()
-        file_path = r"P:\BM2\seq\tst\sho\700\scncmp\wip\bm2_shoscn_seq_tst_sho_700_scncmp_animationPrep_Dalia_wip.ma"
+        file_path = self.get_current_text()
         file_path = self.downloader._dpx.getTargetPath(file_path)
         file_list.append(file_path)
         self.log_text_widget.clear()

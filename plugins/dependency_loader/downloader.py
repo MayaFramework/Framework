@@ -29,7 +29,7 @@ class DownloaderResponse(object):
 
     @file_path.setter
     def file_path(self, file_path):
-        if file_path and isinstance(file_path, (str, tuple)):
+        if file_path and isinstance(file_path, (str, unicode)):
             self.__file_path = file_path
         else:
             raise Exception("Not supported data: FilePath: %s" % type(file_path))
@@ -86,6 +86,7 @@ class Downloader(QtCore.QObject):
         self._processed_file_list = []
         self._threads = []
         self._current_thread_count = 0
+        self._folders_processed = []
         self.on_start_download.emit()
         self.download_files(self._file_list)
         
@@ -98,10 +99,11 @@ class Downloader(QtCore.QObject):
         if not file_list:
             raise Exception("Not file list defined")
         # for each file list check if its a maya file and get its dependencies
+        aux_file_list = file_list
         for f in file_list:
             t_path = self._dpx.getTargetPath(f)
             if t_path in self._processed_file_list:
-                file_list.remove(f)
+                aux_file_list.remove(f)
                 continue
             self._processed_file_list.append(t_path)
             cThread = CustomQThread(func=self.download_file, file_path=t_path)
@@ -112,7 +114,7 @@ class Downloader(QtCore.QObject):
 
         
         for thread in self._threads:
-            if thread.file_path in file_list and self.is_available_thread(timeout=60*60):
+            if thread.file_path in aux_file_list and self.is_available_thread(timeout=60*60):
                 self._current_thread_count +=1
                 thread.start()
             
@@ -145,6 +147,7 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
+        print response.state, response.message, response.file_path
         if response.state == DownloaderResponse.ERROR_STATE:
             return
         # Now check for new possible files pulling from this one
@@ -152,13 +155,16 @@ class Downloader(QtCore.QObject):
         # calculating dependencies
         dependencies = self.get_file_dependencies(file_path)
         if dependencies:
-            new_files.extend(new_files)
+            new_files.extend(dependencies)
         # check filter folders
         if self.is_file_in_filter_rules(file_path):
             folder = file_path.rsplit("/",1)[0]
-            children = self.get_children_from_folder(folder)
-            if children:
-                new_files.extend(children)
+            if not folder in self._folders_processed:
+                children = self.get_children_from_folder(folder)
+                if children:
+                    if not folder in self._folders_processed:
+                        self._folders_processed.append(folder)
+                        new_files.extend(children)
         if new_files:
             self.download_files(list(set(new_files)))
     def download_file(self, file_path):
@@ -190,17 +196,20 @@ class Downloader(QtCore.QObject):
 
     def get_file_dependencies(self, file_path):
         try:
-            if not self.is_ma_file(file_path):
-                return {}
-            dependencies = MaReader.get_references(file_path)
-            if dependencies: 
-                return [x for x in dependencies]
+            if self.is_ma_file(file_path):
+                dependencies = MaReader.get_references(file_path)
+                if dependencies: 
+                    return [self._dpx.getTargetPath(x) for x in dependencies]
+            else:
+                return []
         except Exception as e:
             print e
             return {}
     def is_ma_file(self, file_path):
         if file_path.endswith(".ma"):
-            return None
+            return True
+        else:
+            return False
    
     
     def is_file_in_filter_rules(self, file_path):
