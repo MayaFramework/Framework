@@ -67,10 +67,10 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
 
     def fill_list_widget(self):
         for file_path in self._file_path_list:
-            self.add_item_in_list(self.dependency_list, file_path)
+            self.add_item_in_list(self.dependency_list, self.uploader.dpx.getTargetPath(file_path))
 
-    def get_item(self, file):
-        result = self.dependency_list.findItems(file, QtCore.Qt.MatchExactly)
+    def get_item(self, file_path):
+        result = self.dependency_list.findItems(file_path, QtCore.Qt.MatchExactly)
         if result:
             result = result[0]
         return result
@@ -78,7 +78,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
     def upload_custom_file(self, file_path='', target_path=''):
         local_target_path = self.uploader.dpx.getTargetPath(target_path)
         self.add_item_in_list(self.dependency_list, local_target_path)
-        cThread = CustomQThread(self.upload_file, file_path=file_path, target_file=target_path)
+        cThread = CustomQThread(self.upload_file, file_path=file_path, target_path=target_path)
         cThread.file_path = local_target_path
         cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
         self._custom_file_threads.append(cThread)
@@ -87,6 +87,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
                 continue
             if self.is_available_thread(self.timeout):
                 self.current_threads +=1
+                self.on_starting_download_file(file_path=c_thread.file_path)
                 c_thread.start()
 
     def upload_path_list(self, file_path_list=[]):
@@ -106,6 +107,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         for c_thread in self._threads:
             if self.is_available_thread(self.timeout):
                 self.current_threads +=1
+                self.on_starting_download_file(file_path=c_thread.file_path)
                 c_thread.start()
 
 
@@ -123,14 +125,17 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.log_text+= '\n{0}: \n   response:  {1}'.format(file_path, message)
         self.log_text_widget.setPlainText(self.log_text)
 
-    def upload_file(self, file_path, target_file=''):
+    def upload_file(self, file_path, target_path=''):
 
         response = None
         print "Uploading: %s" % file_path
         try:
-            response = self.uploader.upload_file(file_path, target_file=target_file)
+            response = self.uploader.upload_file(file_path, target_file=target_path)
             if response:
-                r_file_path = self.uploader.dpx.getTargetPath(response.path_display)
+                if target_path:
+                    r_file_path = self.uploader.dpx.getTargetPath(target_path)
+                elif file_path and not target_path:
+                    r_file_path = self.uploader.dpx.getTargetPath(file_path)
                 return (True, r_file_path, response)
             else:
                 return (False, file_path, response)
@@ -153,7 +158,6 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
 
 
     def on_starting_download_file(self, file_path):
-        print "start Thread"
         item = self.get_item(file_path)
         if not item:
             return

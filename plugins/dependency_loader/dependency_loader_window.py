@@ -1,6 +1,7 @@
+
 """
-@author: Miguel Molledo
-@Direction: miguel.molledo.alvarez@gmail.com
+:author: Miguel Molledo Alvarez
+:email: miguel.molledo.alvarez@gmail.com
 """
 
 import sys
@@ -17,6 +18,8 @@ import DATA
 import time
 import threading
 from Framework.lib.ui.qt_thread import CustomQThread
+from Framework.lib.config.config import Config
+from downloader import Downloader, DownloaderResponse
 #=========================================================================
 # TODO: Separate Logic from the UI, this is a fucking shit
 #=========================================================================
@@ -38,29 +41,44 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     dropboxManager = None
     _correct_downloaded = []
     _failed_downloaded = []
-    _processed_list = []
-    _current_thread_count = 0
-    _threads = []
-    def __init__(self):
+    def __init__(self, file_path=""):
         super(DependencyLoaderWidget, self).__init__()
 #         self.setupUi(self)
-        self._config = get_environ_config()
+        self._config = Config.instance()
         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
-        self.dropboxManager = DropboxManager(token=self._config["dpx_token"])
-        self.__icons()
+#         self.dropboxManager = DropboxManager(token=self._config["dpx_token"])
+        self.__init_icons()
         self.context_menu_list()
+        #Log States
+        self.set_log_visible(False)
+        self.log_btn.setIcon(QtGui.QIcon(self.list_ico_path))
+        self.log_text = ""
         # Loading Text and Movie
-        
-        self.set_loading_gif(self.loading_label)
-        self.downloading_text.setText("Downloading...")
-        self.set_loading_visible(True)
+        self.set_loading_gif(False)
 
-    def __icons(self):
+        
+        
+        if file_path:
+            self.path.setText(file_path)
+
+        #setting Downloaderf
+        self.downloader = Downloader()
+        #setting downloader signals
+        self.downloader.on_file_finish_download.connect(self.on_file_finish_download, QtCore.Qt.QueuedConnection)
+        self.downloader.on_file_start_download.connect(self.on_file_start_download, QtCore.Qt.QueuedConnection)
+        self.downloader.on_finish_download.connect(self.on_finish_download, QtCore.Qt.QueuedConnection)
+        self.downloader.on_start_download.connect(self.on_start_download, QtCore.Qt.QueuedConnection)
+    def set_log_visible(self, state=True):
+        self.log_widget.setVisible(state)
+        
+    def __init_icons(self):
         self.downloading_ico_path=os.path.join(ICO_PATH, "downloading.png")
         self.question_ico_path=os.path.join(ICO_PATH, "question.png")
         self.checked_ico_path=os.path.join(ICO_PATH, "checked.png")
         self.error_ico_path=os.path.join(ICO_PATH, "error.png")
+        self.list_ico_path=os.path.join(ICO_PATH, "list.png")
+
 
 
     def context_menu_list(self):
@@ -87,183 +105,65 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         clipboard.setText(selected_item[0].text())
 
     def reset_state(self):
-        # Objects
-        self._correct_downloaded = []
-        self._failed_downloaded = []
-        self._processed_list = []
         # Ui Objects
         self.dependency_list.clear()
         self.downloading_text.setText("")
         return True
 
-    def get_dependencies(self, path):
-        try:
-            if not path.endswith(".ma"):
-                return None
+    def add_log(self, file_path, message, state):
+        if state == DownloaderResponse.ERROR_STATE:
+            self.log_text+= '\n{0}: \n   response:  ERROR [{1}]'.format(file_path, str(message))
+        elif state == DownloaderResponse.SUCCESS_STATE:
+            self.log_text+= '\n{0}: \n   response:  {1}'.format(file_path, str("SUCCES"))
+        elif state == DownloaderResponse.IN_PROGRESS:
+            self.log_text += "\nDownloading:  {0}".format(file_path)
+        self.log_text_widget.setPlainText(self.log_text)
+        
+        
+    def on_file_finish_download(self, downloaderResponse):
+        self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
+        self.update_item(downloaderResponse.file_path, state=downloaderResponse.state)
 
-            maReader = MaReader()
-            dependencies = maReader.get_references(path)
-            return dependencies
-        except Exception as e:
-            print e
-            return False
+    def on_file_start_download(self, downloaderResponse):
+        self.add_item_in_list(downloaderResponse.file_path, state= downloaderResponse.state)
+        self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
+        
+    def on_finish_download(self):
+        self.set_loading_gif(False)
 
-    def get_file_depndencies(self, file):
+    def on_start_download(self):
+        self.set_loading_gif(True)      
+        
+
+    
+    def get_icon(self, state):
+        if state == DownloaderResponse.SUCCESS_STATE:
+            return QtGui.QIcon(self.checked_ico_path)
+        if state == DownloaderResponse.IN_PROGRESS:
+            return QtGui.QIcon(self.downloading_ico_path)
+        if state == DownloaderResponse.ERROR_STATE:
+            return QtGui.QIcon(self.error_ico_path)
+
+    def update_item(self, file_path, state):
+        item = self.get_item(file_path)
+        if not item:
+            return
+        icon = self.get_icon(state)
+        item.setIcon(icon)
+        QtWidgets.QApplication.processEvents()
+
+    def add_item_in_list(self, key, state):
         """
-        P:\bm2\chr\test\test\shading\thinHigh\out\test.ma
+        Add item into the qListWidget
         """
-        dependencies = self.get_dependencies(file)
-        if not dependencies:
-            return False
-
-        current_files = []
-        for key, values in dependencies.iteritems():
-            key = self.dropboxManager.getTargetPath(key)
-            if key in self._processed_list:
-                continue
-            current_files.append(key)
-            # Create Ui Element
-            self.add_item_in_list(key)
-            self._processed_list.append(key)
-            cThread = CustomQThread(func=self.download_file, file_path=key)
-            cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
-            cThread.file_path = key
-            self._threads.append(cThread)
-            
-            if "/mps/" in key:
-                folder = key.rsplit("/", 1)[0]
-                children = self.dropboxManager.getChildrenFromFolder(folder)
-                if children:
-                    for child in children:
-                        child = self.dropboxManager.getTargetPath(child)
-                        if child not in self._processed_list:
-                            self.add_item_in_list(child)
-                            current_files.append(child)
-                            self._processed_list.append(child)
-                            cThread = CustomQThread(func=self.download_file, file_path=child)
-                            cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
-                            cThread.file_path = child
-                            self._threads.append(cThread)
-
-        for c_thread in self._threads:
-            if self.is_available_thread(timeout=60*60):
-                self._current_thread_count += 1
-                self.on_starting_download_file(c_thread.file_path)
-                c_thread.start()
-
-    def add_item_in_list(self, key):
         if key.startswith("P:bm2"):
-            print "VERGA"
+            print "WRONG"
         listItem = QtWidgets.QListWidgetItem(key)
-        listItem.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "question.png")))
+        listItem.setIcon(self.get_icon(state))
         self.dependency_list.addItem(listItem)
         QtWidgets.QApplication.processEvents()
 
-    def is_available_thread(self, timeout, period=0.25):
-        mustend = time.time() + timeout
-        while time.time() < mustend:
-            if self._current_thread_count <= self.thread_spinBox.value():
-                return True
-            QtWidgets.QApplication.processEvents()
-            time.sleep(period)
-        return False
 
-
-#     def execute_download(self, my_file):
-#         result = self.download_file(file, item)
-
-#     def execute_download(self, my_file):
-# #         time = time.time()
-#         try:
-#             item = self.get_item(my_file)
-#             if not item:
-#                 return
-#             # logic
-#             result = self.download_file(my_file, item)
-#             if result:
-#                 self._correct_downloaded.append(my_file)
-#                 if my_file.endswith(".ma"):
-#                     self.get_file_depndencies(my_file)
-#             else:
-#                 self._failed_downloaded.append(my_file)
-# 
-#         except Exception as e:
-#             print e
-#         finally:
-#             self._current_thread_count -= 1
-#             if self._current_thread_count == 0:
-#                 self.set_loading_visible(False)
-# #             print "Thread Acabado: %s" % file
-# #             print " Time:", (time.time()-start)
-
-
-    def download_file(self, file_path):
-        '''
-        Download file and parse the result in a tuple of 3 elements
-        :param file_path: str
-        
-        return:
-            tuple:  False/True (bool)
-                    file_path (str)
-                    dropboxManager response (object)
-        '''
-        response = None
-        print "Downloading: %s" % file_path
-        try:
-            response = self.dropboxManager.downloadFile(file_path)
-            if response:
-                return (True, file_path, response)
-            else:
-                return (False, file_path, response)
-        except Exception as e:
-            return  (False, file_path, e)
-
-
-    def on_starting_download_file(self, my_file):
-        print "start Thread"
-        item = self.get_item(my_file)
-        if not item:
-            return
-        item.setIcon(QtGui.QIcon(self.downloading_ico_path))
-        QtWidgets.QApplication.processEvents()
-
-    def on_finished_download_file(self, tuple_response):
-        result, file_path, dpx_response = tuple_response
-        item = self.get_item(file_path)
-        print result, file_path, dpx_response
-        if not item:
-            return
-        if result:
-            item.setIcon(QtGui.QIcon(self.checked_ico_path))
-        else:
-            item.setIcon(QtGui.QIcon(self.error_ico_path))
-        self._current_thread_count -=1
-        QtWidgets.QApplication.processEvents()
-
-
-
-
-#     def download_file(self, file, item):
-#         try:
-#             item.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "downloading.png")))
-#             QtWidgets.QApplication.processEvents()
-#             response = 
-#             if response:
-#                 item.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "checked.png")))
-#                 return (True, response)
-#             else:
-#                 item.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "error.png")))
-#                 return (False, response)
-# 
-#         except Exception as e:
-#             item.setIcon(QtGui.QIcon(os.path.join(ICO_PATH, "error.png")))
-#             print e
-#             return (False, e)
-#         finally:
-#             QtWidgets.QApplication.processEvents()
-
-
-        
 
 
     def set_loading_visible(self, visible_state):
@@ -284,16 +184,29 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def on_update_btn_clicked(self):
-        self.set_loading_visible(True)
-        self.reset_state()
-        current_path_file = self.dropboxManager.getTargetPath(self.get_current_text())
-        if not os.path.exists(current_path_file):
-            self.dropboxManager.downloadFile(current_path_file)
-        self.create_default_folders_on_target(current_path_file)
-        self.get_file_depndencies(current_path_file)
+        self.execute_update_process()
+
+    def execute_update_process(self):
+        """
+        Set The loading gif visible
+        Downloads the path if the current doesnt exist in local disk
+        Calculates file_dependencies
+        """
+        file_list = []
+        file_path = self.get_current_text()
+        file_path = self.downloader._dpx.getTargetPath(file_path)
+        file_list.append(file_path)
+        self.log_text_widget.clear()
+        self.create_default_folders_on_target(file_path)
+        self.set_log_visible(True)
+        self.downloader.set_files_to_process(file_list)
+        self.downloader.set_maxium_threads(self.thread_spinBox.value())
+        self.downloader.start_download_process()
 
     def create_default_folders_on_target(self, file_path):
-#       folders_list = ",".join(["wip","mps","out","ref","chk"])
+        """
+        Creates default folders on the target path
+        """
         folders_list = ",".join(DATA.WORKING_FOLDERS)
         window = MessageWindow("Create Starter Folders","Warning",
                       msg="Do you want to create previous folders on the target"+\
@@ -308,7 +221,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         if not os.path.exists(path_rout):
             os.makedirs(path_rout)
 
-
+    @QtCore.Slot()
+    def on_log_btn_clicked(self):
+        self.set_log_visible(self.log_widget.isHidden())
+    
+    
     @QtCore.Slot()
     def on_open_btn_clicked(self):
         maya_path = self.get_maya_exe_path()
@@ -316,12 +233,13 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                                              str(self.dropboxManager.getTargetPath(self.get_current_text())))
         f_util.execute_command(command)
 
-    def set_loading_gif(self, label):
-        return
+    def set_loading_gif(self,  state=True, label=""):
+        self.set_loading_visible(state)
+        if not state:
+            return
+        self.downloading_text.setText("Downloading...")
         movie = QtGui.QMovie(os.path.join(ICO_PATH, "gif", "loading.gif"))
-        print os.path.join(ICO_PATH, "gif", "loading.gif")
-#         movie.setCacheMode(QtGui.QMovie.CacheAll)
-        label.setMovie(movie)
+        self.loading_label.setMovie(movie)
         movie.start()
 
 if __name__ == "__main__":

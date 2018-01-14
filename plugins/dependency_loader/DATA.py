@@ -1,9 +1,11 @@
-'''
-Created on May 22, 2017
 
-@author: Miguel Molledo
-@Direction: miguel.molledo.alvarez@gmail.com
-'''
+"""
+:author: Miguel Molledo Alvarez
+:email: miguel.molledo.alvarez@gmail.com
+"""
+
 
 
 WORKING_FOLDERS = ["wip","mps","out","ref","chk"]
+# if a file is immediately in this folder download all its children
+FILTER_FOLDERS = ["/mps/"]

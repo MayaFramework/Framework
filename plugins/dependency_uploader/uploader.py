@@ -19,7 +19,7 @@ class Uploader(object):
     _work_environ = ""
     def __init__(self):
         self._config = get_environ_config()
-        self.dpx = DropboxManager(self._config["dpx_token"])
+        self.dpx = DropboxManager.instance()
         self._ma_reader = MaReader()
 
 

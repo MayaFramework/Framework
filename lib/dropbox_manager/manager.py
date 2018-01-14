@@ -34,23 +34,20 @@ import os
 import re
 from Framework.lib.ext_lib import dropbox
 from Framework.lib.ext_lib.dropbox import files
-
-
-class DropboxManager(object):
+from Framework.lib.singleton import Singleton
+from Framework.lib.config.config import Config
+class DropboxManager(Singleton):
     __client = None
     __dpx = None
     _base_path = None
     __subfolder = "WORK"
     _base_path = "P:"
-    def __init__(self, token, base_path="", subfolder = ""):
-#         import dropbox
+    def __init__(self):
+        super(DropboxManager, self).__init__()
+        self._config = Config.instance()
         self.DropBox = dropbox
-#         self.__client = self.DropBox.client.DropboxClient(token)
-        self.__dpx = self.DropBox.dropbox.Dropbox(token)
-        if base_path:
-            self._base_path = base_path
-        if subfolder:
-            self.__subfolder = subfolder
+        self.__dpx = self.DropBox.dropbox.Dropbox(self._config.environ["dpx_token"])
+
 
     def uploadFile(self, local_file, overwrite=True, target_file=None):
         """
@@ -125,7 +122,7 @@ class DropboxManager(object):
             message = "Something was wrong downloading the file: %s " % dropbox_path
             message = message + "\n With the exception: %s" % e
             print message
-            return False
+            raise(e)
 
         return True
 
@@ -303,7 +300,7 @@ class DropboxManager(object):
 
 if __name__ == "__main__":
     file_path = r"work/BM2/seq/tst/sho/700/previs/out/bm2_shopre_seq_tst_sho_700_previs_mortando_abc_out.abc"
-    dpx = DropboxManager(token='MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI')
+    dpx = DropboxManager.instance()
 #     dpx.uploadFile(file_path, overwrite=True)
     print dpx.getTargetPath(file_path)
     
