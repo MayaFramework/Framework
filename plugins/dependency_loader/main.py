@@ -11,5 +11,9 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
 #     DependencyLoaderWidget().show()
 #     app.exec_()
-    obj = gui_loader.get_default_container(DependencyLoaderWidget(), "Update All")
-    obj.exec_()
+    file_path = r"P:\BM2\loc\salaTelefonos\scn\main\main\wip\bm2_locscn_loc_salaTelefonos_scn_main_main_default_none_wip0020.ma"
+    tool = DependencyLoaderWidget(file_path)
+    obj = gui_loader.get_default_container(tool, "Update All")
+    obj.show()
+    tool.execute_update_process()
+    app.exec_()

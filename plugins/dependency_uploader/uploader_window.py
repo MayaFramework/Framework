@@ -41,7 +41,7 @@ class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
     CURRENT_AREA_WORK_PATH = " "
-    def __init__(self):
+    def __init__(self, file_path=""):
         super(UploaderWindow, self).__init__()
         self.setWindowTitle(self.TOOL_NAME)
         self.current_threads = 0
@@ -51,6 +51,9 @@ class UploaderWindow(QtWidgets.QDialog):
 #         self.setupUi(self)
         self.uploader = Uploader()
         self._init_widget()
+        if file_path:
+            self.path_line_edit.setText(file_path)
+        
     def _init_widget(self):
         self.upload_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "upload.png")))
         self.analize_btn.setIcon(QtGui.QIcon(os.path.join(ICON_PATH, "search.png")))
@@ -77,14 +80,19 @@ class UploaderWindow(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def on_analize_btn_clicked(self):
+        self.execute_analize_process()
+
+    @QtCore.Slot()
+    def on_upload_btn_clicked(self):
+        self.execute_upload_process()
+        
+    def execute_analize_process(self):
         file_path = self.get_file_path()
         if not file_path.endswith(".ma"):
             raise Exception("Not File Ma file extension")
         self.fill_tree_widget(file_path)
-
-    @QtCore.Slot()
-    def on_upload_btn_clicked(self):
         
+    def execute_upload_process(self):
         #check files and confirmation from the user
         main_file = self.uploader.dpx.getTargetPath(self.get_file_path())
         files_to_upload = self.find_tree_selection()
@@ -383,10 +391,12 @@ class UploaderWindow(QtWidgets.QDialog):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    widget = UploaderWindow()
+    
 #     widget = UploaderBackgroundWidget([r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"], 2)
 #     widget.execute_upload_process()
+    widget = UploaderWindow(r"P:\BM2\loc\salaTelefonos\scn\main\main\wip\bm2_locscn_loc_salaTelefonos_scn_main_main_default_none_wip0020.ma")
     obj = gui_loader.get_default_container(widget, "UPLOADER")
     obj.show()
+    widget.execute_analize_process()
     app.exec_()
 
