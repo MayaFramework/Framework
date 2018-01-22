@@ -25,22 +25,23 @@ import getpass
 
 python_dir = r"C:\Python27\Lib\site-packages"
 file = "environ.pth"
-path_to_add = [r"P:/TOOLS/", "P:/Deployment"]
-try:
-    for path in path_to_add:
-        os.makedirs(path)
-except:
-    pass
+path_to_add = [r"P:/TOOLS/", "P:/Deployment",r"P:/TOOLS/Framework"]
+
+for c_path in path_to_add:
+    try:
+        os.makedirs(c_path)
+    except Exception as e:
+        print e
 with open(os.path.join(python_dir,file), "w") as f:
-    for path in path_to_add:
-        f.write(path+"\n")
+    for c_path in path_to_add:
+        f.write(c_path+"\n")
 
 userSetup_path = "C:/Users/{}/Documents/maya/2017/scripts".format(getpass.getuser())
 
 current_folder = os.path.dirname(__file__)
 
 # userSetup_path = os.path.join(os.environ["MAYA_APP_DIR"], "2017", "scripts").replace("\\","/")
-shutil.copy2("P:/Deployment/userSetup.py", userSetup_path)
+shutil.copy2(os.path.join(current_folder,"userSetup.py"), userSetup_path)
 
 
 
@@ -90,6 +91,6 @@ else:
 bats_to_copy = ["Downloader.bat", "Uploader.bat"]
 target_copy = os.path.join(REPO_DIR, "..")
 for bat in bats_to_copy:
-    shutil.copy2(os.path.join(current_folder, "resources", bat), target_copy)
+    shutil.copy2(os.path.join(current_folder, bat), target_copy)
 
     
