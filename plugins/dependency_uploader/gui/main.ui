@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>773</width>
-    <height>349</height>
+    <width>633</width>
+    <height>363</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -26,7 +26,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
-      <number>0</number>
+      <number>3</number>
      </property>
      <item>
       <widget class="QLabel" name="label_2">
@@ -47,12 +47,12 @@
         <string>Set a Ma file or a single file doesnt care if its a ma it will uploaded.</string>
        </property>
        <property name="text">
-        <string>P:\bm2\elm\gafasGato_TEST\sha\high\shading\chk\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma</string>
+        <string/>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="icon_path">
+      <widget class="QToolButton" name="ico_path_btn">
        <property name="minimumSize">
         <size>
          <width>32</width>
@@ -68,15 +68,15 @@
        <property name="text">
         <string>file_ico</string>
        </property>
-       <property name="scaledContents">
-        <bool>true</bool>
-       </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <item>
       <widget class="QLabel" name="label">
        <property name="minimumSize">
@@ -113,6 +113,139 @@
       </widget>
      </item>
      <item>
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Leyend:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="warning_leyend">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>It doesnt belong to this work area but you can still upload it if you want by marking the check box</string>
+       </property>
+       <property name="whatsThis">
+        <string/>
+       </property>
+       <property name="text">
+        <string>warning</string>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="question_leyend">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string notr="true">Either doesnt belong from this area and its not in our local P: disk</string>
+       </property>
+       <property name="text">
+        <string>question</string>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="error_leyend">
+       <property name="minimumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>The file doesnt pass the checks to be in the work area as well as the name convention</string>
+       </property>
+       <property name="text">
+        <string>error</string>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line_4">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Work Area:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="work_area_label">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -125,6 +258,22 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QToolButton" name="clear_btn">
+       <property name="minimumSize">
+        <size>
+         <width>70</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Clear Content</string>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -136,12 +285,29 @@
    </item>
    <item>
     <widget class="QTreeWidget" name="inspection_tree">
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
      </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
+     </property>
+     <attribute name="headerCascadingSectionResizes">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="headerShowSortIndicator" stdset="0">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="headerStretchLastSection">
+      <bool>false</bool>
+     </attribute>
      <column>
       <property name="text">
-       <string notr="true">1</string>
+       <string notr="true">Files</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Work Area</string>
       </property>
      </column>
     </widget>
@@ -157,7 +323,7 @@
         <string>Add more files to be uploaded in the same process</string>
        </property>
        <property name="text">
-        <string>Add file to download</string>
+        <string>Add file to Upload</string>
        </property>
        <property name="iconSize">
         <size>
@@ -182,6 +348,34 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QToolButton" name="check_name_convention_btn">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>30</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Analize dependencies from the file defined above. Just works with ma files.</string>
+       </property>
+       <property name="text">
+        <string>Check and Fix Name Convention</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>24</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QToolButton" name="analize_btn">
@@ -223,7 +417,7 @@
         <string>Upload all the files defined in the list and in the main box.</string>
        </property>
        <property name="text">
-        <string>Upload File &amp; Dependencies!</string>
+        <string>Upload File and Dependencies!</string>
        </property>
        <property name="iconSize">
         <size>

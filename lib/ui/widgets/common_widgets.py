@@ -2,7 +2,7 @@
 
 """
 Summary:
-	This module cover a common uses of QtWidgets  
+    This module cover a common uses of QtWidgets  
 """
 import sys
 import pprint
@@ -11,9 +11,12 @@ from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui, QtXml
 # from cmn.cmn.python.lib import PyQt5
 # from PyQt5 import QtWidgets, QtCore, Qt
 from Framework import get_css_path
+
+
 def set_style_sheet(Qt_object, css_file):
-	with open(css_file, 'r') as style_file:
-		Qt_object.setStyleSheet(style_file.read())
+    with open(css_file, 'r') as style_file:
+        Qt_object.setStyleSheet(style_file.read())
+
 
 class MessageWindow(QtWidgets.QDialog):
     """
@@ -21,17 +24,17 @@ class MessageWindow(QtWidgets.QDialog):
 
     Initialize and wait for a response.
     Ask the response by calling the method (get_response)
-    	get_response:
-    		True: if it have pressed the right button (Continue)
-    		False: if it have pressed the left button (Cancel)
+        get_response:
+            True: if it have pressed the right button (Continue)
+            False: if it have pressed the left button (Cancel)
     Attributes:
         name_btn_left (str): name of the left btn
         name_btn_right (str): name of the right btn
         _level_supported (lsit): of levels supported to format the window
         text (QtWidgets.QPlainText): an optional container to put a huge msg
-		title(str): Main short msg
-		level (Str): A specific level to format the information 
-		msg (str): String to fill the container info
+        title(str): Main short msg
+        level (Str): A specific level to format the information 
+        msg (str): String to fill the container info
 
     """
     ERROR_LEVEL = "ERROR"
@@ -43,7 +46,7 @@ class MessageWindow(QtWidgets.QDialog):
 
     def __init__(self, title, level='INFO', msg=None):
         super(MessageWindow, self).__init__()
-        set_style_sheet(self,os.path.join(get_css_path(),"dark_style1.qss"))
+        set_style_sheet(self, os.path.join(get_css_path(), "dark_style1.qss"))
         self._state = False
         self.vertical_layout = QtWidgets.QVBoxLayout(self)
         self.horizontal_layout_btns = QtWidgets.QHBoxLayout()
@@ -125,12 +128,13 @@ class ReporterWindow(MessageWindow):
     """
     Class which inherites from Message window to change the btn actions
 
-    
+
     Attributes:
         name_btn_left (str): String with the left name
         name_btn_right (str): String with the right name
-	
+
     """
+
     def __init__(self, title, level='ERROR', msg=None):
         self.name_btn_left = 'Copy Information'
         self.name_btn_right = 'Send Information'
@@ -140,7 +144,7 @@ class ReporterWindow(MessageWindow):
     def on_left_btn(self):
         """
         This btn copy the information from the text container into the cliboard.
-        
+
         Returns:
             TYPE: Description
         """
@@ -156,16 +160,16 @@ class ReporterWindow(MessageWindow):
     def on_right_btn(self):
         """
         A method overloaded which manages the way of sending informations
-        
+
         Returns:
             TYPE: Description
-        
+
         Raises:
             Exception: IN PROGRES
 
         TODO:
-	        # It could be an option to send into the ddbb
-	        # It could be another option to send the information by email
+            # It could be an option to send into the ddbb
+            # It could be another option to send the information by email
         """
         raise Exception("IN-PROGRESS")
 
@@ -173,14 +177,15 @@ class ReporterWindow(MessageWindow):
 class ProgressBar(QtWidgets.QProgressBar):
     """
     Re imeplementation of Progress Bar 
-    
+
     Attributes:
         maximum (int): maximum value where the progress bar ends
         value (int): current value
     """
+
     def __init__(self, max=None):
         super(ProgressBar, self).__init__()
-        set_style_sheet(self,os.path.join(get_css_path(),"dark_style1.qss"))
+        set_style_sheet(self, os.path.join(get_css_path(), "dark_style1.qss"))
         self.value = 0
         if max:
             self.setMax(max)
@@ -201,16 +206,42 @@ class ProgressBar(QtWidgets.QProgressBar):
     def getMax(self):
         return self.maximum
 
-if __name__ == "__main__":
-# EXAMPLE Progress Bar
-# 	import time
-# 	processBar = ProgressBar(100)
-# 	for x in range(0, 100):
-# 		time.sleep(0.1)
-# 		processBar.update()
 
-	app = QtWidgets.QApplication(sys.argv)
-	a = MessageWindow(title='Publisher Message',
-					level='ERROR',
-					msg='message')
-    # b = ReporterWindow(title = ' reporter', level = 'WARNING', msg='My Message to send into some ddbb ')
+class MovieLabel(QtWidgets.QWidget):
+
+    def __init__(self, file_path, parent=None):
+        super(MovieLabel, self).__init__(parent)
+        self.movie = QtGui.QMovie(file_path, QtCore.QByteArray(), self)
+        size = self.movie.scaledSize()
+        self.setGeometry(200, 200, size.width(), size.height())
+        self.movie_screen = QtWidgets.QLabel()
+        self.movie_screen.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.movie_screen.setAlignment(QtCore.Qt.AlignCenter)
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.addWidget(self.movie_screen)
+        self.setLayout(main_layout)
+        self.movie.setCacheMode(QtGui.QMovie.CacheAll)
+        self.movie.setSpeed(30)
+        self.movie_screen.setMovie(self.movie)
+        self.movie.start()
+
+# #
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    a = MovieLabel(file_path="P:\dev\Framework\icons\gif\loading.gif")
+    a.show()
+    app.exec_()
+# if __name__ == "__main__":
+# # EXAMPLE Progress Bar
+# #     import time
+# #     processBar = ProgressBar(100)
+# #     for x in range(0, 100):
+# #         time.sleep(0.1)
+# #         processBar.update()
+#
+#   app = QtWidgets.QApplication(sys.argv)
+#   a = MessageWindow(title='Publisher Message',
+#                   level='ERROR',
+#                   msg='message')
+#     # b = ReporterWindow(title = ' reporter', level = 'WARNING', msg='My Message to send into some ddbb ')

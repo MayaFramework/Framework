@@ -26,7 +26,6 @@ QToolTip
     border: 1px solid #76797C;
     background-color: rgb(90, 102, 117);;
     color: white;
-    padding: 5px;
     opacity: 200;
 }
 
@@ -136,10 +135,8 @@ QGroupBox::indicator:unchecked:disabled
 
 QRadioButton
 {
-    spacing: 5px;
     outline: none;
     color: #eff0f1;
-    margin-bottom: 2px;
 }
 
 QRadioButton:disabled
@@ -551,17 +548,8 @@ QMenu::separator
 }
 
 
-QFrame
-{
-    border-radius: 2px;
-    border: 1px solid #76797C;
-}
 
-QFrame[frameShape="0"]
-{
-    border-radius: 2px;
-    border: 1px transparent #76797C;
-}
+
 
 QStackedWidget
 {
@@ -594,24 +582,11 @@ QPushButton
 {
     color: #eff0f1;
     background-color: #31363b;
-    border-width: 1px;
-    border-color: #76797C;
-    border-style: solid;
-    border-radius: 2px;
-    outline: none;
 }
 
 QPushButton:disabled
 {
     background-color: #31363b;
-    border-width: 1px;
-    border-color: #454545;
-    border-style: solid;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-left: 10px;
-    padding-right: 10px;
-    border-radius: 2px;
     color: #454545;
 }
 
@@ -639,7 +614,6 @@ QComboBox
 
 QPushButton:checked{
     background-color: #76797C;
-    border-color: #6A6969;
 }
 
 QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover,QAbstractView:hover,QTreeView:hover
@@ -1014,13 +988,11 @@ QSlider::handle:vertical {
 QToolButton {
     background-color: transparent;
     border: 1px transparent #76797C;
-    border-radius: 2px;
 }
 
 QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
  padding-right: 20px; /* make way for the popup button */
  border: 1px #76797C;
- border-radius: 5px;
 }
 
 QToolButton[popupMode="2"] { /* only for InstantPopup */
@@ -1111,7 +1083,6 @@ QHeaderView::section  {
     color: #eff0f1;
     padding: 5px;
     border: 1px solid #76797C;
-    border-radius: 0px;
     text-align: center;
 }
 

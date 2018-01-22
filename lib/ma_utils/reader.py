@@ -20,10 +20,18 @@ REG_EXPRESSION = "(\"P:/.*);"
 
 class MaReader(object):
 
-    def __init__(self):
-        pass
+    @staticmethod
+    def has_dependencies(ma_file):
+        with open(ma_file) as file:
+            lines = file.readlines()
+            for line in lines:
+                match_result = re.findall(REG_EXPRESSION, line)
+                if match_result:
+                    return True
+        return False
 
-    def get_references(self, ma_file):
+    @staticmethod
+    def get_references(ma_file):
         _references = {}
         with open(ma_file) as file:
             lines = file.readlines()
@@ -35,5 +43,19 @@ class MaReader(object):
 
             if _references:
                 return _references
+            return None
+
+    @staticmethod
+    def get_all_references(dependencies_list, db_instance, path):
+        dependencies = MaReader.get_references(path)
+        if dependencies:
+            for dp in dependencies.keys():
+                if not dp in dependencies_list:
+                    dependencies_list.append(dp)
+                if dp.endswith(".ma"):
+                    if not os.path.exists(dp):
+                        db_instance.downloadFile(dp)
+                        MaReader.get_all_references(dependencies_list, db_instance, dp)
+        return dependencies_list
 
         

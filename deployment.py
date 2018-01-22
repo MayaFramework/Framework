@@ -1,84 +1,96 @@
 import pip
 print "DOWNLOADING FROM PIP"
 # Installing Pyside
-package_name='pyside'
-pip.main(['install', package_name])
-# 
-package_name='six'
-pip.main(['install', package_name])
-# 
+import sys
 
-package_name='dropbox'
-pip.main(['install', package_name])
-# 
-package_name='requests'
-pip.main(['install', package_name])
-# 
-package_name='urllib3'
-pip.main(['install', package_name])
-# 
+PRODUCTION_REPO = "https://github.com/MayaFramework/Framework.git"
+REPO_DIR = "P:/TOOLS/Framework"
 
+PACKAGES = ['pyside', 'six', 'dropbox', 'requests', 'urllib3', 'GitPython']
 
+for package in PACKAGES:
+    args = ["install", package]
+    msg = "INSTALLING {}".format(package)
+    if package in sys.modules:
+        msg = "UPDATING {}".format(package)
+        args.append("-U")
+    print msg
+    pip.main(args)
 
 
 # Set environ file 
 import os
+import shutil
+import getpass
+
 python_dir = r"C:\Python27\Lib\site-packages"
 file = "environ.pth"
-path_to_add = [r"P:/TOOLS"]
+path_to_add = [r"P:/TOOLS/", "P:/Deployment",r"P:/TOOLS/Framework"]
+
+for c_path in path_to_add:
+    try:
+        os.makedirs(c_path)
+    except Exception as e:
+        print e
 with open(os.path.join(python_dir,file), "w") as f:
-    for path in path_to_add:
-        f.write(path)
+    for c_path in path_to_add:
+        f.write(c_path+"\n")
 
-import time
-import os
-import dropbox
-import time
-import threading
-class updater(object):
-    def __init__(self):
-        self._thread_count = 0
-        self.update()
+userSetup_path = "C:/Users/{}/Documents/maya/2017/scripts".format(getpass.getuser())
 
-    def update(self):
-        token = "5e9ZZ9cN4roAAAAAAAACUvtyEFQFQ8NF_uRG0wD6fb3geMHqC7hcp4mxKzyRktwL"
-        self.dpx_d = dropbox.dropbox.Dropbox(token)
-        result =  self.dpx_d.files_list_folder("/TOOLS/", recursive=True)
-        for x in result.entries:
-            splited = x.path_display.rsplit(".",1)
-            if len(splited) >1:
-                if self.is_available_thread(60*60):
-                    self._thread_count += 1
-                    t = threading.Thread(target = self.execute_download, args=(x.path_display,))
-                    t.start()
+current_folder = os.path.dirname(__file__)
+
+# userSetup_path = os.path.join(os.environ["MAYA_APP_DIR"], "2017", "scripts").replace("\\","/")
+shutil.copy2(os.path.join(current_folder,"userSetup.py"), userSetup_path)
 
 
 
-    def execute_download(self,file):
-        folder = file.rsplit("/", 1)[0]
-        try:
-            print "CREANDO FOLDER: %s"%folder
-            os.makedirs("P:/"+folder)
-        except Exception as e:
-            print "Warning: %s" % e
-        try:
-            print "Downloading: %s"%file
-            self.dpx_d.files_download_to_file("P:/"+file,file)
-            print "Downloading FINISHED"
-        except Exception as e:
-            print e
-            print "Something was wrong with: %s"%file
-        finally:
-            self._thread_count -=1
+#Update or Clone
 
-    def is_available_thread(self,timeout, period=0.25):
-        mustend = time.time() + timeout
-        while time.time() < mustend:
-            if self._thread_count <= 20:
-                return True
-            time.sleep(period)
+import git
+sys.path.append(r"C:/Python27/Lib/site-packages")
+sys.path.append(r"P:/TOOLS")
+
+os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "P:/Deployment/Git/bin/git.exe"
+os.environ['GIT_SSL_NO_VERIFY'] = "1"
+
+
+
+
+def is_git_repo(path):
+    try:
+        _ = git.Repo(path).git_dir
+        return True
+    except git.exc.InvalidGitRepositoryError:
         return False
 
 
-print "Downloading Framework "
-updater()
+def clone_repo(git_url, repo_dir, branch="master"):
+    try:
+        git.Repo.clone_from(git_url, repo_dir, branch=branch)
+        return True
+    except:
+        return False
+
+
+def pull_latest_changes(repo_dir):
+    repo = git.Repo(repo_dir)
+    o = repo.remotes.origin
+    o.pull()
+
+
+if not is_git_repo(REPO_DIR):
+    clone_repo(PRODUCTION_REPO, REPO_DIR, branch="bm2_production")
+else:
+    pull_latest_changes(REPO_DIR)
+    
+    
+    
+    
+#Copy Bats
+bats_to_copy = ["Downloader.bat", "Uploader.bat"]
+target_copy = os.path.join(REPO_DIR, "..")
+for bat in bats_to_copy:
+    shutil.copy2(os.path.join(current_folder, bat), target_copy)
+
+    
