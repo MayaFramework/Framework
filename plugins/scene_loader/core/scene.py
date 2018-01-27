@@ -148,32 +148,40 @@ class Scene(object):
         if not os.path.exists(self.local_path):
             self.download_scene()
 
-        if force_ma_dependencies:
+        if force_ma_dependencies or not self.dependencies:
             logger.info("Force MA dependencies checked on. Getting MA dependencies")
             dependencies = self.get_ma_dependencies_recursive()
-            for dependency in dependencies:
-                if not os.path.exists(dependency):
-                    if self.dpx.existFile(dependency):
-                        self.dpx.downloadFile(dependency)
+            self.download_dependencies(dependencies)
             logger.info("Dependencies Donwloaded")
 
         if self.dependencies and not force_ma_dependencies:
-            for dependencies in self.dependencies:
-                if not os.path.exists(dependencies):
-                    if self.dpx.existFile(dependencies):
-                        self.dpx.downloadFile(dependencies)
+            self.download_dependencies(self.dependencies)
             logger.info("Dependencies Donwloaded")
 
         cmds.file(self.local_path, o=True, f=True)
 
-    def download_scene(self):
+    def download_scene(self, force_ma_dependencies=False):
         # if not os.path.exists(self.local_path):
         #     # This method should work either with local or remote metadata
         if self.dpx.existFile(self.local_path):
             self.dpx.downloadFile(self.local_path)
             logger.info("Scene downloaded!")
 
+        if force_ma_dependencies or not self.dependencies:
+            logger.info("Force MA dependencies checked on. Getting MA dependencies")
+            dependencies = self.get_ma_dependencies_recursive()
+            self.download_dependencies(dependencies)
+            logger.info("Dependencies Donwloaded")
 
+        if self.dependencies and not force_ma_dependencies:
+            self.download_dependencies(self.dependencies)
+            logger.info("Dependencies Donwloaded")
+
+    def download_dependencies(self, dependencies_list):
+        for dependencies in dependencies_list:
+            if not os.path.exists(dependencies):
+                if self.dpx.existFile(dependencies):
+                    self.dpx.downloadFile(dependencies)
 
     def metadata_incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()

@@ -313,7 +313,8 @@ class SceneWidget(form, base):
         self.scene_obj.open_scene(force_ma_dependencies=force_ma_dependencies)
 
     def download_scene(self):
-        self.scene_obj.download_scene()
+        force_ma_dependencies = self.main_ui.maDependCB.isChecked()
+        self.scene_obj.download_scene(force_ma_dependencies=force_ma_dependencies)
 
     def mousePressEvent(self, event):
         super(SceneWidget, self).mousePressEvent(event)
