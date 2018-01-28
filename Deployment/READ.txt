@@ -1,0 +1,17 @@
+﻿PASO 1:
+	Instalar el python-2.7.13.msi
+PASO 2:
+	Una vez instalado doble click en el archivo UPDATE
+
+NOTAS: 
+--Esta Testeado para sistemas WINDOWS
+--Si Instalais el PYTHON en una ruta que no sea C:/Python27/ Necesitais actualizar
+el fichero UPDATE y cambiar donde pone 	
+
+	start "C:/Python27/python.exe" deployment.py
+
+	�
+
+	start "TURUTA/Python27/python.exe" deployment.py
+
+Guardar y ejecutar los pasos en orden. 
