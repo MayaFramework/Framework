@@ -33,7 +33,7 @@ for c_path in path_to_add:
     try:
         os.makedirs(c_path)
     except Exception as e:
-        print e
+        pass
 with open(os.path.join(python_dir,file), "w") as f:
     for c_path in path_to_add:
         f.write(c_path+"\n")
