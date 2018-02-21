@@ -103,12 +103,16 @@ class Downloader(QtCore.QObject):
         for f in file_list:
             t_path = self._dpx.getTargetPath(f)
             if t_path in self._processed_file_list:
-                aux_file_list.remove(f)
+                aux_file_list.remove(t_path)
                 continue
+#             TO DEBUG CHILDREN FILE PATHS
+#             else:
+#                 print "t_path: {t_path} not in this list {processed}".format(t_path = t_path,
+#                                                                              processed = str(self._processed_file_list))
             self._processed_file_list.append(t_path)
             cThread = CustomQThread(func=self.download_file, file_path=t_path)
             cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
-            cThread.file_path = f
+            cThread.file_path = t_path
             if not self.thread_exist(cThread):
                 self._threads.append(cThread)
 

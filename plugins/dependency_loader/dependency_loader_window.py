@@ -196,6 +196,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         file_path = self.get_current_text()
         file_path = self.downloader._dpx.getTargetPath(file_path)
         file_list.append(file_path)
+        self.dependency_list.clear()
         self.log_text_widget.clear()
         self.create_default_folders_on_target(file_path)
         self.set_log_visible(True)

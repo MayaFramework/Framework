@@ -253,7 +253,7 @@ class DropboxManager(Singleton):
         for file_metadata in metadata.entries:
             # Try to find a method defin within metadata but it looks bad
             if len(file_metadata.path_display.split(".")) == 2:
-                children_path.append(file_metadata.path_display)
+                children_path.append(os.path.join(folder, file_metadata.name))
         return children_path
 
     def getFolderChildrenFromFolder(self, folder):
@@ -271,7 +271,7 @@ class DropboxManager(Singleton):
         children_path = []
         for file_metadata in metadata.entries:
             if isinstance(file_metadata, files.FolderMetadata):
-                children_path.append(file_metadata.path_display)
+                children_path.append(os.path.join(folder, file_metadata.name))
         return sorted(children_path)
 
     def getFilesChildren(self, folder, extension=None):
@@ -287,9 +287,9 @@ class DropboxManager(Singleton):
             if isinstance(file_metadata, files.FileMetadata):
                 if extension:
                     if os.path.splitext(file_metadata.path_display)[-1] == extension:
-                        children_path.append(file_metadata.path_display)
+                        children_path.append(os.path.join(folder, file_metadata.name))
                 else:
-                    children_path.append(file_metadata.path_display)
+                    children_path.append(os.path.join(folder, file_metadata.name))
         return children_path
 
     def getAllrecursiveChildren(self, folder):
