@@ -19,7 +19,6 @@ class FileWidget(form, base):
         self.setupUi(self)
 
         self.__isMayaScene = True if isinstance(fileInstance, scene.Scene) else False
-        print fileInstance, self.__isMayaScene
         self.fileInstance = fileInstance
         self.mainUi = mainUi
 
@@ -34,10 +33,12 @@ class FileWidget(form, base):
             return None
 
     def __default_state_window(self):
-        print self.fileInstance.icon
         self.openBT.setIcon(self.OPENICON)
         self.downloadBT.setIcon(self.DOWNLOAD)
-        self.extensionImageLB.setPixmap(QtGui.QPixmap(self.fileInstance.icon))
+        if hasattr(self.fileInstance, "icon") and getattr(self.fileInstance, "icon"):
+            self.extensionImageLB.setPixmap(QtGui.QPixmap(self.fileInstance.icon))
+        else:
+            self.extensionImageLB.setText(self.fileInstance.extension.upper())
         if self.metadata:
             self.__set_image()
         if not self.__isMayaScene:

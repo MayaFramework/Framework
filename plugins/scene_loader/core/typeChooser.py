@@ -2,6 +2,7 @@ from alembic import AlembicFile
 from image import ImageFile
 from scene import Scene
 from remoteObject import RemoteObject
+from generic import GenericObject
 import os
 
 import json
@@ -26,7 +27,7 @@ class TypeChooser(object):
             if extension in v.get("extensions"):
                 return eval(v.get("class"))
         else:
-            raise Exception("Can't find a valid object type for {}".format(extension))
+            return GenericObject
 
 
 

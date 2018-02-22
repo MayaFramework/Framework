@@ -5,7 +5,7 @@
     },
   "alembic": {
         "extensions" :[".abc"],
-        "class":"AlembicFileFile"
+        "class":"AlembicFile"
     },
   "mayaFile":{
         "extensions" :[".ma", ".mb"],
