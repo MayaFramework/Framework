@@ -3,6 +3,8 @@ from Framework.lib.gui_loader import gui_loader
 import os
 from ..core import scene
 from PySide2 import QtCore, QtGui, QtWidgets
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+import maya.cmds as cmds
 
 
 form, base = gui_loader.load_ui_type(os.path.join(
@@ -59,11 +61,11 @@ class FileWidget(form, base):
         self.iconLB.setPixmap(img)
 
     def open_scene(self):
-        force_ma_dependencies = self.main_ui.maDependCB.isChecked()
-        self.fileInstance.open_scene(force_ma_dependencies=force_ma_dependencies)
+        self.download_scene()
+        cmds.file(self.fileInstance.local_path, o=True, f=True)
 
     def download_scene(self):
-        if self.__isMayaScene:
-            self.fileInstance.download_scene()
-        else:
-            self.fileInstance.download_file()
+        tool = DependencyLoaderWidget(self.fileInstance.local_path)
+        self.obj = gui_loader.get_default_container(tool, "Update All")
+        self.obj.show()
+        tool.execute_update_process()
