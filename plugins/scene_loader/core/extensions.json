@@ -1,0 +1,14 @@
+{
+  "image":{
+        "extensions" :[".jpg", ".png", ".exr", ".tiff", ".tx"],
+        "class":"ImageFile"
+    },
+  "alembic": {
+        "extensions" :[".abc"],
+        "class":"AlembicFileFile"
+    },
+  "mayaFile":{
+        "extensions" :[".ma", ".mb"],
+        "class":"Scene"
+    }
+}

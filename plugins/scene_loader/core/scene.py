@@ -10,11 +10,16 @@ from Framework.lib.metadata_lib import metadata, metadata_utils
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.logger import logger
 from Framework.lib.ma_utils.reader import MaReader
+from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
+from Framework.lib.gui_loader import gui_loader
+
 
 
 class Scene(object):
 
-    def __init__(self, scene_path=None):
+    def __init__(self, scene_path=None, forceUI=False):
+
+        self._forceUI = forceUI # We need to do this until Miguel change some things
 
         if not scene_path:
             scene_path = cmds.file(sn=True, q=True).replace("\\", "/")
@@ -22,7 +27,7 @@ class Scene(object):
         self.metadata = None
         self.local_path, self.remote_path = self.validate_scene_path(scene_path)
 
-        self.dpx = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
+        self.dpx = DropboxManager()
 
         if not os.path.exists(self.local_metadata_path):
             # We should download the metadata if exists in Dropbox
@@ -113,6 +118,7 @@ class Scene(object):
         self.metadata.save_local_metadata()
 
     def save_scene(self, force=True, create_snapshot=False, publish=False):
+        self._forceUI = True
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
         # if not self.scene_modified:
         #     raise Exception("Nothing to save")
@@ -136,7 +142,13 @@ class Scene(object):
 
         self.metadata.save_local_metadata()
 
-        self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
+        if self._forceUI:
+
+            widget = UploaderWindow(self.local_path)
+            self.obj = gui_loader.get_default_container(widget, "UPLOADER")
+            self.obj.show()
+            widget.execute_analize_process()
+            # self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
         if publish:
             logger.info("PUBLISHING")
@@ -144,6 +156,8 @@ class Scene(object):
             self.dpx.moveFile(self.local_metadata_path, self.local_metadata_path.replace(self.scene_type, "chk"))
             self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
+
+    # DEPRECATED UNTIL MIGUEL DO SOME THINGS
     def open_scene(self, force_ma_dependencies=False):
         if not os.path.exists(self.local_path):
             self.download_scene()

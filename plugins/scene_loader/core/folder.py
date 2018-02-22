@@ -8,7 +8,7 @@ class Folder(object):
         self.local_path, self.remote_path = self.validate_folder_path(folder_path)
 
         if not dropbox_instance:
-            dropbox_instance = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
+            dropbox_instance = DropboxManager()
 
         self.dropbox_instance = dropbox_instance
 
@@ -38,3 +38,7 @@ class Folder(object):
     @property
     def remote_children_maya_files(self):
         return self.dropbox_instance.getFilesChildren(self.local_path, ".ma")
+
+    @property
+    def remote_children_files(self):
+        return self.dropbox_instance.getFilesChildren(self.local_path)

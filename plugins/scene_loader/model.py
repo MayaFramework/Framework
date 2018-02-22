@@ -8,15 +8,14 @@ from Framework import get_environ_config
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 from core import scene, folder
+from core.typeChooser import TypeChooser
 from Framework.plugins.scene_loader.gui.new_note_dialog import NewNoteDialog
 from Framework.plugins.scene_loader.gui.show_notes_dialog import NotesDialog
 import logging
 import maya.cmds as cmds
+from gui import fileWidget
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 
-
-
-reload(temp_config)
-reload(gui_loader)
 
 PROJECT_ROOT = "bm2"
 
@@ -39,7 +38,8 @@ class SceneLoaderUI(form, base):
         self._config = get_environ_config()
         # self.dpx = DropboxManager(self._config["test_dpx_token"])
         self._logger = logging.getLogger(__name__)
-        self.dpx = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
+        # self.dpx = DropboxManager("MspKxtKRUgAAAAAAAAA1OnMGBw6DOOG2Cz38E83-YJaxw7Jv2ihc2Afd-82vmZkI")
+        self.dpx = DropboxManager()
 
         self.__final_path = None
         self.__scene_selected = None
@@ -166,15 +166,17 @@ class SceneLoaderUI(form, base):
             self.__clean(self.sceneLW)
             # progress_bar = QtWidgets.QProgressDialog("Analyzing files", "Cancel", 0, len(item_data.remote_children_maya_files), self)
 
-            for index, path in enumerate(item_data.remote_children_maya_files):
+            for index, path in enumerate(item_data.remote_children_files):
                 list_item = QtWidgets.QListWidgetItem()
+                objectClass = TypeChooser.getObjectType(path)
                 self.sceneLW.addItem(list_item)
-                item_obj = scene.Scene(path)
-                list_item.setData(QtCore.Qt.UserRole, item_obj)
-                # list_item.setText(item_obj.scene_name)
-                scene_widget = SceneWidget(item_obj, main_ui=self)
-                list_item.setSizeHint(scene_widget.sizeHint())
-                self.sceneLW.setItemWidget(list_item, scene_widget)
+                list_item.setData(QtCore.Qt.UserRole, objectClass)
+                if objectClass.__class__.__name__ == scene.Scene.__name__:
+                    fileWidgetInstance = SceneWidget(objectClass, main_ui=self)
+                else:
+                    fileWidgetInstance = fileWidget.FileWidget(objectClass, self)
+                list_item.setSizeHint(fileWidgetInstance.sizeHint())
+                self.sceneLW.setItemWidget(list_item, fileWidgetInstance)
                 # progress_bar.setValue(index)
                 # if progress_bar.wasCanceled():
                 #     break
@@ -309,11 +311,15 @@ class SceneWidget(form, base):
         self.iconLB.setPixmap(img)
 
     def open_scene(self):
-        force_ma_dependencies = self.main_ui.maDependCB.isChecked()
-        self.scene_obj.open_scene(force_ma_dependencies=force_ma_dependencies)
+        self.download_scene()
+        cmds.file(self.scene_obj.local_path, o=True, f=True)
 
     def download_scene(self):
-        self.scene_obj.download_scene()
+        # self.scene_obj.download_scene()
+        tool = DependencyLoaderWidget(self.scene_obj.local_path)
+        self.obj = gui_loader.get_default_container(tool, "Update All")
+        self.obj.show()
+        tool.execute_update_process()
 
     def mousePressEvent(self, event):
         super(SceneWidget, self).mousePressEvent(event)
