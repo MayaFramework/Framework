@@ -118,6 +118,7 @@ class FileManager(form, base):
         menu.show()
 
     def _fileDropped(self, files):
+        # TODO This method will add all the files to Dropbox
         for droppedFile in files:
             fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
             print fileInstance, fileWidget
