@@ -32,7 +32,8 @@ dpx.downloadFiles(["s:/project/test/audiotest.m4v", "s:/project/test/fileTest.tx
 
 import os
 import re
-from Framework.lib.ext_lib import dropbox
+# from Framework.lib.ext_lib import dropbox
+import dropbox
 from Framework.lib.ext_lib.dropbox import files
 from Framework.lib.singleton import Singleton
 from Framework.lib.config.config import Config

@@ -18,7 +18,6 @@ from Framework.lib.ui.widgets import tree_widget, common_widgets
 from exceptions import *
 import threading
 import time
-from pip._vendor.distlib._backport.tarfile import calc_chksums
 
 CSS_PATH = get_css_path()
 ICON_PATH = get_icon_path()
