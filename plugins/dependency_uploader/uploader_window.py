@@ -70,6 +70,8 @@ class UploaderWindow(QtWidgets.QDialog):
         self.inspection_tree.resizeColumnToContents(1)
         self.inspection_tree.resizeColumnToContents(0)
         
+        #TODO
+        self.check_name_convention_btn.hide()
 
     @QtCore.Slot()
     def on_ico_path_btn_clicked(self):
@@ -130,18 +132,8 @@ class UploaderWindow(QtWidgets.QDialog):
             self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
 #         
         
-
-
-    @QtCore.Slot()
-    def on_add_row_btn_clicked(self):
-        new_row = NewRowPrompt()
-        new_row.exec_()
-        file_path = new_row.get_file_path()
-        
-        #Check return
-        if not file_path or not os.path.exists(file_path):
-            return
-        file_path = self.uploader.dpx.normpath(file_path)
+    def insert_new_file(self, file_path):
+    
         #check if currently exists in the list
         if self.inspection_tree.findItems(file_path, QtCore.Qt.MatchExactly, 0):
             return
@@ -154,6 +146,25 @@ class UploaderWindow(QtWidgets.QDialog):
             tree_item.setIcon(0, QtGui.QIcon(os.path.join(ICON_PATH,"warning.png")))
 
         self.inspection_tree.addTopLevelItem(tree_item)
+
+    @QtCore.Slot()
+    def on_add_row_btn_clicked(self):
+        new_row = NewRowPrompt()
+        new_row.exec_()
+        file_list = new_row.get_file_path()
+        if not file_list:
+            return
+            
+        for file_path in file_list:
+            self.insert_new_file(self.uploader.dpx.normpath(file_path))
+        self.resize_tree_widget()
+
+    def resize_tree_widget(self):
+        self.inspection_tree.resizeColumnToContents(1)
+        self.inspection_tree.resizeColumnToContents(0)
+        self.inspection_tree.header().setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.inspection_tree.header().setResizeMode(0,QtWidgets.QHeaderView.Stretch)
+        self.inspection_tree.header().setResizeMode(1,QtWidgets.QHeaderView.Fixed)
 
     @QtCore.Slot(str)
     def on_path_line_edit_textChanged(self, file_path):
@@ -290,13 +301,15 @@ class UploaderWindow(QtWidgets.QDialog):
         self.inspection_tree.setHeaderLabels(headers)
         tree_widget.recursive_advance_tree(self.inspection_tree, data)
         
+        
+        self.resize_tree_widget()
         # make possible to add custom routes in case of the tool doesnt recognize all the work routs
-        self.inspection_tree.resizeColumnToContents(1)
-        self.inspection_tree.resizeColumnToContents(0)
-        self.inspection_tree.header().setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        self.inspection_tree.header().setResizeMode(0,QtWidgets.QHeaderView.Stretch)
-        self.inspection_tree.header().setResizeMode(1,QtWidgets.QHeaderView.Fixed)
-#         
+#         self.inspection_tree.resizeColumnToContents(1)
+#         self.inspection_tree.resizeColumnToContents(0)
+#         self.inspection_tree.header().setResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+#         self.inspection_tree.header().setResizeMode(0,QtWidgets.QHeaderView.Stretch)
+#         self.inspection_tree.header().setResizeMode(1,QtWidgets.QHeaderView.Fixed)
+# #         
 #         self.inspection_tree.header().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 #         self.inspection_tree.header().setSectionResizeMode(0,QtWidgets.QHeaderView.Stretch)
 #         self.inspection_tree.header().setSectionResizeMode(1,QtWidgets.QHeaderView.Fixed)
@@ -387,16 +400,14 @@ class UploaderWindow(QtWidgets.QDialog):
 
 
 
-
-
 if __name__ == "__main__":
+    from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
+    import sys
+    from Framework.lib.gui_loader import gui_loader
+
     app = QtWidgets.QApplication(sys.argv)
-    
-#     widget = UploaderBackgroundWidget([r"P:\\bm2\\elm\\gafasGato_TEST\\sha\\high\\shading\\chk\\bm2_elmsha_elm_gafasGato_sha_high_shading_default_none_chk_0011.ma"], 2)
-#     widget.execute_upload_process()
-    widget = UploaderWindow(r"P:\BM2\loc\salaTelefonos\scn\main\main\wip\bm2_locscn_loc_salaTelefonos_scn_main_main_default_none_wip0020.ma")
+    widget = UploaderWindow()
     obj = gui_loader.get_default_container(widget, "UPLOADER")
     obj.show()
-    widget.execute_analize_process()
     app.exec_()
 

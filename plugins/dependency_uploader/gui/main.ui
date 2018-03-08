@@ -351,6 +351,9 @@
      </item>
      <item>
       <widget class="QToolButton" name="check_name_convention_btn">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="minimumSize">
         <size>
          <width>100</width>

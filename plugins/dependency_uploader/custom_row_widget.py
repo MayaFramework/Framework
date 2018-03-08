@@ -48,6 +48,11 @@ class NewRowPrompt(QtWidgets.QDialog):
                 return
         self.close()
 
+    def get_recursive_children_from_folder(self, folder_path):
+        result = [os.path.normpath(os.path.join(dp, f)) for dp, dn, filenames in os.walk(folder_path) for f in filenames]
+        return result
+
+
     def get_file_path(self):
         file_path =self.file_path_lineEdit.text()
         while file_path.startswith(" ") or file_path.endswith(" "):
@@ -55,4 +60,14 @@ class NewRowPrompt(QtWidgets.QDialog):
         if not os.path.exists(file_path):
             return None
         else:
-            return file_path
+            # if its folder get every children
+            if os.path.isdir(file_path):
+                files = self.get_recursive_children_from_folder(file_path)
+                return files
+            else:
+                return [file_path]
+
+if __name__ =="__main__":
+    import os
+    print os.path.isdir(r"P:\TOOLS")
+    print [os.path.join(dp, f) for dp, dn, filenames in os.walk(r"P:\TOOLS") for f in filenames]
