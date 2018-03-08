@@ -9,15 +9,17 @@ form, base = gui_loader.load_ui_type(os.path.join(
 
 class GenericWidget(form, base):
 
-    def __init__(self, fileObj, icon=None, parent=None):
+    def __init__(self, fileObj, icon=None, parent=None, initialize=True):
         super(GenericWidget, self).__init__(parent)
-        self.setupUi(self)
+        if initialize:
+            self.setupUi(self)
 
         self._supportedType = None
         self._icon = icon
         self.fileObj = fileObj
 
-        self.initUI()
+        if initialize:
+            self.initUI()
 
 
     @property

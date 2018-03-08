@@ -11,6 +11,8 @@ from filetypes.mayaFile import Maya
 from gui.filetypes.maya import MayaWidget
 from filetypes.images import Images
 from gui.filetypes.images import ImagesWidget
+from filetypes.alembic import Alembic
+from gui.filetypes.alembic import AlembicWidget
 
 class FileTypeChooser(object):
 
@@ -29,6 +31,11 @@ class FileTypeChooser(object):
             "extensions": [".png", ".jpg", ".jpeg", ".tx", ".tiff"],
             "object": Images,
             "widget": ImagesWidget
+        },
+        "alembic": {
+            "extensions": [".abc"],
+            "object": Alembic,
+            "widget": AlembicWidget
         },
         "unknown": {
             "extensions": [],

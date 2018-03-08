@@ -1,5 +1,5 @@
 import os
-
+from functools import partial
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -48,6 +48,7 @@ class FileManager(form, base):
         self._currentFolder = value
 
     def initUI(self):
+        self.mainContainer.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._setIcons()
         initialFolder = Folder(PROJECT_ROOT)
         self.currentFolder = initialFolder
@@ -59,11 +60,13 @@ class FileManager(form, base):
         open = os.path.join(ICON_PATH, "open_icon.png")
         download = os.path.join(ICON_PATH, "download_icon.png")
         save = os.path.join(ICON_PATH, "save_icon_2.png")
+        addFile = os.path.join(ICON_PATH, "add_cloud_green.png")
         self.beforeBT.setIcon(QtGui.QIcon(previousArrow))
         self.afterBT.setIcon(QtGui.QIcon(forwardArrow))
         self.openBT.setIcon(QtGui.QIcon(open))
         self.downloadBT.setIcon(QtGui.QIcon(download))
         self.saveBT.setIcon(QtGui.QIcon(save))
+        self.addFileBT.setIcon(QtGui.QIcon(addFile))
 
     def connectSignals(self):
         self.beforeBT.clicked.connect(self._handleBackButton)
@@ -72,10 +75,12 @@ class FileManager(form, base):
         self.openBT.clicked.connect(self.openFile)
         self.saveBT.clicked.connect(self.saveFile)
         self.downloadBT.clicked.connect(self.downloadFile)
+        self.mainContainer.customContextMenuRequested.connect(self._mainContainerContextMenu)
+        self.mainContainer.dropped.connect(self._fileDropped)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(QtCore.Qt.UserRole)
-        self.populateMainContainer(folderObj=folderObj)
+        self.populateMainContainer(fileObj=folderObj)
 
     def _itemClicked(self, item):
         itemObj = item.data(QtCore.Qt.UserRole)
@@ -94,7 +99,37 @@ class FileManager(form, base):
     def _pathButtonClicked(self):
         pathButton = self.sender()
         self._refreshPathBar(pathButton)
-        self.populateMainContainer(folderObj=pathButton.folderObj, addHistory=False)
+        self.populateMainContainer(fileObj=pathButton.folderObj, addHistory=False)
+
+    def _mainContainerContextMenu(self, pos):
+
+        def fixPos(pos):
+            newPos = self.mainContainer.mapToGlobal(pos)
+            x = newPos.x() + 13
+            y = newPos.y() + 13
+            return QtCore.QPoint(x, y)
+
+        item = self.mainContainer.itemAt(pos)
+        if not item:
+            return
+        itemData = item.data(QtCore.Qt.UserRole)
+        menu = self.generateContextMenu(itemData=itemData)
+        menu.move(fixPos(pos))
+        menu.show()
+
+    def _fileDropped(self, files):
+        for droppedFile in files:
+            fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
+            print fileInstance, fileWidget
+
+    def generateContextMenu(self, itemData):
+        menu = QtWidgets.QMenu(self)
+        menu.addAction("Copy path", partial(self.copyPath, itemData))
+        return menu
+
+    def copyPath(self, itemData):
+        clipboard = QtGui.QClipboard()
+        clipboard.setText(os.path.normpath(itemData.local_path))
 
     def openFile(self):
         self.selectedItem.open()
@@ -105,21 +140,22 @@ class FileManager(form, base):
     def downloadFile(self):
         self.selectedItem.download()
 
-    def populateMainContainer(self, folderObj, addHistory=True):
-        self.currentFolder = folderObj
-        self.mainContainer.clear()
-        self.mainContainer.setIconSize(QtCore.QSize(200,200))
-        for childFile in folderObj.remote_children:
-            listItem = QtWidgets.QListWidgetItem()
-            fileObj, fileWidget = FileTypeChooser.getClass(childFile, includeWidget=True)
-            newFile = fileObj(childFile)
-            newFileWidget = fileWidget(newFile)
-            self.setItemData(item=listItem,
-                             data=newFile,
-                             parentTree=self.mainContainer,
-                             widget=newFileWidget)
-        if addHistory:
-            self.addFolder2History(folderObj)
+    def populateMainContainer(self, fileObj, addHistory=True):
+        if isinstance(fileObj, Folder):
+            self.currentFolder = fileObj
+            self.mainContainer.clear()
+            self.mainContainer.setIconSize(QtCore.QSize(200,200))
+            for childFile in fileObj.remote_children:
+                listItem = QtWidgets.QListWidgetItem()
+                fileInstance, fileWidget = FileTypeChooser.getClass(childFile, includeWidget=True)
+                newFile = fileInstance(childFile)
+                newFileWidget = fileWidget(newFile)
+                self.setItemData(item=listItem,
+                                 data=newFile,
+                                 parentTree=self.mainContainer,
+                                 widget=newFileWidget)
+            if addHistory:
+                self.addFolder2History(fileObj)
 
     def showMetadataInfo(self, itemObj):
         if not hasattr(itemObj, "metadata"):

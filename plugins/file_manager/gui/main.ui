@@ -101,7 +101,7 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QTreeWidget" name="treeWidget">
+       <widget class="QListWidget" name="listWidget">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -114,53 +114,31 @@
           <height>16777215</height>
          </size>
         </property>
-        <property name="rootIsDecorated">
-         <bool>false</bool>
-        </property>
-        <property name="itemsExpandable">
-         <bool>true</bool>
-        </property>
-        <property name="animated">
-         <bool>true</bool>
-        </property>
-        <attribute name="headerVisible">
-         <bool>false</bool>
-        </attribute>
-        <column>
-         <property name="text">
-          <string>1</string>
-         </property>
-        </column>
         <item>
          <property name="text">
           <string>Favorites</string>
          </property>
          <property name="font">
           <font>
-           <weight>75</weight>
-           <bold>true</bold>
+           <pointsize>12</pointsize>
           </font>
          </property>
-         <item>
-          <property name="text">
-           <string>bm2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>seq</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>elem</string>
-          </property>
-         </item>
+         <property name="icon">
+          <iconset>
+           <normaloff>../../../icons/marker.png</normaloff>../../../icons/marker.png</iconset>
+         </property>
+         <property name="flags">
+          <set>ItemIsSelectable|ItemIsUserCheckable|ItemIsEnabled</set>
+         </property>
         </item>
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="mainContainer"/>
+       <widget class="CustomListWidget" name="mainContainer">
+        <property name="dragDropMode">
+         <enum>QAbstractItemView::DropOnly</enum>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -362,7 +340,8 @@ color: red</string>
     <item>
      <widget class="QFrame" name="frame_2">
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(79, 79, 79);</string>
+       <string notr="true">QFrame{background-color: rgb(79, 79, 79);}
+</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -387,6 +366,12 @@ color: red</string>
          </property>
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Download and open the file</string>
+         </property>
+         <property name="statusTip">
+          <string>Download and open the file</string>
          </property>
          <property name="text">
           <string/>
@@ -419,6 +404,56 @@ color: red</string>
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
+         <property name="toolTip">
+          <string>Download file</string>
+         </property>
+         <property name="statusTip">
+          <string>Download file</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveBT">
+         <property name="minimumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Save file</string>
+         </property>
+         <property name="statusTip">
+          <string>Save file</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -447,7 +482,7 @@ color: red</string>
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="saveBT">
+        <widget class="QPushButton" name="addFileBT">
          <property name="minimumSize">
           <size>
            <width>40</width>
@@ -463,6 +498,16 @@ color: red</string>
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
          </property>
+         <property name="toolTip">
+          <string>Add file to Dropbox</string>
+         </property>
+         <property name="statusTip">
+          <string>Add file to Dropbox</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color:transparent;
+border: 0px</string>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -472,8 +517,11 @@ color: red</string>
            <height>40</height>
           </size>
          </property>
+         <property name="default">
+          <bool>false</bool>
+         </property>
          <property name="flat">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -488,7 +536,7 @@ color: red</string>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFiles">
@@ -509,6 +557,13 @@ color: red</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomListWidget</class>
+   <extends>QListWidget</extends>
+   <header>Framework.plugins.file_manager.gui.mainListWidget</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
