@@ -12,7 +12,7 @@ class GenericFile(object):
     def __init__(self, path):
 
         self._allowSave = False
-        self._allowDownload = False
+        self._allowDownload = True
         self._allowOpen = False
         self._openCommand = None
         self._name = None

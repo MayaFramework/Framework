@@ -1,5 +1,6 @@
 import os
 from functools import partial
+import threading
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 
@@ -11,6 +12,8 @@ from gui.pathButton import PathButton
 from Framework import get_icon_path
 
 ICON_PATH = get_icon_path()
+
+NOTHUMBNAIL = os.path.join(ICON_PATH, "no-image.png")
 PROJECT_ROOT = "bm2"
 
 form, base = gui_loader.load_ui_type(os.path.join(
@@ -50,6 +53,7 @@ class FileManager(form, base):
     def initUI(self):
         self.mainContainer.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._setIcons()
+        self.thumbnailLB.setPixmap(QtGui.QPixmap(NOTHUMBNAIL))
         initialFolder = Folder(PROJECT_ROOT)
         self.currentFolder = initialFolder
         self.populateMainContainer(initialFolder)
@@ -57,10 +61,14 @@ class FileManager(form, base):
     def _setIcons(self):
         previousArrow = os.path.join(ICON_PATH, "left-arrow.png")
         forwardArrow = os.path.join(ICON_PATH, "right-arrow.png")
-        open = os.path.join(ICON_PATH, "open_icon.png")
-        download = os.path.join(ICON_PATH, "download_icon.png")
-        save = os.path.join(ICON_PATH, "save_icon_2.png")
-        addFile = os.path.join(ICON_PATH, "add_cloud_green.png")
+        # open = os.path.join(ICON_PATH, "open_icon.png")
+        open = os.path.join(ICON_PATH, "essential", "folder-10.png")
+        # download = os.path.join(ICON_PATH, "download_icon.png")
+        download = os.path.join(ICON_PATH, "essential", "download.png")
+        # save = os.path.join(ICON_PATH, "save_icon_2.png")
+        save = os.path.join(ICON_PATH, "essential", "save.png")
+        # addFile = os.path.join(ICON_PATH, "add_cloud_green.png")
+        addFile = os.path.join(ICON_PATH, "essential", "cloud-computing-2.png")
         self.beforeBT.setIcon(QtGui.QIcon(previousArrow))
         self.afterBT.setIcon(QtGui.QIcon(forwardArrow))
         self.openBT.setIcon(QtGui.QIcon(open))
@@ -120,8 +128,17 @@ class FileManager(form, base):
     def _fileDropped(self, files):
         # TODO This method will add all the files to Dropbox
         for droppedFile in files:
-            fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
-            print fileInstance, fileWidget
+            thread = threading.Thread(target=partial(self.addFile, droppedFile), args=())
+            thread.start()
+
+    def addFile(self, droppedFile):
+        """
+        TODO Hay que ver si queremos anadir los files a la carpeta en la que estamos, o recrear el path del file
+        :param file:
+        :return:
+        """
+        fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
+        print fileInstance, fileWidget
 
     def generateContextMenu(self, itemData):
         menu = QtWidgets.QMenu(self)
@@ -160,10 +177,9 @@ class FileManager(form, base):
 
     def showMetadataInfo(self, itemObj):
         if not hasattr(itemObj, "metadata"):
-            self.thumbnailLB.setPixmap(QtGui.QPixmap())
-            self.thumbnailLB.setText("No Thumbnail")
+            self.thumbnailLB.setPixmap(QtGui.QPixmap(NOTHUMBNAIL))
+            # self.thumbnailLB.setText("No Thumbnail")
             self.userLB.setText("No metadata")
-            self.nameLB.setText("No metadata")
             self.dateLB.setText("No metadata")
             self.versionLB.setText("No metadata")
         else:
@@ -172,7 +188,6 @@ class FileManager(form, base):
             img.loadFromData(ba)
             self.thumbnailLB.setPixmap(QtGui.QPixmap(img))
             self.userLB.setText(itemObj.metadata.author)
-            self.nameLB.setText(os.path.basename(itemObj.metadata.scene_path))
             self.dateLB.setText(itemObj.metadata.modified)
             self.versionLB.setText(itemObj.metadata.scene_version)
 
