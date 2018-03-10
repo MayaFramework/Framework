@@ -41,8 +41,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     dropboxManager = None
     _correct_downloaded = []
     _failed_downloaded = []
-    def __init__(self, file_path=""):
-        super(DependencyLoaderWidget, self).__init__()
+    def __init__(self,parent=None, file_path=""):
+        super(DependencyLoaderWidget, self).__init__(parent=parent)
 #         self.setupUi(self)
         self._config = Config.instance()
         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
