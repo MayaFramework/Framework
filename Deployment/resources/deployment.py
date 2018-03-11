@@ -73,6 +73,7 @@ def clone_repo(git_url, repo_dir, branch="master"):
 
 def pull_latest_changes(repo_dir):
     repo = git.Repo(repo_dir)
+    repo.git.stash('save')
     o = repo.remotes.origin
     o.pull()
 
