@@ -1,14 +1,17 @@
 import os
 from functools import partial
+import urllib
 import threading
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
+from Framework.lib.shotgun.shotgunInit import ShotgunInit
 
 from filetypes.mayaFile import Maya
 from filetypeChooser import FileTypeChooser
 from filetypes.folder import Folder
 from gui.pathButton import PathButton
 from gui import newfileDialog; reload(newfileDialog)
+from gui.siginDialog import SignInDialog
 
 from Framework import get_icon_path
 
@@ -29,6 +32,8 @@ class FileManager(form, base):
 
         self._currentFolder = None
         self._selectedItem = None
+        self._userAuthenticated = False
+        self._userInfo = None
         self.history = list()
         self.pathBar = list()
 
@@ -50,6 +55,24 @@ class FileManager(form, base):
     @currentFolder.setter
     def currentFolder(self, value):
         self._currentFolder = value
+
+    @property
+    def userAuthethicated(self):
+        return self._userAuthenticated
+
+    @userAuthethicated.setter
+    def userAuthethicated(self, value):
+        self._userAuthenticated = value
+
+    @property
+    def userInfo(self):
+        return self._userInfo
+
+    @userInfo.setter
+    def userInfo(self, value):
+        if not isinstance(value, tuple):
+            raise TypeError("userInfo must be a tuple, not {}".format(type(value)))
+        self._userInfo = value
 
     def initUI(self):
         self.mainContainer.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -86,6 +109,7 @@ class FileManager(form, base):
         self.downloadBT.clicked.connect(self.downloadFile)
         self.mainContainer.customContextMenuRequested.connect(self._mainContainerContextMenu)
         self.mainContainer.dropped.connect(self._fileDropped)
+        self.actionSignIn.triggered.connect(self._signinDialog)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(QtCore.Qt.UserRole)
@@ -132,6 +156,14 @@ class FileManager(form, base):
             thread = threading.Thread(target=partial(self.addFile, droppedFile), args=())
             thread.start()
 
+    def _signinDialog(self):
+        dialog = SignInDialog(self)
+        accepted = dialog.exec_()
+        if accepted:
+            self.userAuthethicated = True
+            self.userInfo = (dialog.userName, str(dialog.password).encode('base64','strict'))
+            self.authorizeUser(enableUI=True)
+
     def addFile(self, droppedFile):
         """
         TODO Hay que ver si queremos anadir los files a la carpeta en la que estamos, o recrear el path del file
@@ -140,6 +172,21 @@ class FileManager(form, base):
         """
         fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
         print fileInstance, fileWidget
+
+    def authorizeUser(self, enableUI=False):
+        sg = ShotgunInit()
+        user = sg.getUser(self.userInfo[0])
+        imageURL = user.getField("image")
+        data = urllib.urlopen(imageURL).read()
+        image = QtGui.QImage()
+        image.loadFromData(data)
+        self.userImageLB.setPixmap(QtGui.QPixmap(image))
+        self.userNameLB.setText(self.userInfo[0])
+        if enableUI:
+            self._enableUI()
+
+    def _enableUI(self):
+        self.centralwidget.setEnabled(True)
 
     def generateContextMenu(self, itemData):
         menu = QtWidgets.QMenu(self)

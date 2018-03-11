@@ -51,13 +51,13 @@ class ShotgunUser(object):
                         self.entityType, filters=[["name", "is", self.name]], fields=[fieldName])
         if not field.get(fieldName):
             raise ValueError("Can't find {} in the type entity {}".format(fieldName, self.entityType))
-        return {fieldName:field.get(fieldName)}
+        return field.get(fieldName)
 
     def getFields(self, fieldsNames):
         fieldsDict = dict()
         for field in fieldsNames:
-            fieldDict = self.getField(field)
-            fieldsDict.update(fieldDict)
+            fieldValue = self.getField(field)
+            fieldsDict.update({field:fieldValue})
         return fieldsDict
 
     def getUserImage(self):
