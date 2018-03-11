@@ -7,11 +7,20 @@
     <x>0</x>
     <y>0</y>
     <width>637</width>
-    <height>397</height>
+    <height>530</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>miguel.molledo.alvarez@gmail.com</string>
+  </property>
+  <property name="toolTip">
+   <string/>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>false</bool>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_5">
    <property name="spacing">
@@ -84,26 +93,7 @@
            <string>Update recursively the file that must be an [.ma]</string>
           </property>
           <property name="text">
-           <string>Update</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="open_btn">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>40</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Open</string>
+           <string>Update/ Open</string>
           </property>
          </widget>
         </item>
@@ -228,6 +218,47 @@
          <bool>true</bool>
         </property>
        </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QPushButton" name="advance_options_btn">
+          <property name="text">
+           <string>Advance Options</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="advance_options_widget" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QCheckBox" name="overwrite_chk_box">
+               <property name="toolTip">
+                <string/>
+               </property>
+               <property name="text">
+                <string>Overwrite local files</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="download_ma_file">
+               <property name="toolTip">
+                <string>Do you want to download the main ma file defined above ?</string>
+               </property>
+               <property name="text">
+                <string>download main ma file</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

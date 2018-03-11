@@ -4,6 +4,7 @@
 :email: miguel.molledo.alvarez@gmail.com
 """
 if __name__ == "__main__":
+
     from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
     import sys
     from dependency_loader_window import DependencyLoaderWidget
