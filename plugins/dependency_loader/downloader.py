@@ -4,7 +4,7 @@
 :author: Miguel Molledo Alvarez
 :email: miguel.molledo.alvarez@gmail.com
 """
-
+import os, sys
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.config.config import Config
 from Framework.lib.dropbox_manager.manager import DropboxManager
@@ -62,6 +62,7 @@ class Downloader(QtCore.QObject):
     on_start_download = QtCore.Signal()
     on_file_start_download = QtCore.Signal(DownloaderResponse)
     on_file_finish_download = QtCore.Signal(DownloaderResponse)
+    STATE_OVERWRITE_LOCAL_FILES = True
     def __init__(self, file_list=[]):
         super(Downloader, self).__init__()
         if isinstance(file_list, list):
@@ -74,6 +75,13 @@ class Downloader(QtCore.QObject):
         self._threads = []
         self._current_thread_count = 0
         self._maximum_threads = 10
+        
+        self._threads_processed = 0
+    
+    def set_overwrite_mode(self, value=True):
+        if isinstance(value, bool):
+            self.STATE_OVERWRITE_LOCAL_FILES = value
+
     def set_maxium_threads(self, maximum):
         if isinstance(maximum, int):
             self._maximum_threads = maximum
@@ -86,6 +94,8 @@ class Downloader(QtCore.QObject):
         self._processed_file_list = []
         self._threads = []
         self._current_thread_count = 0
+        self._threads_processed = 0
+        self._total_threads_to_process = 0
         self._folders_processed = []
         self.on_start_download.emit()
         self.download_files(self._file_list)
@@ -151,7 +161,6 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
-        print response.state, response.message, response.file_path
         if response.state == DownloaderResponse.ERROR_STATE:
             return
         # Now check for new possible files pulling from this one
@@ -171,6 +180,17 @@ class Downloader(QtCore.QObject):
                         new_files.extend(children)
         if new_files:
             self.download_files(list(set(new_files)))
+            
+        # check if its the last thread to process
+        self._threads_processed += 1
+        if self.is_process_finished():
+            self.on_finish_download.emit()
+
+    def is_process_finished(self):
+        if self._threads_processed == len(self._threads):
+            return True
+        return False
+
     def download_file(self, file_path):
         '''
         Download file and parse the result in a tuple of 3 elements
@@ -188,9 +208,15 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         self.on_file_start_download.emit(response)
         response = "ERROR"
-        print "Downloading: %s" % file_path
         try:
-            response = self._dpx.downloadFile(file_path)
+            if not os.path.exists(file_path):
+                response = self._dpx.downloadFile(file_path)
+            else:
+                if self.STATE_OVERWRITE_LOCAL_FILES:
+                    response = self._dpx.downloadFile(file_path)
+                else:
+                    return(DownloaderResponse.SUCCESS_STATE, file_path, "Not overwritten")
+
             if response:
                 return (DownloaderResponse.SUCCESS_STATE, file_path, response)
             else:
@@ -208,7 +234,7 @@ class Downloader(QtCore.QObject):
                 return []
         except Exception as e:
             print e
-            return {}
+            return []
     def is_ma_file(self, file_path):
         if file_path.endswith(".ma"):
             return True
@@ -232,16 +258,5 @@ class Downloader(QtCore.QObject):
         """
         children = self._dpx.getChildrenFromFolder(folder)
         return [self._dpx.getTargetPath(x) for x in children]
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
+
         

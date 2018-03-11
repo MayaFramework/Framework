@@ -40,8 +40,8 @@ class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
     CURRENT_AREA_WORK_PATH = " "
-    def __init__(self, file_path=""):
-        super(UploaderWindow, self).__init__()
+    def __init__(self, parent=None, file_path=""):
+        super(UploaderWindow, self).__init__(parent=parent)
         self.setWindowTitle(self.TOOL_NAME)
         self.current_threads = 0
         self.maximum_threads = 4

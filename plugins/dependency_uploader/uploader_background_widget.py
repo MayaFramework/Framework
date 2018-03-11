@@ -29,6 +29,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.current_threads = 0
         self._threads = []
         self._custom_file_threads = []
+        self._threads_processed = []
         self._chk_state = False
         self._out_state = False
         #BORRAR ESTO
@@ -99,6 +100,8 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         if not file_path_list:
             return True
         self._threads = []
+        self._threads_processed = []
+
         for filename in file_path_list:
             cThread = CustomQThread(self.upload_file, file_path=filename)
             cThread.file_path = filename
@@ -156,7 +159,16 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.current_threads -=1
         QtWidgets.QApplication.processEvents()
 
+        # check if its the last thread to process
+        self._threads_processed += 1
+        if self.is_process_finished():
+            pass
+#             self.on_finish_download.emit()
 
+    def is_process_finished(self):
+        if self._threads_processed == len(self._threads):
+            return True
+        return False
     def on_starting_download_file(self, file_path):
         item = self.get_item(file_path)
         if not item:
