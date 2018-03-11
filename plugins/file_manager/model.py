@@ -209,7 +209,7 @@ class FileManager(form, base):
         self.selectedItem.open()
 
     def saveFile(self):
-        self.selectedItem.save()
+        self.selectedItem.save(author=self.userInfo[0])
 
     def downloadFile(self):
         self.selectedItem.download()

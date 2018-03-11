@@ -99,7 +99,7 @@ class Maya(GenericFile):
         print "saving"
         self.metadata.save_local_metadata()
 
-    def save(self, force=True, create_snapshot=False, publish=False):
+    def save(self, force=True, create_snapshot=False, publish=False, **extraInfo):
         self._forceUI = True
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
         # if not self.scene_modified:
@@ -126,6 +126,9 @@ class Maya(GenericFile):
         else:
             self.metadata_incremental_save(create_snapshot=create_snapshot)
 
+        if extraInfo:
+            self.addExtraMetadataInfo(**extraInfo)
+
         self.metadata.save_local_metadata()
         self.dpx.uploadFiles([self.local_metadata_path])
 
@@ -150,6 +153,10 @@ class Maya(GenericFile):
         # self.metadata.dependencies = self.get_ma_dependencies_recursive()
         if create_snapshot:
             self.metadata.image = self.generate_snapshot()
+
+    def addExtraMetadataInfo(self, **extraInfo):
+        for k,v in extraInfo.iteritems():
+            setattr(self.metadata, k, v)
 
     def generate_snapshot(self):
         image_path = self.local_path.replace(".ma", ".png")
