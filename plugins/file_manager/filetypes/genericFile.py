@@ -2,6 +2,7 @@ from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 from Framework.lib.gui_loader import gui_loader
+from Framework.lib.ui import ui
 
 
 import os
@@ -100,12 +101,20 @@ class GenericFile(object):
         return os.path.splitext(path)[1]
 
     def open(self):
-        self.download()
+        open = True if self.couldBeOpened else False
+        self.download(open=open)
+
+    def openScene(self):
         if self.couldBeOpened:
             exec(self.openCommand.format(self.local_path.replace("\\", "/")))
 
-    def download(self):
-        tool = DependencyLoaderWidget(self.local_path)
+    def download(self, open=False):
+        parent = ui.getMayaWindow()
+        tool = DependencyLoaderWidget(file_path=self.local_path)
+        tool.STATE_EXTERNAL_OPEN_FILE = False
+        tool.STATE_INTERNAL_OPEN_FILE = open
+        if open:
+            tool.openFileSignal.connect(self.openScene)
         self.obj = gui_loader.get_default_container(tool, "Update All")
         self.obj.show()
         tool.execute_update_process()

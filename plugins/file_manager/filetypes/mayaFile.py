@@ -14,6 +14,8 @@ from Framework.lib.logger import logger
 from Framework.lib.gui_loader import gui_loader
 from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 import threading
+from Framework.lib.ui import ui
+
 
 
 
@@ -31,6 +33,13 @@ class Maya(GenericFile):
 
         thread = threading.Thread(target=self.setupMetadata, args=())
         thread.start()
+
+    @classmethod
+    def generate_new_scene(cls, scene_path):
+        root, show, department, asset, task, details, main, folder = scene_path.split("/")
+        scene_path = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_default_none_{folder}.ma".format(
+            **locals()).lower()
+        return cls(scene_path)
 
     @property
     def version(self):
@@ -96,6 +105,11 @@ class Maya(GenericFile):
         # if not self.scene_modified:
         #     raise Exception("Nothing to save")
 
+        currentScene = cmds.file(q=True, sn=True)
+        if os.path.normpath(currentScene) != os.path.normpath(self.local_path):
+            logger.error("Please, the current scene must match with the one selected in the File Manager")
+            return
+
         if self.has_old_version_naming:
             cleaned_scene_name = self.clean_old_version_naming()
             cmds.file(rename=cleaned_scene_name)
@@ -104,7 +118,7 @@ class Maya(GenericFile):
         mel.eval("incrementAndSaveScene 0")
         self.local_path = cmds.file(q=True, sn=True)
 
-        if not self.metadata:
+        if not hasattr(self, "metadata"):
             self.metadata = metadata.Metadata.generate_metadata_from_scene(self.local_path)
             self.metadata.image = self.generate_snapshot()
             self.metadata.notes = list()
@@ -116,8 +130,8 @@ class Maya(GenericFile):
         self.dpx.uploadFiles([self.local_metadata_path])
 
         if self._forceUI:
-
-            widget = UploaderWindow(self.local_path)
+            parent = ui.getMayaWindow()
+            widget = UploaderWindow(file_path=self.local_path, parent=parent)
             self.obj = gui_loader.get_default_container(widget, "UPLOADER")
             self.obj.show()
             widget.execute_analize_process()

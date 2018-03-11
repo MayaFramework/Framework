@@ -39,10 +39,12 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     STATE_UNATENDED_CREATE_FOLDER_PRROCESS = True
     STATE_OVERWRITE_LOCAL_FILES = True
     STATE_DOWNLOAD_MAIN_MA_FILE = True
-    STATE_OPEN_FILE = True
+    STATE_EXTERNAL_OPEN_FILE = True
+    STATE_INTERNAL_OPEN_FILE = False
     # Signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
+    openFileSignal = QtCore.Signal()
 
     def __init__(self,parent=None, file_path=""):
         super(DependencyLoaderWidget, self).__init__(parent=parent)
@@ -203,8 +205,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                 msg = "Process finished, apparently no errors found. :D"
             window = MessageWindow("Donwloader Process finished",level,msg=msg)
 
-        if self.STATE_OPEN_FILE:
+        if self.STATE_EXTERNAL_OPEN_FILE:
             self.open_file()
+
+        if self.STATE_INTERNAL_OPEN_FILE:
+            self.openFileSignal.emit()
             
         self.on_finish_download.emit()
     def _on_start_download(self):
@@ -268,7 +273,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
 
     @QtCore.Slot()
     def on_update_btn_clicked(self):
-        self.STATE_OPEN_FILE = True
+        self.STATE_EXTERNAL_OPEN_FILE = True
         self.execute_update_process()
     def execute_update_process(self):
         """

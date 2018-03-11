@@ -8,6 +8,7 @@ from filetypes.mayaFile import Maya
 from filetypeChooser import FileTypeChooser
 from filetypes.folder import Folder
 from gui.pathButton import PathButton
+from gui import newfileDialog; reload(newfileDialog)
 
 from Framework import get_icon_path
 
@@ -118,9 +119,9 @@ class FileManager(form, base):
             return QtCore.QPoint(x, y)
 
         item = self.mainContainer.itemAt(pos)
-        if not item:
-            return
-        itemData = item.data(QtCore.Qt.UserRole)
+        itemData = None
+        if item:
+            itemData = item.data(QtCore.Qt.UserRole)
         menu = self.generateContextMenu(itemData=itemData)
         menu.move(fixPos(pos))
         menu.show()
@@ -142,12 +143,20 @@ class FileManager(form, base):
 
     def generateContextMenu(self, itemData):
         menu = QtWidgets.QMenu(self)
-        menu.addAction("Copy path", partial(self.copyPath, itemData))
+        menu.addAction("Create new file", self.showNewFileDialog)
+        if itemData:
+            menu.addAction("Copy path", partial(self.copyPath, itemData))
         return menu
 
     def copyPath(self, itemData):
         clipboard = QtGui.QClipboard()
         clipboard.setText(os.path.normpath(itemData.local_path))
+
+    def showNewFileDialog(self):
+        dialog = newfileDialog.NewFileDialog(parent=self)
+        response = dialog.exec_()
+        if response:
+            dialog.selectedExtension
 
     def openFile(self):
         self.selectedItem.open()
