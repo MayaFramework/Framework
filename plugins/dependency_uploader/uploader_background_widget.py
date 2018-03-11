@@ -14,8 +14,8 @@ from Framework.lib.ui.qt_thread import CustomQThread
 
 class UploaderBackgroundWidget(QtWidgets.QDialog):
 
-    def __init__(self, file_path_list, max_threads=1):
-        super(UploaderBackgroundWidget,self).__init__()
+    def __init__(self, file_path_list, max_threads=1, parent=None):
+        super(UploaderBackgroundWidget,self).__init__(parent=parent)
         if not isinstance(file_path_list, list) or not (len(file_path_list)>0):
             raise UploadException("Not enough file_path defined on the list to upload")
 

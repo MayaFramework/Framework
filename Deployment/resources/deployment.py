@@ -6,7 +6,8 @@ import sys
 PRODUCTION_REPO = "https://github.com/MayaFramework/Framework.git"
 REPO_DIR = "P:/TOOLS/Framework"
 
-PACKAGES = ['pyside', 'six', 'dropbox', 'requests', 'urllib3', 'GitPython']
+PACKAGES = ['pyside', 'six', 'dropbox', 'requests',
+            'urllib3', 'GitPython', "shotgun_api3"]
 
 for package in PACKAGES:
     args = ["install", package]

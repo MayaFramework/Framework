@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
-    <height>167</height>
+    <width>244</width>
+    <height>128</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,18 +16,32 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>File extension:</string>
+      <string>BM2 Shotgun Login</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QComboBox" name="fileExtensionCB"/>
+    <widget class="QLineEdit" name="usernameLE">
+     <property name="placeholderText">
+      <string>Username...</string>
+     </property>
+    </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="filenameLE">
+    <widget class="QLineEdit" name="passwordLE">
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
      <property name="placeholderText">
-      <string>Name...</string>
+      <string>Password...</string>
      </property>
     </widget>
    </item>

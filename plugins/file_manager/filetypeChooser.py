@@ -91,4 +91,21 @@ class FileTypeChooser(object):
                     return fileObject, fileWidget
                 return fileObject
 
+    @staticmethod
+    def getClassByExtension(extension, includeWidget=False):
+        for k, v in FileTypeChooser.FILETYPECLASSES.iteritems():
+            if extension not in v.get("extensions"):
+                continue
+            fileObject = FileTypeChooser.FILETYPECLASSES[k].get("object")
+            if includeWidget:
+                fileWidget = FileTypeChooser.FILETYPECLASSES[k].get("widget")
+                return fileObject, fileWidget
+            return fileObject
+        else:
+            fileObject = FileTypeChooser.FILETYPECLASSES["unknown"].get("object")
+            if includeWidget:
+                fileWidget = FileTypeChooser.FILETYPECLASSES["unknown"].get("widget")
+                return fileObject, fileWidget
+            return fileObject
+
 
