@@ -141,8 +141,8 @@ class Container(MayaQWidgetDockableMixin, QtWidgets.QWidget):
 '''
 
 
-def get_default_container(widget, name='APP NAME', style=True, simple_bar=True):
-    dialog = QtWidgets.QDialog()
+def get_default_container(widget, name='APP NAME', style=True, simple_bar=True, parent=None):
+    dialog = QtWidgets.QDialog(parent=parent)
     dialog.setWindowTitle("Framework: [Miguel Molledo, Alberto Sierra]")
     # dialog.SetSizeContraint()
     main_layout = QtWidgets.QVBoxLayout()
