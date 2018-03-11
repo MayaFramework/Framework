@@ -16,6 +16,7 @@ class GenericFile(object):
         self._allowDownload = True
         self._allowOpen = False
         self._openCommand = None
+        self._restrictedFileName = False
         self._name = None
         self._icon = None
         self._associatedExtensions = list()
@@ -81,6 +82,23 @@ class GenericFile(object):
     @openCommand.setter
     def openCommand(self, value):
         self._openCommand = value
+
+    @property
+    def restrictedFileName(self):
+        return self._restrictedFileName
+
+    @restrictedFileName.setter
+    def restrictedFileName(self, value):
+        self._restrictedFileName = value
+
+    @classmethod
+    def generateNewFile(cls, path):
+        """
+        This method should be overriden
+        :param path:
+        :return:
+        """
+        pass
 
     def validate_scene_path(self, path):
         if path.startswith("P:/"):

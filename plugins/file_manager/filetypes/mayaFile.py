@@ -21,6 +21,8 @@ from Framework.lib.ui import ui
 
 class Maya(GenericFile):
 
+    restrictedFileName = True
+
     def __init__(self, path):
         super(Maya, self).__init__(path)
 
@@ -28,17 +30,26 @@ class Maya(GenericFile):
         self.couldBeSaved = True
         self.couldBeDownloaded = True
         self.openCommand = "import maya.cmds as cmds;cmds.file('{}', o=True, f=True)"
+        self.restrictedFileName = True
 
         self.dpx = DropboxManager()
 
         thread = threading.Thread(target=self.setupMetadata, args=())
         thread.start()
 
-    @classmethod
-    def generate_new_scene(cls, scene_path):
-        root, show, department, asset, task, details, main, folder = scene_path.split("/")
-        scene_path = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_default_none_{folder}.ma".format(
+    @staticmethod
+    def generateFileName(folderPath):
+        root, show, department, asset, task, details, main, folder = folderPath.split("/")
+        folderPath = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_default_none_{folder}.ma".format(
             **locals()).lower()
+        return folderPath
+
+    @classmethod
+    def generateNewFile(cls, scene_path=None, folderPath=None):
+        if not scene_path and not folderPath:
+            raise RuntimeError("Please, provide at least one of the kwargs arguments")
+        if not scene_path and folderPath:
+            scene_path = Maya.generateFileName(folderPath)
         return cls(scene_path)
 
     @property
@@ -99,21 +110,32 @@ class Maya(GenericFile):
         print "saving"
         self.metadata.save_local_metadata()
 
-    def save(self, force=True, create_snapshot=False, publish=False, **extraInfo):
+    def save(self,
+             force=True,
+             create_snapshot=False,
+             publish=False,
+             checkPaths=True,
+             isNewfile = False,
+             **extraInfo):
+
         self._forceUI = True
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
         # if not self.scene_modified:
         #     raise Exception("Nothing to save")
 
-        currentScene = cmds.file(q=True, sn=True)
-        if os.path.normpath(currentScene) != os.path.normpath(self.local_path):
-            logger.error("Please, the current scene must match with the one selected in the File Manager")
-            return
+        if checkPaths:
+            currentScene = cmds.file(q=True, sn=True)
+            if os.path.normpath(currentScene) != os.path.normpath(self.local_path):
+                logger.error("Please, the current scene must match with the one selected in the File Manager")
+                return
 
         if self.has_old_version_naming:
             cleaned_scene_name = self.clean_old_version_naming()
             cmds.file(rename=cleaned_scene_name)
             cmds.file(s=True)
+
+        if isNewfile:
+            cmds.file(rn=self.local_path)
 
         mel.eval("incrementAndSaveScene 0")
         self.local_path = cmds.file(q=True, sn=True)

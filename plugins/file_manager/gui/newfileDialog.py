@@ -23,8 +23,12 @@ class NewFileDialog(form, base):
         self.setupUi(self)
 
         self._selectedExtension = None
+        self._fileName = str()
+        self.newFile = None
+        self.newWidget= None
 
         # self.fileExtensionCB.addItems(NewFileDialog.getExtensions())
+        self.fileExtensionCB.currentIndexChanged[str].connect(self._extensionChanged)
         self.fileExtensionCB.addItems([".ma"])
 
     @property
@@ -35,8 +39,29 @@ class NewFileDialog(form, base):
     def selectedExtension(self, value):
         self._selectedExtension = value
 
+    @property
+    def fileName(self):
+        return self._fileName
+
+    @fileName.setter
+    def fileName(self, value):
+        self._fileName = value
+
+    def _extensionChanged(self, extension):
+        obj = FileTypeChooser.getClassByExtension(extension)
+        restrictedFileName = getattr(obj, "restrictedFileName")
+        self.filenameLE.setDisabled(restrictedFileName)
+        if restrictedFileName:
+            newObj = obj.generateFileName(os.path.normpath(self.parent().currentFolder.local_path).replace("\\", "/"))
+            self.filenameLE.setText(newObj)
+
     def accept(self):
         self.selectedExtension = self.fileExtensionCB.currentText()
+        self.fileName = self.filenameLE.text()
+        obj, widget = FileTypeChooser.getClassByExtension(self.selectedExtension, includeWidget=True)
+        fileName = os.path.join(self.parent().currentFolder.local_path, self.fileName)
+        self.newFile = obj.generateNewFile(scene_path=fileName)
+        self.newWidget = widget(self.newFile)
         super(NewFileDialog, self).accept()
 
     @staticmethod

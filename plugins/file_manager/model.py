@@ -5,6 +5,8 @@ import threading
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
+from Framework.plugins.dependency_uploader.uploader_background_widget import UploaderBackgroundWidget
+
 
 from filetypes.mayaFile import Maya
 from filetypeChooser import FileTypeChooser
@@ -110,6 +112,7 @@ class FileManager(form, base):
         self.mainContainer.customContextMenuRequested.connect(self._mainContainerContextMenu)
         self.mainContainer.dropped.connect(self._fileDropped)
         self.actionSignIn.triggered.connect(self._signinDialog)
+        self.addFileBT.clicked.connect(self._selectedFileToAdd)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(QtCore.Qt.UserRole)
@@ -152,9 +155,7 @@ class FileManager(form, base):
 
     def _fileDropped(self, files):
         # TODO This method will add all the files to Dropbox
-        for droppedFile in files:
-            thread = threading.Thread(target=partial(self.addFile, droppedFile), args=())
-            thread.start()
+        self.addFiles(files)
 
     def _signinDialog(self):
         dialog = SignInDialog(self)
@@ -164,14 +165,22 @@ class FileManager(form, base):
             self.userInfo = (dialog.userName, str(dialog.password).encode('base64','strict'))
             self.authorizeUser(enableUI=True)
 
-    def addFile(self, droppedFile):
+    def _selectedFileToAdd(self):
+        files = QtWidgets.QFileDialog.getOpenFileNames(self, "Select files", "P://BM2")
+        if len(files[0]) == 0:
+            return
+        self.addFiles(files[0])
+
+
+    def addFiles(self, files):
         """
         TODO Hay que ver si queremos anadir los files a la carpeta en la que estamos, o recrear el path del file
         :param file:
         :return:
         """
-        fileInstance, fileWidget = FileTypeChooser.getClass(droppedFile, includeWidget=True)
-        print fileInstance, fileWidget
+        dialog = UploaderBackgroundWidget(files, max_threads=5)
+        dialog.show()
+        dialog.execute_upload_process()
 
     def authorizeUser(self, enableUI=False):
         sg = ShotgunInit()
@@ -189,11 +198,20 @@ class FileManager(form, base):
         self.centralwidget.setEnabled(True)
 
     def generateContextMenu(self, itemData):
+        print self.currentFolder.local_path
         menu = QtWidgets.QMenu(self)
-        menu.addAction("Create new file", self.showNewFileDialog)
+        newFileAction = self.createNewAction("Create new File", self.showNewFileDialog, menu)
+        if len(os.path.normpath(self.currentFolder.local_path).replace("\\", '/').split("/")) != 8:
+            newFileAction.setDisabled(True)
         if itemData:
             menu.addAction("Copy path", partial(self.copyPath, itemData))
         return menu
+
+    def createNewAction(self, actionName, connectTo, menu):
+        newAction = QtWidgets.QAction(actionName, menu)
+        newAction.triggered.connect(connectTo)
+        menu.addAction(newAction)
+        return newAction
 
     def copyPath(self, itemData):
         clipboard = QtGui.QClipboard()
@@ -203,7 +221,7 @@ class FileManager(form, base):
         dialog = newfileDialog.NewFileDialog(parent=self)
         response = dialog.exec_()
         if response:
-            dialog.selectedExtension
+            dialog.newFile.save(force=True, create_snapshot=True, checkPaths=False, isNewfile=True, author=self.userInfo[0])
 
     def openFile(self):
         self.selectedItem.open()
