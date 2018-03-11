@@ -44,7 +44,7 @@ class ShotgunUser(object):
         self._entityType = value
 
     def authenticate(self, password):
-        return self.shotgunObj.authenticate_human_user(user_login=self.login, user_password=password)
+        return True if self.shotgunObj.authenticate_human_user(user_login=self.login, user_password=password) else False
 
     def getField(self, fieldName):
         field = self.shotgunObj.find_one(
