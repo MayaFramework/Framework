@@ -20,12 +20,15 @@ class SignInDialog(form, base):
         super(SignInDialog, self).__init__(parent=parent)
         self.setupUi(self)
 
+        self.sg = ShotgunInit()
+
         self.userName = None
         self.password = None
 
     def accept(self):
         if self.authenticateUser():
-            self.userName = self.usernameLE.text()
+            self.login = self.usernameLE.text()
+            self.userName = self.getRealName(self.login)
             self.password = self.passwordLE.text()
             super(SignInDialog, self).accept()
         else:
@@ -34,10 +37,11 @@ class SignInDialog(form, base):
     def authenticateUser(self):
         userName = self.usernameLE.text()
         password = self.passwordLE.text()
-        sg = ShotgunInit()
-        user = sg.getUser(userName)
+        user = self.sg.getUser(userName)
         if user:
             return user.authenticate(password)
         return False
 
-
+    def getRealName(self, login):
+        user = self.sg.getUser(login)
+        return user.getField("name")

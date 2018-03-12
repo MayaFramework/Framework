@@ -7,12 +7,12 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
 from Framework.plugins.dependency_uploader.uploader_background_widget import UploaderBackgroundWidget
 
-
+from settings import CustomSettings
 from filetypes.mayaFile import Maya
 from filetypeChooser import FileTypeChooser
 from filetypes.folder import Folder
 from gui.pathButton import PathButton
-from gui import newfileDialog; reload(newfileDialog)
+from gui import newfileDialog
 from gui.siginDialog import SignInDialog
 
 from Framework import get_icon_path
@@ -38,9 +38,11 @@ class FileManager(form, base):
         self._userInfo = None
         self.history = list()
         self.pathBar = list()
+        self.settings = CustomSettings("BM2", "FileManager")
 
         self.initUI()
         self.connectSignals()
+        self.setSettings()
 
     @property
     def selectedItem(self):
@@ -102,6 +104,15 @@ class FileManager(form, base):
         self.saveBT.setIcon(QtGui.QIcon(save))
         self.addFileBT.setIcon(QtGui.QIcon(addFile))
 
+    def setSettings(self):
+        if len(self.settings.items()) != 0:
+            username = self.settings["userName"]
+            login = self.settings["login"]
+            password = self.settings["password"]
+            if username and password:
+                self.userInfo = (username, login, password)
+                self.authorizeUser(True)
+
     def connectSignals(self):
         self.beforeBT.clicked.connect(self._handleBackButton)
         self.mainContainer.itemDoubleClicked.connect(self._itemDoubleClicked)
@@ -154,7 +165,6 @@ class FileManager(form, base):
         menu.show()
 
     def _fileDropped(self, files):
-        # TODO This method will add all the files to Dropbox
         self.addFiles(files)
 
     def _signinDialog(self):
@@ -162,7 +172,7 @@ class FileManager(form, base):
         accepted = dialog.exec_()
         if accepted:
             self.userAuthethicated = True
-            self.userInfo = (dialog.userName, str(dialog.password).encode('base64','strict'))
+            self.userInfo = (dialog.userName, str(dialog.login), str(dialog.password).encode('base64','strict'))
             self.authorizeUser(enableUI=True)
 
     def _selectedFileToAdd(self):
@@ -170,29 +180,33 @@ class FileManager(form, base):
         if len(files[0]) == 0:
             return
         self.addFiles(files[0])
-
+        
+    def closeEvent(self, event):
+        self.settings["userName"] = str(self.userInfo[0])
+        self.settings["login"] = str(self.userInfo[1])
+        self.settings["password"] = str(self.userInfo[2].decode('base64','strict'))
+        super(FileManager, self).closeEvent(event)
 
     def addFiles(self, files):
-        """
-        TODO Hay que ver si queremos anadir los files a la carpeta en la que estamos, o recrear el path del file
-        :param file:
-        :return:
-        """
         dialog = UploaderBackgroundWidget(files, max_threads=5)
         dialog.show()
         dialog.execute_upload_process()
 
     def authorizeUser(self, enableUI=False):
         sg = ShotgunInit()
-        user = sg.getUser(self.userInfo[0])
-        imageURL = user.getField("image")
-        data = urllib.urlopen(imageURL).read()
-        image = QtGui.QImage()
-        image.loadFromData(data)
+        user = sg.getUser(self.userInfo[1])
+        try:
+            imageURL = user.getField("image")
+            data = urllib.urlopen(imageURL).read()
+            image = QtGui.QImage()
+            image.loadFromData(data)
+        except ValueError:
+            image = QtGui.QImage()
         self.userImageLB.setPixmap(QtGui.QPixmap(image))
         self.userNameLB.setText(self.userInfo[0])
         if enableUI:
             self._enableUI()
+        self.actionSignIn.setText("Change user")
 
     def _enableUI(self):
         self.centralwidget.setEnabled(True)
