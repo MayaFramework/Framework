@@ -165,7 +165,17 @@ class FileManager(form, base):
         menu.show()
 
     def _fileDropped(self, files):
-        self.addFiles(files)
+        isCorrectDir = self.compareFilesPath(files[0])
+        if not isCorrectDir:
+            msg = "You are trying to upload a file from<br><br><b>{}</b><br>to<br><b>{}</b><br><br>".format(
+                                                            os.path.normpath(self.currentFolder.local_path),
+                                                            os.path.normpath(os.path.dirname(files[0]))
+                                                        )
+            msg += "Please, move the file to the current folder that you have open in the File Explorer\n"
+            msg += "or navigate to the file path within the File Explorer"
+            QtWidgets.QMessageBox.critical(self, "Check your file/folder!", msg)
+        else:
+            self.addFiles(files)
 
     def _signinDialog(self):
         dialog = SignInDialog(self)
@@ -176,11 +186,11 @@ class FileManager(form, base):
             self.authorizeUser(enableUI=True)
 
     def _selectedFileToAdd(self):
-        files = QtWidgets.QFileDialog.getOpenFileNames(self, "Select files", "P://BM2")
-        if len(files[0]) == 0:
+        files = QtWidgets.QFileDialog.getOpenFileNames(self, "Select files", "P://BM2")[0]
+        if len(files) == 0:
             return
-        self.addFiles(files[0])
-        
+        self._fileDropped(files)
+
     def closeEvent(self, event):
         self.settings["userName"] = str(self.userInfo[0])
         self.settings["login"] = str(self.userInfo[1])
@@ -212,7 +222,6 @@ class FileManager(form, base):
         self.centralwidget.setEnabled(True)
 
     def generateContextMenu(self, itemData):
-        print self.currentFolder.local_path
         menu = QtWidgets.QMenu(self)
         newFileAction = self.createNewAction("Create new File", self.showNewFileDialog, menu)
         if len(os.path.normpath(self.currentFolder.local_path).replace("\\", '/').split("/")) != 8:
@@ -237,6 +246,11 @@ class FileManager(form, base):
         if response:
             dialog.newFile.save(force=True, create_snapshot=True, checkPaths=False, isNewfile=True, author=self.userInfo[0])
 
+    def compareFilesPath(self, file):
+        currentFolderDir = os.path.normpath(self.currentFolder.local_path).lower()
+        fileFolderDir = os.path.normpath(os.path.dirname(file)).lower()
+        return True if str(currentFolderDir) == str(fileFolderDir) else False
+
     def openFile(self):
         self.selectedItem.open()
 
@@ -245,6 +259,8 @@ class FileManager(form, base):
 
     def downloadFile(self):
         self.selectedItem.download()
+        msg = "File downloaded!<br><br><b>{}</b><br><br>".format(self.selectedItem.local_path)
+        QtWidgets.QMessageBox.information(self, "Done!", msg)
 
     def populateMainContainer(self, fileObj, addHistory=True):
         if isinstance(fileObj, Folder):

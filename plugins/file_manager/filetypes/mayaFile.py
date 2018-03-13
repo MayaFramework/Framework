@@ -15,6 +15,7 @@ from Framework.lib.gui_loader import gui_loader
 from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 import threading
 from Framework.lib.ui import ui
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 
 
 
@@ -109,6 +110,16 @@ class Maya(GenericFile):
         self.metadata.notes.insert(0, notes)
         print "saving"
         self.metadata.save_local_metadata()
+
+    def download(self, open=False):
+        tool = DependencyLoaderWidget(file_path=self.local_path)
+        tool.STATE_EXTERNAL_OPEN_FILE = False
+        tool.STATE_INTERNAL_OPEN_FILE = open
+        if open:
+            tool.openFileSignal.connect(self.openScene)
+        self.obj = gui_loader.get_default_container(tool, "Update All")
+        self.obj.show()
+        tool.execute_update_process()
 
     def save(self,
              force=True,

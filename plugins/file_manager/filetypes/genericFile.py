@@ -127,15 +127,7 @@ class GenericFile(object):
             exec(self.openCommand.format(self.local_path.replace("\\", "/")))
 
     def download(self, open=False):
-        parent = ui.getMayaWindow()
-        tool = DependencyLoaderWidget(file_path=self.local_path)
-        tool.STATE_EXTERNAL_OPEN_FILE = False
-        tool.STATE_INTERNAL_OPEN_FILE = open
-        if open:
-            tool.openFileSignal.connect(self.openScene)
-        self.obj = gui_loader.get_default_container(tool, "Update All")
-        self.obj.show()
-        tool.execute_update_process()
+        self.dpx.downloadFile(self.local_path)
 
     def save(self):
         widget = UploaderWindow(self.local_path)
