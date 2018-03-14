@@ -146,6 +146,7 @@ class Maya(GenericFile):
             cmds.file(s=True)
 
         if isNewfile:
+            os.makedirs(self.local_path)
             cmds.file(rn=self.local_path)
 
         mel.eval("incrementAndSaveScene 0")
