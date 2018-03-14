@@ -1,7 +1,9 @@
 import pip
+import subprocess
 print "DOWNLOADING FROM PIP"
 # Installing Pyside
 import sys
+
 
 PRODUCTION_REPO = "https://github.com/MayaFramework/Framework.git"
 REPO_DIR = "P:/TOOLS/Framework"
@@ -12,6 +14,8 @@ EXTRAPACKAGES = {
 
 PACKAGES = ['pyside', 'six', 'dropbox', 'requests',
             'urllib3', 'GitPython', EXTRAPACKAGES["shotgun"]]
+
+subprocess.call('setx PYTHONPATH "P:\TOOLS"')
 
 for package in PACKAGES:
     args = ["install", package]
