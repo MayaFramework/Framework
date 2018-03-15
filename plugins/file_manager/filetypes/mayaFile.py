@@ -136,7 +136,8 @@ class Maya(GenericFile):
 
         if checkPaths:
             currentScene = cmds.file(q=True, sn=True)
-            if os.path.normpath(currentScene) != os.path.normpath(self.local_path):
+            print os.path.normpath(self.local_path), os.path.normpath(currentScene)
+            if os.path.normpath(os.path.dirname(currentScene)) != os.path.normpath(os.path.dirname(self.local_path)):
                 logger.error("Please, the current scene must match with the one selected in the File Manager")
                 return
 

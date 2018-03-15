@@ -1,6 +1,7 @@
 import os
 from functools import partial
 import urllib
+import datetime
 import threading
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
@@ -79,6 +80,10 @@ class FileManager(form, base):
         self._userInfo = value
 
     def initUI(self):
+        # self.mainContainer.headerItem().setSizeHint(0, QtCore.QSize(400, 20))
+        self.mainContainer.setColumnWidth(0, 400)
+        # self.mainContainer.setColumnWidth(1, 200)
+        # self.mainContainer.setColumnWidth(2, 100)
         self.mainContainer.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self._setIcons()
         self.thumbnailLB.setPixmap(QtGui.QPixmap(NOTHUMBNAIL))
@@ -126,11 +131,11 @@ class FileManager(form, base):
         self.addFileBT.clicked.connect(self._selectedFileToAdd)
 
     def _itemDoubleClicked(self, item):
-        folderObj = item.data(QtCore.Qt.UserRole)
+        folderObj = item.data(0, QtCore.Qt.UserRole)
         self.populateMainContainer(fileObj=folderObj)
 
     def _itemClicked(self, item):
-        itemObj = item.data(QtCore.Qt.UserRole)
+        itemObj = item.data(0, QtCore.Qt.UserRole)
         if isinstance(itemObj, Maya):
             self.showMetadataInfo(itemObj=itemObj)
         self.openBT.setEnabled(itemObj.couldBeOpened)
@@ -159,7 +164,7 @@ class FileManager(form, base):
         item = self.mainContainer.itemAt(pos)
         itemData = None
         if item:
-            itemData = item.data(QtCore.Qt.UserRole)
+            itemData = item.data(0, QtCore.Qt.UserRole)
         menu = self.generateContextMenu(itemData=itemData)
         menu.move(fixPos(pos))
         menu.show()
@@ -244,7 +249,7 @@ class FileManager(form, base):
         dialog = newfileDialog.NewFileDialog(parent=self)
         response = dialog.exec_()
         if response:
-            dialog.newFile.save(force=True, create_snapshot=True, checkPaths=False, isNewfile=True, author=self.userInfo[0])
+            dialog.newFile.save(force=True, create_snapshot=False, checkPaths=False, isNewfile=True, author=self.userInfo[0])
 
     def compareFilesPath(self, file):
         currentFolderDir = os.path.normpath(self.currentFolder.local_path).lower()
@@ -267,15 +272,16 @@ class FileManager(form, base):
             self.currentFolder = fileObj
             self.mainContainer.clear()
             self.mainContainer.setIconSize(QtCore.QSize(200,200))
-            for childFile in fileObj.remote_children:
-                listItem = QtWidgets.QListWidgetItem()
+            for childFile, childDpxMetadata in fileObj.remote_children:
+                listItem = QtWidgets.QTreeWidgetItem(self.mainContainer)
                 fileInstance, fileWidget = FileTypeChooser.getClass(childFile, includeWidget=True)
                 newFile = fileInstance(childFile)
-                newFileWidget = fileWidget(newFile)
+                newFileWidget = fileWidget(newFile, parent=self.mainContainer)
                 self.setItemData(item=listItem,
                                  data=newFile,
                                  parentTree=self.mainContainer,
-                                 widget=newFileWidget)
+                                 widget=newFileWidget,
+                                 dropboxMetadata=childDpxMetadata)
             if addHistory:
                 self.addFolder2History(fileObj)
 
@@ -302,12 +308,23 @@ class FileManager(form, base):
         self.pathLayout.addWidget(pathButton)
         self.pathBar.append(pathButton)
 
-    def setItemData(self, item, data, parentTree, widget=None):
-        item.setData(QtCore.Qt.UserRole, data)
-        parentTree.addItem(item)
+    def setItemData(self, item, data, parentTree, widget=None, dropboxMetadata=None):
+        item.setData(0, QtCore.Qt.UserRole, data)
+        parentTree.addTopLevelItem(item)
+        if dropboxMetadata:
+            if hasattr(dropboxMetadata, "client_modified"):
+                date = getattr(dropboxMetadata, "client_modified")
+                item.setText(1, str(date))
+            if hasattr(dropboxMetadata, "size"):
+                size = getattr(dropboxMetadata, "size")
+                size = float(size)/1000000
+                item.setText(2, "{0:.2f}MB".format(size))
         if widget:
-            parentTree.setItemWidget(item, widget)
-            item.setSizeHint(widget.sizeHint())
+            parentTree.setItemWidget(item, 0, widget)
+            widgetSize = widget.sizeHint()
+            item.setSizeHint(0, QtCore.QSize(widgetSize.width() + 20, widgetSize.height()))
+        for column in xrange(parentTree.columnCount()):
+            parentTree.resizeColumnToContents(column)
 
     def _refreshPathBar(self, pathButton):
         found = False

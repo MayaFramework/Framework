@@ -10,7 +10,7 @@ import os
 
 class GenericFile(object):
 
-    def __init__(self, path):
+    def __init__(self, path, *args, **kwargs):
 
         self._allowSave = False
         self._allowDownload = True
@@ -21,6 +21,7 @@ class GenericFile(object):
         self._icon = None
         self._associatedExtensions = list()
         self._local_path, self._remote_path = self.validate_scene_path(path)
+        self._dpxMetadata = None
         self.dpx = DropboxManager()
 
     @property
@@ -90,6 +91,14 @@ class GenericFile(object):
     @restrictedFileName.setter
     def restrictedFileName(self, value):
         self._restrictedFileName = value
+
+    @property
+    def dropboxMetadata(self):
+        return self._dpxMetadata
+
+    @dropboxMetadata.setter
+    def dropboxMetadata(self, value):
+        self._dpxMetadata = value
 
     @classmethod
     def generateNewFile(cls, path):

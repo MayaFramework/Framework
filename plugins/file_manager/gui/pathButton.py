@@ -7,4 +7,5 @@ class PathButton(QtWidgets.QPushButton):
 
         self.folderObj = folderObj
 
-        self.setText(folderObj.name)
+        self.setFlat(True)
+        self.setText("{} >".format(folderObj.name))
