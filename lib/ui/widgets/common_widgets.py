@@ -40,8 +40,8 @@ class MessageWindow(QtWidgets.QDialog):
     ERROR_LEVEL = "ERROR"
     WARNING_LEVEL = "WARNING"
     INFO_LEVEL = "INFO"
-    name_btn_left = 'Cancel'
-    name_btn_right = 'Continue'
+    _name_btn_left = 'Cancel'
+    _name_btn_right = 'Continue'
     _level_supported = [ERROR_LEVEL, INFO_LEVEL, WARNING_LEVEL]
 
     def __init__(self, title, level='INFO', msg=None):
@@ -94,7 +94,7 @@ class MessageWindow(QtWidgets.QDialog):
         self.vertical_layout.addLayout(self.horizontal_layout_btns)
 
         self.resize(100, 10)
-        self.exec_()
+        
 
     def set_lvl_color(self, label, lvl):
         sample = QtGui.QPalette()
@@ -122,6 +122,29 @@ class MessageWindow(QtWidgets.QDialog):
     def on_left_btn(self):
         self._state = False
         self.close()
+
+    @property
+    def name_btn_left(self):
+        return self._name_btn_left
+
+    @name_btn_left.setter
+    def name_btn_left(self, value):
+        if isinstance(value, (str,unicode)):
+            self._name_btn_left = value
+        
+        self.left_btn.setText(value)
+        
+    @property
+    def name_btn_right(self):
+        return self._name_btn_right
+
+    @name_btn_right.setter
+    def name_btn_right(self, value):
+        if isinstance(value, (str,unicode)):
+            self._name_btn_right = value
+        
+        self.right_btn.setText(value)
+        
 
 
 class ReporterWindow(MessageWindow):
