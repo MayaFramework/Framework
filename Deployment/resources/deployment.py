@@ -1,12 +1,21 @@
 import pip
+import subprocess
 print "DOWNLOADING FROM PIP"
 # Installing Pyside
 import sys
 
+
 PRODUCTION_REPO = "https://github.com/MayaFramework/Framework.git"
 REPO_DIR = "P:/TOOLS/Framework"
 
-PACKAGES = ['pyside', 'six', 'dropbox', 'requests', 'urllib3', 'GitPython']
+EXTRAPACKAGES = {
+    "shotgun": "git+git://github.com/shotgunsoftware/python-api.git"
+}
+
+PACKAGES = ['pyside', 'six', 'dropbox', 'requests',
+            'urllib3', 'GitPython', EXTRAPACKAGES["shotgun"]]
+
+subprocess.call('setx PYTHONPATH "P:\TOOLS;C:\Python27\Lib\site-packages"')
 
 for package in PACKAGES:
     args = ["install", package]
@@ -39,7 +48,7 @@ with open(os.path.join(python_dir,file), "w") as f:
         f.write(c_path+"\n")
 
 # userSetup_path = os.path.join(os.environ["MAYA_APP_DIR"], "2017", "scripts").replace("\\","/")
-shutil.copy2(os.path.join(current_folder,"userSetup.py"), userSetup_path)
+# shutil.copy2(os.path.join(current_folder,"userSetup.py"), userSetup_path)
 
 
 

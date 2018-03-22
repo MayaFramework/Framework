@@ -1,11 +1,11 @@
 from PySide2 import QtWidgets, QtCore
 
-class CustomListWidget(QtWidgets.QListWidget):
+class CustomTreeWidget(QtWidgets.QTreeWidget):
 
     dropped = QtCore.Signal(list)
 
     def __init__(self, parent=None):
-        super(CustomListWidget, self).__init__(parent=parent)
+        super(CustomTreeWidget, self).__init__(parent=parent)
 
         self.setAcceptDrops(True)
 

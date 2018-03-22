@@ -2,6 +2,7 @@ from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 from Framework.lib.gui_loader import gui_loader
+from Framework.lib.ui import ui
 
 
 import os
@@ -9,16 +10,18 @@ import os
 
 class GenericFile(object):
 
-    def __init__(self, path):
+    def __init__(self, path, *args, **kwargs):
 
         self._allowSave = False
         self._allowDownload = True
         self._allowOpen = False
         self._openCommand = None
+        self._restrictedFileName = False
         self._name = None
         self._icon = None
         self._associatedExtensions = list()
         self._local_path, self._remote_path = self.validate_scene_path(path)
+        self._dpxMetadata = None
         self.dpx = DropboxManager()
 
     @property
@@ -81,6 +84,31 @@ class GenericFile(object):
     def openCommand(self, value):
         self._openCommand = value
 
+    @property
+    def restrictedFileName(self):
+        return self._restrictedFileName
+
+    @restrictedFileName.setter
+    def restrictedFileName(self, value):
+        self._restrictedFileName = value
+
+    @property
+    def dropboxMetadata(self):
+        return self._dpxMetadata
+
+    @dropboxMetadata.setter
+    def dropboxMetadata(self, value):
+        self._dpxMetadata = value
+
+    @classmethod
+    def generateNewFile(cls, path):
+        """
+        This method should be overriden
+        :param path:
+        :return:
+        """
+        pass
+
     def validate_scene_path(self, path):
         if path.startswith("P:/"):
             local_path = path
@@ -100,15 +128,15 @@ class GenericFile(object):
         return os.path.splitext(path)[1]
 
     def open(self):
-        self.download()
+        open = True if self.couldBeOpened else False
+        self.download(open=open)
+
+    def openScene(self):
         if self.couldBeOpened:
             exec(self.openCommand.format(self.local_path.replace("\\", "/")))
 
-    def download(self):
-        tool = DependencyLoaderWidget(self.local_path)
-        self.obj = gui_loader.get_default_container(tool, "Update All")
-        self.obj.show()
-        tool.execute_update_process()
+    def download(self, open=False):
+        self.dpx.downloadFile(self.local_path)
 
     def save(self):
         widget = UploaderWindow(self.local_path)

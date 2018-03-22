@@ -29,4 +29,4 @@ class Folder(GenericFile):
 
     @property
     def remote_children(self):
-        return self.dpx.getChildren(self.local_path)
+        return self.dpx.getChildren(self.local_path, includeMetadata=True)

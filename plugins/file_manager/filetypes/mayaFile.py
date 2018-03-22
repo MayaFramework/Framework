@@ -14,10 +14,15 @@ from Framework.lib.logger import logger
 from Framework.lib.gui_loader import gui_loader
 from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 import threading
+from Framework.lib.ui import ui
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+
 
 
 
 class Maya(GenericFile):
+
+    restrictedFileName = True
 
     def __init__(self, path):
         super(Maya, self).__init__(path)
@@ -26,11 +31,27 @@ class Maya(GenericFile):
         self.couldBeSaved = True
         self.couldBeDownloaded = True
         self.openCommand = "import maya.cmds as cmds;cmds.file('{}', o=True, f=True)"
+        self.restrictedFileName = True
 
         self.dpx = DropboxManager()
 
         thread = threading.Thread(target=self.setupMetadata, args=())
         thread.start()
+
+    @staticmethod
+    def generateFileName(folderPath):
+        root, show, department, asset, task, details, main, folder = folderPath.split("/")
+        folderPath = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_default_none_{folder}.ma".format(
+            **locals()).lower()
+        return folderPath
+
+    @classmethod
+    def generateNewFile(cls, scene_path=None, folderPath=None):
+        if not scene_path and not folderPath:
+            raise RuntimeError("Please, provide at least one of the kwargs arguments")
+        if not scene_path and folderPath:
+            scene_path = Maya.generateFileName(folderPath)
+        return cls(scene_path)
 
     @property
     def version(self):
@@ -90,21 +111,49 @@ class Maya(GenericFile):
         print "saving"
         self.metadata.save_local_metadata()
 
-    def save(self, force=True, create_snapshot=False, publish=False):
+    def download(self, open=False):
+        tool = DependencyLoaderWidget(file_path=self.local_path)
+        tool.STATE_EXTERNAL_OPEN_FILE = False
+        tool.STATE_INTERNAL_OPEN_FILE = open
+        if open:
+            tool.openFileSignal.connect(self.openScene)
+        self.obj = gui_loader.get_default_container(tool, "Update All")
+        self.obj.show()
+        tool.execute_update_process()
+
+    def save(self,
+             force=True,
+             create_snapshot=False,
+             publish=False,
+             checkPaths=True,
+             isNewfile = False,
+             **extraInfo):
+
         self._forceUI = True
         # TODO WE NEED TO RENAME FIRST WITH THE NEW VERSION
         # if not self.scene_modified:
         #     raise Exception("Nothing to save")
+
+        if checkPaths:
+            currentScene = cmds.file(q=True, sn=True)
+            print os.path.normpath(self.local_path), os.path.normpath(currentScene)
+            if os.path.normpath(os.path.dirname(currentScene)) != os.path.normpath(os.path.dirname(self.local_path)):
+                logger.error("Please, the current scene must match with the one selected in the File Manager")
+                return
 
         if self.has_old_version_naming:
             cleaned_scene_name = self.clean_old_version_naming()
             cmds.file(rename=cleaned_scene_name)
             cmds.file(s=True)
 
+        if isNewfile:
+            os.makedirs(self.local_path)
+            cmds.file(rn=self.local_path)
+
         mel.eval("incrementAndSaveScene 0")
         self.local_path = cmds.file(q=True, sn=True)
 
-        if not self.metadata:
+        if not hasattr(self, "metadata"):
             self.metadata = metadata.Metadata.generate_metadata_from_scene(self.local_path)
             self.metadata.image = self.generate_snapshot()
             self.metadata.notes = list()
@@ -112,12 +161,15 @@ class Maya(GenericFile):
         else:
             self.metadata_incremental_save(create_snapshot=create_snapshot)
 
+        if extraInfo:
+            self.addExtraMetadataInfo(**extraInfo)
+
         self.metadata.save_local_metadata()
         self.dpx.uploadFiles([self.local_metadata_path])
 
         if self._forceUI:
-
-            widget = UploaderWindow(self.local_path)
+            parent = ui.getMayaWindow()
+            widget = UploaderWindow(file_path=self.local_path, parent=parent)
             self.obj = gui_loader.get_default_container(widget, "UPLOADER")
             self.obj.show()
             widget.execute_analize_process()
@@ -136,6 +188,10 @@ class Maya(GenericFile):
         # self.metadata.dependencies = self.get_ma_dependencies_recursive()
         if create_snapshot:
             self.metadata.image = self.generate_snapshot()
+
+    def addExtraMetadataInfo(self, **extraInfo):
+        for k,v in extraInfo.iteritems():
+            setattr(self.metadata, k, v)
 
     def generate_snapshot(self):
         image_path = self.local_path.replace(".ma", ".png")
