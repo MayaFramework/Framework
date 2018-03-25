@@ -40,6 +40,10 @@ class UploaderWindow(QtWidgets.QDialog):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
     CURRENT_AREA_WORK_PATH = " "
+    
+    PUBLISH_TO_CHK = False
+    PUBLISH_TO_OUT = False
+    ASK_TO_PUBLISH = False
     def __init__(self, parent=None, file_path=""):
         super(UploaderWindow, self).__init__(parent=parent)
         self.setWindowTitle(self.TOOL_NAME)
@@ -101,36 +105,88 @@ class UploaderWindow(QtWidgets.QDialog):
         files_text = "\n".join(files_to_upload)
         message = "You are going to upload these files, do you agree?\n %s " % files_text
         prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
+        prompt.exec_()
         if not prompt.get_response():
             return
         # get chk and out options
-        advance_options_widget = AdvanceOptionsWidget()
-        advance_options_widget.exec_()
-        chk = advance_options_widget.chk_state
-        out = advance_options_widget.out_state
-        current_level = main_file.split("/")[-2]
+
+        chk = None
+        out = None
+        if self.ASK_TO_PUBLISH:
+            chk, out = self.publish_assistance_widget(main_file)
+            
         
         self.uploader_background_widget = UploaderBackgroundWidget(file_path_list=files_to_upload,
                                                                    max_threads=self.threads_spin_box.value())
 
-
-
-        self.uploader_background_widget.chk_state = chk
-        self.uploader_background_widget.out_state = out
         self.uploader_background_widget.show()
         self.uploader_background_widget.execute_upload_process()
-        self.uploader_background_widget._custom_file_threads = []
-        if chk:
-            new_file = main_file.replace("/{0}/".format(current_level),"/chk/")
-            new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
-            self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
-            
-        if out:
-            new_file = main_file.replace("/{0}/".format(current_level),"/out/")
-            new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
-            self.uploader_background_widget.upload_custom_file(file_path=main_file, target_path=new_file_dpx)
-#         
+
+        if chk or self.PUBLISH_TO_CHK:
+            self.publish_file_to_chk(main_file)
         
+        if out or self.PUBLISH_TO_OUT:
+            self.publish_file_to_out(main_file)
+
+
+    def publish_file_to_chk(self, file_path):
+        current_level = file_path.split("/")[-2]
+        # replace location
+        new_file = file_path.replace("/{0}/".format(current_level),"/chk/")
+        # replace versions
+        new_file = self.clean_version_from_file_path(new_file)
+        # P:/bm2/seq/tst/sho/650/scncmp/wip/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.0005.ma
+        #replace file name
+        base_path, file_name = file_path.rsplit("/",1)
+        
+        name, extension = new_file.split(".")
+    
+        file_name_fields = name.split("_")
+        #replace location in the file name
+        file_name_fields[-1] = "chk"
+        file_name = "_".join(file_name_fields)
+        
+        new_file = file_name+ ".{extension}".format(extension=extension)
+        
+        new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
+        self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
+            
+            
+    def publish_file_to_out(self, file_path):
+        current_level = file_path.split("/")[-2]
+        # replace location
+        new_file = file_path.replace("/{0}/".format(current_level),"/out/")
+        # replace versions
+        new_file = self.clean_version_from_file_path(new_file)
+        # P:/bm2/seq/tst/sho/650/scncmp/wip/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.0005.ma
+        #replace file name
+        base_path, file_name = file_path.rsplit("/",1)
+        
+        name, extension = new_file.split(".")
+    
+        file_name_fields = name.split("_")
+        #replace location in the file name
+        file_name_fields[-1] = "out"
+        file_name = "_".join(file_name_fields)
+        
+        new_file = file_name+ ".{extension}".format(extension=extension)
+        
+        new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
+        self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
+
+    def clean_version_from_file_path(self, file_path):
+        fields = file_path.split(".")
+        return fields[0] + "." + fields[2]
+        
+
+    def publish_assistance_widget(self, main_file):
+        current_level = main_file.split("/")[-2]
+        advance_options_widget = AdvanceOptionsWidget()
+        advance_options_widget.exec_()
+        chk = advance_options_widget.chk_state
+        out = advance_options_widget.out_state
+        return chk,out
+    
     def insert_new_file(self, file_path):
     
         #check if currently exists in the list

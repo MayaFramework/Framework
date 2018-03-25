@@ -29,9 +29,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.current_threads = 0
         self._threads = []
         self._custom_file_threads = []
-        self._threads_processed = []
-        self._chk_state = False
-        self._out_state = False
+        self._threads_processed = 0
         #BORRAR ESTO
         self.log_text = ''
         self._icons()
@@ -43,22 +41,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         self.error_ico_path=os.path.join(ICON_PATH, "error.png")
 
 
-  
-    @property
-    def chk_state(self):
-        return self._chk_state
-    
-    @property
-    def out_state(self):
-        return self._out_state
-    
-    @chk_state.setter
-    def chk_state(self, value):
-        self._chk_state =  bool(value)
-    
-    @out_state.setter
-    def out_state(self, value):
-        self._out_state = bool(value)
+
     
     def add_item_in_list(self, list_widget, key):
         listItem = QtWidgets.QListWidgetItem(key)
@@ -100,7 +83,7 @@ class UploaderBackgroundWidget(QtWidgets.QDialog):
         if not file_path_list:
             return True
         self._threads = []
-        self._threads_processed = []
+        self._threads_processed = 0
 
         for filename in file_path_list:
             cThread = CustomQThread(self.upload_file, file_path=filename)
