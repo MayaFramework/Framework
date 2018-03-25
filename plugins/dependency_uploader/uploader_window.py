@@ -43,7 +43,7 @@ class UploaderWindow(QtWidgets.QDialog):
     
     PUBLISH_TO_CHK = False
     PUBLISH_TO_OUT = False
-    ASK_TO_PUBLISH = False
+    ASK_TO_PUBLISH = True
     def __init__(self, parent=None, file_path=""):
         super(UploaderWindow, self).__init__(parent=parent)
         self.setWindowTitle(self.TOOL_NAME)
