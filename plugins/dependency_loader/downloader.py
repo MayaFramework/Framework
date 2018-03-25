@@ -79,7 +79,7 @@ class Downloader(QtCore.QObject):
         self._thrash_threads = []
         self._current_thread_count = 0
         self._maximum_threads = 10
-        
+        self._processed_file_list = []
         self._threads_processed = 0
     
     def set_overwrite_mode(self, value=True):
@@ -103,13 +103,18 @@ class Downloader(QtCore.QObject):
         
     
     
+    @property
+    def processed_folder_list(self):
+        return self._folders_processed
+
+    @processed_folder_list.setter
+    def processed_folder_list(self, file_list):
+        self._folders_processed = file_list
+        
+    
+    
     def start_download_process(self):
-        self._processed_file_list = []
-        self._threads = []
-        self._current_thread_count = 0
-        self._threads_processed = 0
-        self._total_threads_to_process = 0
-        self._folders_processed = []
+        self.set_default_state()
         self.on_start_download.emit()
         self.download_files(self._file_list)
 
@@ -128,7 +133,9 @@ class Downloader(QtCore.QObject):
         """
         
         if not file_list:
-            raise Exception("Not file list defined")
+            file_list = self._file_list
+            if not self._file_list:
+                raise Exception("Not file list defined")
         # for each file list check if its a maya file and get its dependencies
         aux_file_list = file_list
         for f in file_list:
@@ -186,6 +193,9 @@ class Downloader(QtCore.QObject):
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
         if response.state == DownloaderResponse.ERROR_STATE:
+            self._threads_processed += 1
+            if self.is_process_finished():
+                self.on_finish_download.emit()
             return
         # Now check for new possible files pulling from this one
         new_files = []
@@ -209,18 +219,20 @@ class Downloader(QtCore.QObject):
         self._threads_processed += 1
         if self.is_process_finished():
             self.on_finish_download.emit()
-            self.set_default_state()
 
     def set_default_state(self):
+        self._folders_processed = []
         self._processed_file_list = []
-        self._thrash_threads = self._threads
-        self.threads = []
+        self._threads = []
         self._current_thread_count = 0
         self._threads_processed = 0
+        self._total_threads_to_process = 0
 
     def is_process_finished(self):
         if self._threads_processed == len(self._threads):
             return True
+        
+        print self._threads_processed, len(self._threads)
         return False
 
     def download_file(self, file_path):

@@ -236,14 +236,16 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
 
     def retry_download_process(self):
         self.dependency_list.clear()
-        self.log_text_widget.clear()
         self.set_log_visible(True)
         if not self._failed_downloaded:
             return
-        self.downloader.set_files_to_process(self._failed_downloaded)
-        self.downloader.processed_file_list(self._correct_downloaded)
+        folder_processed = self.downloader.processed_folder_list
+        self.downloader.set_default_state()
+        self.downloader.set_files_to_process([obj.file_path for obj in self._failed_downloaded])
+        self.downloader.processed_folder_list = folder_processed
+        self.downloader.processed_file_list = self._correct_downloaded
         self.downloader.set_maxium_threads(self.thread_spinBox.value())
-        self.downloader.start_download_process()
+        self.downloader.download_files()
 
 
     
