@@ -39,7 +39,6 @@ from Framework.lib.config.config import Config
 class DropboxManager(Singleton):
     __client = None
     __dpx = None
-    _base_path = None
     __subfolder = "WORK"
     _base_path = "P:"
     def __init__(self):
@@ -177,7 +176,7 @@ class DropboxManager(Singleton):
 
         if self.__subfolder:
             if path.startswith(self.__subfolder.lower()):
-               return os.path.abspath(self.normpath(path))
+               return "/"+self.normpath(path)
             else:
                 return "/" + self.__subfolder.lower() + self.format_path(self.normpath(path))
         else:
@@ -194,8 +193,10 @@ class DropboxManager(Singleton):
             return False
 
     def moveFile(self, resource_file , target_file, autorename=True):
+        print "...", resource_file, target_file
         resource_file = self.getDropboxPath(resource_file)
         target_file = self.getDropboxPath(target_file)
+        print "...", resource_file, target_file
         response = self.__dpx.files_move(resource_file, target_file, autorename=True)
         if response:
             msg = "MOVED File from: %s to %s" % (resource_file, target_file)
@@ -314,11 +315,11 @@ class DropboxManager(Singleton):
 
 
 if __name__ == "__main__":
-    file_path = r"work/BM2/seq/tst/sho/700/previs/out/bm2_shopre_seq_tst_sho_700_previs_mortando_abc_out.abc"
+    file_path = r"work/bm2/seq/tst/sho/650/scncmp/out/_old/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.ma"
     dpx = DropboxManager.instance()
 #     dpx.uploadFile(file_path, overwrite=True)
     print dpx.getTargetPath(file_path)
-    
+    print dpx.getDropboxPath(file_path)
     
     
     

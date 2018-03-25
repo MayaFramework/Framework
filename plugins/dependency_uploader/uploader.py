@@ -122,10 +122,10 @@ class Uploader(object):
         # check folder
         if not target_file:
             target_file =  self.dpx.getDropboxPath(file_path)
-            
+        
         parent_folder = self.get_parent_folder(target_file)
-        if parent_folder in ["mps","chk","wip"]:
-            target = target_file.replace("/"+parent_folder+"/", "/"+os.path.join(parent_folder,"_old")+"/")
+        if parent_folder in ["mps","chk","wip", 'out']:
+            new_target = self.dpx.normpath(target_file.replace("/"+parent_folder+"/", "/"+os.path.join(parent_folder,"_old")+"/"))
 #             if self.dpx.existFile(file_path):
             try:
                 """
@@ -133,11 +133,17 @@ class Uploader(object):
                 The thing here is that DROPBOX doesn't have any fileexists.
                 So the fastest way to check it its trying and if it fails i dont care.
                 """
-                self.dpx.moveFile(resource_file=file_path,target_file=target, autorename=True)
+
+                print "resource file:    ", file_path
+                print "target file:    ", new_target
+                print self.dpx.moveFile(resource_file=target_file,
+                                  target_file=new_target,
+                                  autorename=True)
             except Exception as e:
                 msg = "Trying to move a file that could be no exists [THX DROPBOX]"
                 print msg
                 print e
+        
         result = self.dpx.uploadFile(file_path, target_file=target_file,overwrite=True)
         return result
 

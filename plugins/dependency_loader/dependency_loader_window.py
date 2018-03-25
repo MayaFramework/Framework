@@ -56,6 +56,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.downloader = Downloader()
         self._init_widgets()
         self._failed_downloaded = []
+        self._correct_downloaded = []
 
     @property
     def state_download_main_ma_state(self):
@@ -187,7 +188,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.update_item(downloaderResponse.file_path, state=downloaderResponse.state)
         if downloaderResponse.state == DownloaderResponse.ERROR_STATE:
             self._failed_downloaded.append(downloaderResponse)
-
+        else:
+            self._correct_downloaded.append(downloaderResponse)
     def _on_file_start_download(self, downloaderResponse):
         self.add_item_in_list(downloaderResponse.file_path, state= downloaderResponse.state)
         self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
@@ -200,10 +202,22 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                 level = MessageWindow.ERROR_LEVEL
                 files = "\n ".join([obj.file_path for obj in self._failed_downloaded])
                 msg = "Something was wrong downloading some files :'( , check  these files in the output panel. %s " % (files)
+                left_text = "Close"
+                right_text = "Retry"
             else:
                 level = MessageWindow.INFO_LEVEL
                 msg = "Process finished, apparently no errors found. :D"
+                left_text =  "Close"
+                right_text = "Continue"
             window = MessageWindow("Donwloader Process finished",level,msg=msg)
+            window.name_btn_left = left_text
+            window.name_btn_right = right_text
+            window.exec_()
+            if self._failed_downloaded:
+                if window.get_response():
+                    # means its the right click so retry the failled files
+                    self.retry_download_process()
+                    return
 
         if self.STATE_EXTERNAL_OPEN_FILE:
             self.open_file()
@@ -212,10 +226,27 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
             self.openFileSignal.emit()
             
         self.on_finish_download.emit()
+
+
     def _on_start_download(self):
-        self.errores_found = []
+        self._failed_downloaded = []
+        self._correct_downloaded = []
         self.set_loading_gif(True)
         self.on_start_download.emit()
+
+    def retry_download_process(self):
+        self.dependency_list.clear()
+        self.set_log_visible(True)
+        if not self._failed_downloaded:
+            return
+        folder_processed = self.downloader.processed_folder_list
+        self.downloader.set_default_state()
+        self.downloader.set_files_to_process([obj.file_path for obj in self._failed_downloaded])
+        self.downloader.processed_folder_list = folder_processed
+        self.downloader.processed_file_list = self._correct_downloaded
+        self.downloader.set_maxium_threads(self.thread_spinBox.value())
+        self.downloader.download_files()
+
 
     
     def get_icon(self, state):
@@ -288,13 +319,15 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
             file_list.append(file_path)
             self.create_default_folders_on_target(file_path)
         else:
+            file_path = self.get_current_text()
             if self.STATE_DOWNLOAD_MAIN_MA_FILE:
-                file_path = self.get_current_text()
                 file_path = self.downloader._dpx.getTargetPath(file_path)
                 file_list.append(file_path)
                 self.create_default_folders_on_target(file_path)
             else:
-                file_list.extend(self.downloader.get_file_dependencies(self.get_current_text()))
+                dependencies = self.downloader.get_file_dependencies(file_path)
+                if dependencies:
+                    file_list.extend(self.downloader.get_file_dependencies(file_path))
         
         self.dependency_list.clear()
         self.log_text_widget.clear()

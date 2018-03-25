@@ -58,6 +58,9 @@ class DownloaderResponse(object):
 
 class Downloader(QtCore.QObject):
     
+    #filters
+    FILTER_ERROR_PATHS = ['.mayaSwatches']
+    #signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
     on_file_start_download = QtCore.Signal(DownloaderResponse)
@@ -73,9 +76,10 @@ class Downloader(QtCore.QObject):
         dpx_token = self._config.environ["dpx_token"]
         self._dpx = DropboxManager.instance()
         self._threads = []
+        self._thrash_threads = []
         self._current_thread_count = 0
         self._maximum_threads = 10
-        
+        self._processed_file_list = []
         self._threads_processed = 0
     
     def set_overwrite_mode(self, value=True):
@@ -89,16 +93,38 @@ class Downloader(QtCore.QObject):
     def set_files_to_process(self, file_list):
         self._file_list = [self._dpx.getTargetPath(x) for x in file_list]
     
+    @property
+    def processed_file_list(self):
+        return self._processed_file_list
+
+    @processed_file_list.setter
+    def processed_file_list(self, file_list):
+        self._processed_file_list = file_list
+        
+    
+    
+    @property
+    def processed_folder_list(self):
+        return self._folders_processed
+
+    @processed_folder_list.setter
+    def processed_folder_list(self, file_list):
+        self._folders_processed = file_list
+        
+    
     
     def start_download_process(self):
-        self._processed_file_list = []
-        self._threads = []
-        self._current_thread_count = 0
-        self._threads_processed = 0
-        self._total_threads_to_process = 0
-        self._folders_processed = []
+        self.set_default_state()
         self.on_start_download.emit()
         self.download_files(self._file_list)
+
+    def is_loadable(self, file_path):
+        for c_filter in self.FILTER_ERROR_PATHS:
+            if c_filter in file_path:
+                return False
+        return True
+            
+        
         
     def download_files(self, file_list=[]):
         """
@@ -107,10 +133,15 @@ class Downloader(QtCore.QObject):
         """
         
         if not file_list:
-            raise Exception("Not file list defined")
+            file_list = self._file_list
+            if not self._file_list:
+                raise Exception("Not file list defined")
         # for each file list check if its a maya file and get its dependencies
         aux_file_list = file_list
         for f in file_list:
+            if not self.is_loadable(f):
+                self._processed_file_list.append(f)
+                continue
             t_path = self._dpx.getTargetPath(f)
             if t_path in self._processed_file_list:
                 aux_file_list.remove(t_path)
@@ -162,6 +193,9 @@ class Downloader(QtCore.QObject):
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
         if response.state == DownloaderResponse.ERROR_STATE:
+            self._threads_processed += 1
+            if self.is_process_finished():
+                self.on_finish_download.emit()
             return
         # Now check for new possible files pulling from this one
         new_files = []
@@ -186,9 +220,19 @@ class Downloader(QtCore.QObject):
         if self.is_process_finished():
             self.on_finish_download.emit()
 
+    def set_default_state(self):
+        self._folders_processed = []
+        self._processed_file_list = []
+        self._threads = []
+        self._current_thread_count = 0
+        self._threads_processed = 0
+        self._total_threads_to_process = 0
+
     def is_process_finished(self):
         if self._threads_processed == len(self._threads):
             return True
+        
+        print self._threads_processed, len(self._threads)
         return False
 
     def download_file(self, file_path):
