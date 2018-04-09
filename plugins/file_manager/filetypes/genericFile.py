@@ -143,3 +143,4 @@ class GenericFile(object):
         self.obj = gui_loader.get_default_container(widget, "UPLOADER")
         self.obj.show()
         widget.execute_analize_process()
+

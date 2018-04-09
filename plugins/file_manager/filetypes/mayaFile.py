@@ -16,6 +16,7 @@ from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 import threading
 from Framework.lib.ui import ui
 from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+from PySide2 import QtWidgets, QtCore, QtGui
 
 
 
@@ -127,6 +128,8 @@ class Maya(GenericFile):
              publish=False,
              checkPaths=True,
              isNewfile = False,
+             publish2Chk = False,
+             publish2Out=False,
              **extraInfo):
 
         self._forceUI = True
@@ -134,12 +137,12 @@ class Maya(GenericFile):
         # if not self.scene_modified:
         #     raise Exception("Nothing to save")
 
-        if checkPaths:
-            currentScene = cmds.file(q=True, sn=True)
-            print os.path.normpath(self.local_path), os.path.normpath(currentScene)
-            if os.path.normpath(os.path.dirname(currentScene)) != os.path.normpath(os.path.dirname(self.local_path)):
-                logger.error("Please, the current scene must match with the one selected in the File Manager")
-                return
+        # if checkPaths:
+        #     currentScene = cmds.file(q=True, sn=True)
+        #     print os.path.normpath(self.local_path), os.path.normpath(currentScene)
+        #     if os.path.normpath(os.path.dirname(currentScene)) != os.path.normpath(os.path.dirname(self.local_path)):
+        #         logger.error("Please, the current scene must match with the one selected in the File Manager")
+        #         return
 
         if self.has_old_version_naming:
             cleaned_scene_name = self.clean_old_version_naming()
@@ -174,11 +177,18 @@ class Maya(GenericFile):
             self.obj.show()
             widget.execute_analize_process()
 
-        if publish:
-            logger.info("PUBLISHING")
-            self.dpx.moveFile(self.local_path, self.local_path.replace(self.scene_type, "chk"))
-            self.dpx.moveFile(self.local_metadata_path, self.local_metadata_path.replace(self.scene_type, "chk"))
-            self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
+        if publish2Chk or publish2Out:
+            widget = UploaderWindow(file_path=self.local_path)
+            widget.ASK_TO_PUBLISH = False
+            widget.PUBLISH_TO_CHK = publish2Chk
+            widget.PUBLISH_TO_OUT = publish2Out
+            widget.show()
+
+        # if publish:
+        #     logger.info("PUBLISHING")
+        #     self.dpx.moveFile(self.local_path, self.local_path.replace(self.scene_type, "chk"))
+        #     self.dpx.moveFile(self.local_metadata_path, self.local_metadata_path.replace(self.scene_type, "chk"))
+        #     self.dpx.uploadFiles([self.local_path, self.local_metadata_path])
 
     def metadata_incremental_save(self, create_snapshot=False):
         self.metadata.author = getpass.getuser()

@@ -1,12 +1,15 @@
 import os
 from functools import partial
 import urllib
+import maya.cmds as cmds
 import datetime
 import threading
 from Framework.lib.gui_loader import gui_loader
 from PySide2 import QtCore, QtGui, QtWidgets
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
 from Framework.plugins.dependency_uploader.uploader_background_widget import UploaderBackgroundWidget
+from Framework.lib.logger import logger
+
 
 from settings import CustomSettings
 from filetypes.mayaFile import Maya
@@ -15,6 +18,8 @@ from filetypes.folder import Folder
 from gui.pathButton import PathButton
 from gui import newfileDialog
 from gui.siginDialog import SignInDialog
+from Framework.plugins.renamer.controller import Renamer
+
 
 from Framework import get_icon_path
 
@@ -99,14 +104,14 @@ class FileManager(form, base):
         # download = os.path.join(ICON_PATH, "download_icon.png")
         download = os.path.join(ICON_PATH, "essential", "download.png")
         # save = os.path.join(ICON_PATH, "save_icon_2.png")
-        save = os.path.join(ICON_PATH, "essential", "save.png")
+        # save = os.path.join(ICON_PATH, "essential", "save.png")
         # addFile = os.path.join(ICON_PATH, "add_cloud_green.png")
         addFile = os.path.join(ICON_PATH, "essential", "cloud-computing-2.png")
         self.beforeBT.setIcon(QtGui.QIcon(previousArrow))
         self.afterBT.setIcon(QtGui.QIcon(forwardArrow))
         self.openBT.setIcon(QtGui.QIcon(open))
         self.downloadBT.setIcon(QtGui.QIcon(download))
-        self.saveBT.setIcon(QtGui.QIcon(save))
+        # self.saveBT.setIcon(QtGui.QIcon(save))
         self.addFileBT.setIcon(QtGui.QIcon(addFile))
 
     def setSettings(self):
@@ -124,6 +129,8 @@ class FileManager(form, base):
         self.mainContainer.itemClicked.connect(self._itemClicked)
         self.openBT.clicked.connect(self.openFile)
         self.saveBT.clicked.connect(self.saveFile)
+        self.outSaveBT.clicked.connect(self.publishOut)
+        self.chkSaveBT.clicked.connect(self.publishChk)
         self.downloadBT.clicked.connect(self.downloadFile)
         self.mainContainer.customContextMenuRequested.connect(self._mainContainerContextMenu)
         self.mainContainer.dropped.connect(self._fileDropped)
@@ -139,6 +146,8 @@ class FileManager(form, base):
         if isinstance(itemObj, Maya):
             self.showMetadataInfo(itemObj=itemObj)
         self.openBT.setEnabled(itemObj.couldBeOpened)
+        self.chkSaveBT.setEnabled(itemObj.couldBeSaved)
+        self.outSaveBT.setEnabled(itemObj.couldBeSaved)
         self.saveBT.setEnabled(itemObj.couldBeSaved)
         self.downloadBT.setEnabled(itemObj.couldBeDownloaded)
         self.selectedItem = itemObj
@@ -166,7 +175,7 @@ class FileManager(form, base):
         if item:
             itemData = item.data(0, QtCore.Qt.UserRole)
         menu = self.generateContextMenu(itemData=itemData)
-        menu.move(fixPos(pos))
+        menu.move(fixPos(pos ))
         menu.show()
 
     def _fileDropped(self, files):
@@ -229,8 +238,10 @@ class FileManager(form, base):
     def generateContextMenu(self, itemData):
         menu = QtWidgets.QMenu(self)
         newFileAction = self.createNewAction("Create new File", self.showNewFileDialog, menu)
+        downloadFile = self.createNewAction("Download", self.downloadFile, menu)
         if len(os.path.normpath(self.currentFolder.local_path).replace("\\", '/').split("/")) != 8:
             newFileAction.setDisabled(True)
+            downloadFile.setDisabled(True)
         if itemData:
             menu.addAction("Copy path", partial(self.copyPath, itemData))
         return menu
@@ -256,11 +267,47 @@ class FileManager(form, base):
         fileFolderDir = os.path.normpath(os.path.dirname(file)).lower()
         return True if str(currentFolderDir) == str(fileFolderDir) else False
 
-    def openFile(self):
-        self.selectedItem.open()
+    def verifyScenePath(self):
+        if not isinstance(self.selectedItem, Folder):
+            path = os.path.normpath(self.selectedItem.local_path).replace("\\", "/").rsplit("/", 1)[0]
+        else:
+            path = os.path.normpath(self.selectedItem.local_path).replace("\\", "/")
+        renamer = Renamer(path)
+        valid = renamer.compare(os.path.basename(cmds.file(sn=True, q=True)))
+        if not valid:
+            msg = "You are trying to upload a file with the wrong naming convention.\n"
+            msg += "Please, rename the scene with the following name\n\n"
+            msg += "{}".format(renamer.validSceneName)
+            logger.error(msg)
+            return False
+        return True
 
-    def saveFile(self):
-        self.selectedItem.save(author=self.userInfo[0])
+    def openFile(self):
+        if os.path.isfile(self.selectedItem.local_path):
+            msg = "It looks like the path <br><b>{}</b><br>exists in local.<br>".format(self.selectedItem.local_path)
+            msg +="Do you want to download the scene anyway?"
+            response = QtWidgets.QMessageBox.warning(self,
+                                                     "Local scene found!",
+                                                     msg,
+                                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                                     QtWidgets.QMessageBox.Yes)
+            if response == QtWidgets.QMessageBox.Yes:
+                self.selectedItem.open()
+            else:
+                self.selectedItem.openScene()
+        else:
+            self.selectedItem.open()
+
+    def saveFile(self, out=False, chk=False):
+        verifiedPath = self.verifyScenePath()
+        if verifiedPath:
+            self.selectedItem.save(author=self.userInfo[0], publish2Chk=chk, publish2Out=out)
+
+    def publishOut(self):
+        self.saveFile(out=True, chk=False)
+
+    def publishChk(self):
+        self.saveFile(out=False, chk=True)
 
     def downloadFile(self):
         self.selectedItem.download()
@@ -336,3 +383,4 @@ class FileManager(form, base):
                 button.setParent(None)
                 index = self.pathLayout.indexOf(button)
                 self.pathLayout.takeAt(index)
+
