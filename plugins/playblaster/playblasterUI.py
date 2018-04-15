@@ -1,13 +1,14 @@
 '''to do:
 -posibilidad de hacer mas de un image plane y seleccionar cual quieres que te muestre
+-que publique lo videos en su carpeta de dropbox
+-que haga una copia de la escena en su sitio chk
 '''
 
 import maya.cmds as cmds
 import playblasterFunctions as functions
 import playblasterAnimUtils as playblasterAnimUtils
-import abcExporter.abcExporterUI as abcExporter
-import abcExporter.abcExporterFunctions as abcExporterFunctions
-from functools import partial
+import Framework.plugins.abcExporter.abcExporterUI as abcExporter
+import Framework.plugins.abcExporter.abcExporterFunctions as abcExporterFunctions
 
 
 def checkWorkspace():
@@ -32,12 +33,9 @@ def refreshPlayblasterWindow():
     if cmds.modelPanel('blasterCam', q=True, ex=True):
         cmds.modelPanel('blasterCam', e=True, mbv=False)
         playblasterValues['currentCamera'] = cmds.modelPanel('blasterCam', q=True, cam=True)
-        print '****cambio de plano****'        
+        functions.cameraInitState()        
         functions.sceneRange()
-        if functions.userCams():
-            #playblasterValues['currentCamera'] = functions.userCams()[0]
-            functions.cameraInitState()
-
+        
         if fileInformation and fileInformation['department'] == 'animation':
             cmds.radioButton('version2Review', e=True, en=True, vis=True) 
             cmds.menu('caches', e=True, en=True, vis=True)
@@ -47,7 +45,6 @@ def refreshPlayblasterWindow():
             cmds.radioButton('temporaryPlayblast', e=True, sl=True)
             playblasterValues['saveOption']='temporaryPlayblast'
             cmds.menu('caches', e=True, en=False, vis=False)
-
 
     if cmds.window('abcExporter', exists=True):
         abcExporterFunctions.refreshUI()
@@ -160,7 +157,7 @@ def playblasterUI(*args):
 
     cmds.menuItem(divider=True, dl='Constraints')    
     cmds.menuItem(label='intermediate and constraint', image='interactiveBindTool.png', c=playblasterAnimUtils.intermediateAndConstraint)
-    cmds.menuItem(label='parent constraint', image='parentConstraint.png', c='cmds.parentConstraint()')    
+    cmds.menuItem(label='parent constraint', image='parentConstraint.png', c='cmds.parentConstraint(mo=True)')    
     cmds.menuItem(ob=True, c=cmds.ParentConstraintOptions)
 
     cachesMenu = cmds.menu('caches',label='Caches',p= menuLayout)  
@@ -231,14 +228,13 @@ def playblasterUI(*args):
 
     #botones con las opciones de camara(bloquear la camara y manipular el zoom y paneo 2D)
     cmds.symbolButton(h=20,image='closeBar.png',p=buttonLayout, en= False)    
-    cmds.symbolCheckBox('lockCameraCtr',w=20,h=20,image='CameraLock.png',p=buttonLayout, en= True, onc="cmds.camera(playblasterUI.playblasterValues['currentCamera'], e=True, lockTransform=True)",ofc="cmds.camera(playblasterUI.playblasterValues['currentCamera'], e=True, lockTransform=False)")
-    cmds.symbolCheckBox('panZoomCtr',w=20,h=20,image='PanZoom.png',p=buttonLayout, en= True, onc="cmds.setToolTo('playblasterPanTool')", ofc="cmds.setToolTo('moveSuperContext')")
+    cmds.symbolCheckBox('lockCameraCtr', w=20, h=20, image='CameraLock.png', p=buttonLayout, en= True, onc="cmds.camera(playblasterValues['currentCamera'], e=True, lockTransform=True)",ofc="cmds.camera(playblasterUI.playblasterValues['currentCamera'], e=True, lockTransform=False)")
+    cmds.symbolCheckBox('panZoomCtr', w=20, h=20, image='PanZoom.png', p=buttonLayout, en= True, onc="cmds.setAttr(playblasterValues['currentCamera'] + '.panZoomEnabled', 1)", ofc=functions.deactiveZoomPan)
     cmds.popupMenu('panZoomPopUp', parent='panZoomCtr', numberOfItems=4)
     cmds.radioCollection(p='panZoomPopUp')
-    cmds.menuItem('2DPan', label='2D move', rb=True, p='panZoomPopUp', c= "cmds.panZoomCtx('playblasterPanTool', pm=True, e=True)")
-    cmds.menuItem('2DZoom', label='Zoom', rb=False, p='panZoomPopUp', c= "cmds.panZoomCtx('playblasterPanTool',zm=True, e=True)")
+    cmds.menuItem('2DPan/ZoomTool', label='Pan/Zoom Tool', p='panZoomPopUp', c= functions.activeZoomPan)
     cmds.menuItem(d=True, p='panZoomPopUp')
-    cmds.menuItem('2DReset', label='reset', p='panZoomPopUp', c= functions.resetZoomer)
+    cmds.menuItem('2DReset', label='Reset', p='panZoomPopUp', c= functions.resetZoomer)
     if not cmds.panZoomCtx('playblasterPanTool', exists=True):
         cmds.panZoomCtx(n='playblasterPanTool', pm=True)
 

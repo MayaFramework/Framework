@@ -1,7 +1,7 @@
 import os
 import sys
 import maya.cmds as cmds
-import playblaster.playblasterFunctions as playblasterFunctions
+import Framework.plugins.playblaster.playblasterFunctions as playblasterFunctions
 import abcExporterUI as abcExporterUI 
 #from uploader_background_widget import UploaderBackgroundWidget
 #from Framework.plugins.dependency_uploader.uploader_window import UploaderBackgroundWidget
