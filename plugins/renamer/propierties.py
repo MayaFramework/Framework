@@ -4,12 +4,11 @@ Created on Apr 14, 2018
 @author: Miguel
 '''
 
-ATTR_DISK_AVAILABLE = []
+ATTR_DISK_AVAILABLE = ["P:"]
 ATTR_SHOW_AVAILABLE = ["bm2"]
-ATTR_DEPARTMENT_AVAILABLE = []
-ATTR_ASSET_AVAILABLE = []
-ATTR_TASK_AVAILABLE = []
-ATTR_DETAILS_AVAILABLE = []
-ATTR_MAIN_AVAILABLE = []
-ATTR_FOLDER_AVAILABLE = []
-ATTR_FILENAME_AVAILABLE = []
+
+ATTR_GROUP_AVAILABLE = ["aud","chr","edi","elm","foo","lib","loc", "aud"]
+ATTR_AREA_AVAILABLE = ["art","cfx","fxx","lib","mod","out","rdx","rig","sha",
+                       "lay","pos","pre","ppr","fed","ant","sho","hdr","fot",
+                       "lig","scn","aud","cmp","mat","shot"]
+ATTR_PIPE_availabel= ["out", "wip", "chk", "mps", "ref"]

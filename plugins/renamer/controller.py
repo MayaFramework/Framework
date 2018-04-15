@@ -5,20 +5,25 @@ import re
 from Framework.lib.config.config import Config
 import propierties
 class Renamer(object):
-    FILE_PATH_FORMAT = "{disk}/{show}/{department}/{asset}/{task}/{details}/{main}/{folder}/{filename}"
-    FILE_NAME = "{show}_{department}{task}_{department}_{asset}_{task}_{details}_{main}_{default}_{none}_{folder}.{extension}"
+    FILE_PATH_FORMAT = "{disk}/{show}/{group}/{name}/{area}/{step}/{layer}/{pipe}/{filename}"
+    FILE_NAME = "{show}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}.{extension}"
+    WORK_TYPE = ""
     REG_EXP = '{[a-z]*}'
 
 
+    
+
     ATTR_DISK = "disk"
     ATTR_SHOW = "show"
-    ATTR_DEPARTMENT = "department"
-    ATTR_ASSET = "asset"
-    ATTR_TASK = "task"
-    ATTR_DETAILS = "details"
-    ATTR_MAIN = "main"
-    ATTR_FOLDER = "folder"
-    ATTR_FILENAME = "filename"
+    ATTR_GROUP = "group"
+    ATTR_NAME = "name"
+    ATTR_AREA = "area"
+    ATTR_STEP = "step"
+    ATTR_LAYER= "layer"
+    ATTR_PIPE = "pipe"
+    ATTR_LAYER = "layer"
+    ATTR_DESCRIPTION = "description"
+    ATTR_EXTENSION = "extension"
 
 
     
@@ -27,8 +32,39 @@ class Renamer(object):
 
 
     def check_file_path_format(self, file_path):
-        fields_data = self.get_fields_from_file_path
-        self.check_fields_value(fields_data)
+        file_name_fields = self.get_fields_from_file_name(file_path)
+        self.check_fields_value(file_name_fields)
+        file_path_fields = self.get_fields_from_file_path(file_path)
+        self.check_fields_value(file_path_fields)
+        
+        if file_name_fields[self.ATTR_SHOW] != file_path_fields[self.ATTR_SHOW]:
+            return False
+
+        if file_name_fields[self.ATTR_GROUP] != file_path_fields[self.ATTR_GROUP]:
+            return False
+        
+        if file_name_fields[self.ATTR_NAME] != file_path_fields[self.ATTR_NAME]:
+            return False
+        
+        if file_name_fields[self.ATTR_NAME] != file_path_fields[self.ATTR_NAME]:
+            return False
+        
+        if file_name_fields[self.ATTR_AREA] != file_path_fields[self.ATTR_AREA]:
+            return False
+        
+        
+        if file_name_fields[self.ATTR_STEP] != file_path_fields[self.ATTR_STEP]:
+            return False
+        
+        
+        if file_name_fields[self.ATTR_AREA] != file_path_fields[self.ATTR_AREA]:
+            return False
+        
+        if file_name_fields[self.ATTR_LAYER] !=  file_path_fields[self.ATTR_LAYER]:
+            return False
+        
+        return True
+        
     
     def check_fields_value(self, fields_data=""):
         '''
@@ -41,9 +77,36 @@ class Renamer(object):
                 return False
             if key == self.ATTR_SHOW and key not in propierties.ATTR_SHOW_AVAILABLE:
                 return False
-            if key == self.ATTR_DEPARTMENT and key not in propierties.ATTR_DEPARTMENT_AVAILABLE:
+            if key == self.ATTR_GROUP and key not in propierties.ATTR_GROUP_AVAILABLE:
+                return False
+            if key == self.ATTR_AREA and key not in propierties.ATTR_AREA_AVAILABLE:
+                return False
+            if key == self.ATTR_PIPE and key not in propierties.ATTR_PIPE_AVAILABEL:
                 return False
         return True
+    
+    def get_fields_from_file_name(self, file_name):
+        '''
+        file_path to extract fields
+        :param file_path: (str)
+        '''
+        
+        file_name_fields = file_name.split("_")
+        extension = file_name_fields[-1].replace(".","")
+        fields_data = {
+                        self.ATTR_SHOW: file_name_fields[0],
+                        self.WORK_TYPE: file_name_fields[1],
+                        self.ATTR_GROUP: fields[2],
+                        self.ATTR_NAME: fields[3],
+                        self.ATTR_AREA: fields[4],
+                        self.ATTR_STEP: fields[5],
+                        self.ATTR_LAYER: fields[6],
+                        self.ATTR_PARTITION: file_name_fields[7],
+                        self.ATTR_DESCRIPTION: [8],
+                        self.ATTR_PIPE: fields[9],
+                        self.ATTR_EXTENSION: extension
+                        }
+        return fields_data
     
     def get_fields_from_file_path(self, file_path):
         '''
@@ -52,16 +115,23 @@ class Renamer(object):
         '''
         file_path = os.path.normpath(file_path)
         fields = file_path.rsplit("\\")
+
+        file_name_fields = fields[8].split("_")
+        extension = file_name_fields[-1].replace(".","")
         fields_data = {
                         self.ATTR_DISK:fields[0],
                         self.ATTR_SHOW: fields[1],
-                        self.ATTR_DEPARTMENT: fields[2],
-                        self.ATTR_ASSET: fields[3],
-                        self.ATTR_TASK: fields[4],
-                        self.ATTR_DETAILS: fields[5],
-                        self.ATTR_MAIN: fields[6],
-                        self.ATTR_FOLDER: fields[7],
-                        self.ATTR_FILENAME: fields[8]
+                        self.ATTR_GROUP: fields[2],
+                        self.ATTR_NAME: fields[3],
+                        self.ATTR_AREA: fields[4],
+                        self.ATTR_STEP: fields[5],
+                        self.ATTR_LAYER: fields[6],
+                        self.ATTR_PIPE: fields[7],
+                        self.ATTR_FILENAME: fields[8],
+                        self.WORK_TYPE: file_name_fields[1],
+                        self.ATTR_PARTITION: file_name_fields[-4],
+                        self.ATTR_DESCRIPTION: [-3],
+                        self.ATTR_EXTENSION: extension
                         }
         return fields_data
 
