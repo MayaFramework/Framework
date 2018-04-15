@@ -7,7 +7,7 @@
 
 
 import maya.cmds as cmds
-import playblaster.playblasterFunctions as playblasterFunctions
+import Framework.plugins.playblaster.playblasterFunctions as playblasterFunctions
 import abcExporterFunctions as abcExporterFunctions
 
 

@@ -193,8 +193,6 @@ def setCameraOnPanel(*args):
             cameraItem= o.split('|')[-1]
             cmds.modelPanel('blasterCam',e=True, cam = cameraItem)
             playblasterUI.playblasterValues['currentCamera'] = cameraItem
-
-            #cmds.intSlider('offsetSlider', e= True, v=0)
             cmds.floatSlider('opacitySlider', e= True, v=1.0)
 
             cameraInitState()
@@ -247,15 +245,13 @@ def cameraInitState():
                                          'antialiasing': cmds.getAttr("hardwareRenderingGlobals.multiSampleEnable"),
                                          'aOcclusion': cmds.getAttr("hardwareRenderingGlobals.ssaoEnable"),
                                          'locked': cmds.camera(playblasterUI.playblasterValues['currentCamera'], q=True, lockTransform=True),
-                                         'zoomer': cmds.currentCtx()}
-
-    if playblasterUI.playblasterValues['camInitState']['zoomer'] == 'playblasterPanTool':
-        cmds.symbolCheckBox('panZoomCtr', e= True, v = 1)
-
-    cmds.symbolCheckBox('cameraMaskCtr', v= playblasterUI.playblasterValues['camInitState']['mask'], e=True)
-    cmds.symbolCheckBox('sampleCtr', v= playblasterUI.playblasterValues['camInitState']['antialiasing'], e=True)
-    cmds.symbolCheckBox('aOcclusionCtr', v= playblasterUI.playblasterValues['camInitState']['aOcclusion'], e=True)
-    cmds.symbolCheckBox('lockCameraCtr', v= playblasterUI.playblasterValues['camInitState']['locked'], e=True)
+                                         'zoomer': cmds.getAttr(playblasterUI.playblasterValues['currentCamera'] + '.panZoomEnabled')}
+    
+    cmds.symbolCheckBox('cameraMaskCtr', e=True, v= playblasterUI.playblasterValues['camInitState']['mask'])
+    cmds.symbolCheckBox('sampleCtr', e=True, v= playblasterUI.playblasterValues['camInitState']['antialiasing'])
+    cmds.symbolCheckBox('aOcclusionCtr', e=True, v= playblasterUI.playblasterValues['camInitState']['aOcclusion'])
+    cmds.symbolCheckBox('lockCameraCtr', e=True, v= playblasterUI.playblasterValues['camInitState']['locked'])
+    cmds.symbolCheckBox('panZoomCtr', e=True, v=playblasterUI.playblasterValues['camInitState']['zoomer'])    
 
     getIplaneInfo(playblasterUI.playblasterValues['currentCamera'])
             
@@ -280,7 +276,6 @@ def cameraInitState():
         cmds.optionMenu('sliderMode', e=True, en=False)
 
 
-
 def resetZoomer(*args):
     '''esta funcion reestablece los valores por defecto de pan/zoom 2d de la camara
     '''
@@ -290,12 +285,20 @@ def resetZoomer(*args):
     cmds.setAttr(cameraShape + ".verticalPan", 0)
     cmds.setAttr(cameraShape + ".zoom", 1)
 
+def activeZoomPan(*args):
+    cmds.setAttr(playblasterUI.playblasterValues['currentCamera'] + '.panZoomEnabled', 1)
+    cmds.setToolTo('playblasterPanTool')
+    cmds.symbolCheckBox('panZoomCtr', e=True, v=True)
+
+def deactiveZoomPan(*args):
+    cmds.setAttr(playblasterUI.playblasterValues['currentCamera'] + '.panZoomEnabled', 0)
+    cmds.setToolTo('moveSuperContext')
+
 def changeMovieStartFrame(*args):
     '''esta funcion modifica el frame en el que se muestra el fotograma 1 del video del imagePlane
     '''
     value= cmds.intField('IplaneStart', v= True, q=True)
     cmds.setAttr(playblasterUI.playblasterValues['frameChooser'] + '.input1D[1]', value -1)
-
 
 def changeSliderValue(*args):
     '''esta funcion cambia la opacidad cuando se modifica el slider de opacidad, desactivando los undos sin borrar la cola para aislar la basura de acciones que genera
@@ -325,8 +328,7 @@ def changeSliderMode(*args):
           'iPlane offset':['.frameOffset', [0, maxFrameOffset]]}
 
     valueAtChange= cmds.getAttr(playblasterUI.playblasterValues['currentIPlane'] + attr[option][0])      
-    cmds.floatSlider('opacitySlider', min= attr[option][1][0], max= attr[option][1][1], e=True)
-    cmds.floatSlider('opacitySlider', v= valueAtChange, e=True)
+    cmds.floatSlider('opacitySlider', min= attr[option][1][0], max= attr[option][1][1], v= valueAtChange, e=True)
     
 
 def getIplaneInfo(currentCamera):
@@ -341,13 +343,12 @@ def getIplaneInfo(currentCamera):
     
     if descents:
         for o in descents:
-            #if cmds.nodeType(o)== 'imagePlane' and 'playblaster' in o:            
-            if cmds.nodeType(o)== 'imagePlane':
+            if cmds.nodeType(o) == 'imagePlane':
                 playblasterUI.playblasterValues['currentIPlane'] = cmds.listRelatives(o,p=True)[0]
                 if cmds.getAttr(playblasterUI.playblasterValues['currentIPlane'] + '.type') == 2:
                     playblasterUI.playblasterValues['frameChooser'] = cmds.listConnections(o + '.frameExtension')[0]
             
-            elif cmds.nodeType(o)== 'greasePlane':
+            elif cmds.nodeType(o) == 'greasePlane':
                 playblasterUI.playblasterValues['currentGreasePencil'] = cmds.listRelatives(o,p=True)[0]
                 
     allImagePlanes = cmds.ls(typ='imagePlane')
@@ -364,7 +365,6 @@ def iplane(file):
     getIplaneInfo(playblasterUI.playblasterValues['currentCamera'])
     fileName, file_extension = os.path.splitext(file)
     movieType= ('.mov','.mp4')
-    #if not playblasterUI.playblasterValues['currentIPlane']:
     iplane = cmds.imagePlane(n='playblasterImagePlane', camera = playblasterUI.playblasterValues['currentCamera'], lookThrough=playblasterUI.playblasterValues['currentCamera'], showInAllViews=False,nt=True)
     iplane[1]= cmds.rename(iplane[1],iplane[0] + 'Shape')        
     cmds.setAttr(iplane[1] + '.imageName', file, typ='string')
@@ -376,8 +376,7 @@ def iplane(file):
     mel.eval('source AEimagePlaneTemplate.mel')
     mel.eval("AEinvokeFitRezGate" + (' {0} {1}').format(iplane[1]+'.sizeX', iplane[1]+'.sizeY'))        
     
-    cmds.floatSlider('opacitySlider', e= True, en=True)
-    cmds.floatSlider('opacitySlider', e= True, v=1)
+    cmds.floatSlider('opacitySlider', e= True, en=True, v=1)
     cmds.optionMenu('sliderMode', e=True, en=True)
 
     playblasterUI.playblasterValues['imagesPlanes'][playblasterUI.playblasterValues['currentCamera']]=iplane[0]
@@ -389,13 +388,11 @@ def iplane(file):
         cmds.connectAttr('time1.outTime',firstFrameMinus + '.input1D[0]')
         cmds.setAttr(firstFrameMinus + '.input1D[1]', cmds.intField('IplaneStart', v= True, q=True) - 1)
         cmds.connectAttr(firstFrameMinus + '.output1D', iplane[1] + '.frameExtension')
-        #cmds.setAttr(iplane[1] + '.displayOnlyIfCurrent', 0)
         cmds.setAttr(iplane[1] + '.type', 2)            
         cmds.setAttr(iplane[1] + '.useFrameExtension',lock=False)
         cmds.setAttr(iplane[1] + '.useFrameExtension', True)
 
-        cmds.intField('IplaneStart', e= True, en=True)
-        cmds.intField('IplaneStart', v= cmds.playbackOptions(q=True,min=True), e=True)
+        cmds.intField('IplaneStart', e= True, en=True, v= cmds.playbackOptions(q=True,min=True))
         
         playblasterUI.playblasterValues['frameChooser'] = firstFrameMinus
         changeMovieStartFrame()
@@ -449,8 +446,7 @@ def deleteIplane(*args):
                        
         cmds.delete(playblasterUI.playblasterValues['currentIPlane'])
         cmds.intField('IplaneStart', e= True, en=False)
-        cmds.floatSlider('opacitySlider', e= True, en=False)
-        cmds.floatSlider('opacitySlider', e= True, v=0)
+        cmds.floatSlider('opacitySlider', e= True, en=False, v=0)
         cmds.optionMenu('sliderMode', e=True, en=False)        
         playblasterUI.playblasterValues['currentIPlane']=None
 
