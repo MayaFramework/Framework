@@ -218,7 +218,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                     # means its the right click so retry the failled files
                     self.retry_download_process()
                     return
-
+            
         if self.STATE_EXTERNAL_OPEN_FILE:
             self.open_file()
 
@@ -245,6 +245,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.downloader.processed_folder_list = folder_processed
         self.downloader.processed_file_list = self._correct_downloaded
         self.downloader.set_maxium_threads(self.thread_spinBox.value())
+        self._failed_downloaded = []
+        self._correct_downloaded = []
         self.downloader.download_files()
 
 
