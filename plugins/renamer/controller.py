@@ -7,8 +7,8 @@ import propierties
 class Renamer(object):
 
     REG_EXP = '{[a-z]*}'
-    FILE_PATH_FORMAT = "{disk}/{show}/{group}/{name}/{area}/{step}/{layer}/{pipe}/{filename}"
-    FILE_PATH_LENGTH = len(re.findall(REG_EXP, FILE_PATH_FORMAT))
+    FOLDER_PATH_FORMAT = "{disk}/{show}/{group}/{name}/{area}/{step}/{layer}/{pipe}"
+    FOLDER_PATH_LENGHT = len(re.findall(REG_EXP, FOLDER_PATH_FORMAT))
     FILE_NAME_FORMAT = "{show}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}.{extension}"
     FILE_NAME_LENGHT = len(re.findall(REG_EXP, FILE_NAME_FORMAT))
 
@@ -27,7 +27,6 @@ class Renamer(object):
     ATTR_DESCRIPTION = "description"
     ATTR_EXTENSION = "extension"
     ATTR_PARTITION = "partition"
-    ATTR_FILENAME = "filename"
 
     
     def __init__(self):
@@ -94,15 +93,15 @@ class Renamer(object):
 
         """
         pass
-    def get_fields_from_file_path(self, file_path):
+    def get_fields_from_folder_path(self, folder_path):
         '''
         file_path to extract fields
         :param file_path: (str)
         '''
-        file_path = os.path.normpath(file_path)
+        file_path = os.path.normpath(folder_path)
         fields = file_path.rsplit("\\")
-        if len(fields) != self.FILE_PATH_LENGTH:
-            raise Exception("Not enough fields found for the file name, \nCheck this structure: %s"%self.FILE_PATH_FORMAT)
+        if len(fields) != self.FOLDER_PATH_LENGHT:
+            raise Exception("Not enough fields found for the file name, \nCheck this structure: %s"%self.FOLDER_PATH_FORMAT)
 
         fields_data = {
                         self.ATTR_DISK:fields[0],
@@ -112,16 +111,17 @@ class Renamer(object):
                         self.ATTR_AREA: fields[4],
                         self.ATTR_STEP: fields[5],
                         self.ATTR_LAYER: fields[6],
-                        self.ATTR_PIPE: fields[7],
-                        self.ATTR_FILENAME: fields[8]
-                        }
+                        self.ATTR_PIPE: fields[7]
+                    }
+        
         return fields_data
 
 
     def get_fields_from_file_path(self, file_path):
-        folder_fields = self.get_fields_from_folder_path(file_path)
+        folder, filename = os.path.normpath(file_path).replace("\\","/").rsplit("/",1)
+        folder_fields = self.get_fields_from_folder_path(folder)
         self.check_fields_value(folder_fields)
-        file_name_fields = self.get_fields_from_file_name(folder_fields[self.ATTR_FILENAME])
+        file_name_fields = self.get_fields_from_file_name(filename)
         self.check_fields_value(file_name_fields)
         
         if self.compare_data_fields(data_1=folder_fields, data_2=file_name_fields):
@@ -129,7 +129,7 @@ class Renamer(object):
             return file_name_fields
         
         else:
-            raise Exception("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FILE_PATH_FORMAT))
+            raise Exception("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
     
     def compare_data_fields(self, data_1, data_2):
         for key,value in data_1.iteritems():
@@ -137,6 +137,14 @@ class Renamer(object):
                 return False
         return True
     
+    def generate_complete_path_from_folder(self, folder_path,partition="partition", description="description", extension="txt"):
+        fields = self.get_fields_from_folder_path(folder_path)
+        fields[self.ATTR_WORKTYPE] = fields[self.ATTR_GROUP]+fields[self.ATTR_AREA]
+        fields[self.ATTR_PARTITION] = partition
+        fields[self.ATTR_DESCRIPTION] = description
+        fields[self.ATTR_EXTENSION] = extension
+        return self.generate_complete_file_path(fields)
+        
     def generate_complete_file_path(self, fields):
         '''
         format file name matching fields with the static attr FILE_NAME
@@ -155,10 +163,9 @@ class Renamer(object):
         
         base_fields.update(self.extract_folder_fields(fields))
         if not self.check_fields_value(fields):
-            raise Exception("This fields are not supported, check its format: Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FILE_PATH_FORMAT))
-        base_fields[self.ATTR_FILENAME] =""
+            raise Exception("This fields are not supported, check its format: Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
         
-        file_name = self.FILE_PATH_FORMAT.format(**base_fields)
+        file_name = self.FOLDER_PATH_FORMAT.format(**base_fields)
         result = re.findall(Renamer.REG_EXP, file_name)
         if len(result)>0:
             raise Exception("Need to specify the next values: %s" % (" ".join(result)))
@@ -176,7 +183,7 @@ class Renamer(object):
         
         base_fields.update(self.extract_file_name_fields(fields))
         if not self.check_fields_value(fields):
-            raise Exception("This fields are not supported, check its format: Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FILE_PATH_FORMAT))
+            raise Exception("This fields are not supported, check its format: Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
         
         file_name = self.FILE_NAME_FORMAT.format(**fields)
         result = re.findall(Renamer.REG_EXP, file_name)
@@ -199,7 +206,7 @@ class Renamer(object):
     def extract_folder_fields(self, fields):
         result = {}
         for key, value in fields.iteritems():
-            if key in [self.ATTR_DISK,self.ATTR_SHOW, self.ATTR_GROUP, self.ATTR_NAME, self.ATTR_AREA, self.ATTR_STEP, self.ATTR_LAYER, self.ATTR_PIPE, self.ATTR_FILENAME]:
+            if key in [self.ATTR_DISK,self.ATTR_SHOW, self.ATTR_GROUP, self.ATTR_NAME, self.ATTR_AREA, self.ATTR_STEP, self.ATTR_LAYER, self.ATTR_PIPE]:
                 result[key] = value
         return result
     
@@ -210,16 +217,17 @@ class Renamer(object):
 if __name__ == "__main__":
     rename = Renamer()
     file_path = r"P:\bm2\chr\gato\out\rigging\thinHigh\out\bm2_chrout_chr_gato_out_rigging_thinHigh_default_none_out.ma"
+    folder, filename = os.path.normpath(file_path).replace("\\","/").rsplit("/",1)
     wrong_path = r""
     import pprint
 
     
-    folder_fields = rename.get_fields_from_folder_path(file_path)
+    folder_fields = rename.get_fields_from_folder_path(folder)
     print "FOLDER_FIELDS"
     pprint.pprint(folder_fields)
     
     
-    file_name_fields = rename.get_fields_from_file_name(file_path)
+    file_name_fields = rename.get_fields_from_file_name(filename)
     print "FILENAME_FIELDS"
     pprint.pprint(file_name_fields)
 
@@ -236,6 +244,13 @@ if __name__ == "__main__":
     
     print "CREATING A FOLDER PATH FROM FIELDS"
     print rename.generate_folder_path(fields)
+    
+    
+    print "GENERATE COMPLETE PATH FROM FOLDER"
+    print rename.generate_complete_path_from_folder(folder,
+                                                    partition="[PARTITION]",
+                                                    description="[DESCRIPTION]",
+                                                    extension="[EXTENSION]")
     
     '''    
     
