@@ -79,7 +79,22 @@ class Renamer(object):
                         }
         return fields_data
     
-    def get_fields_from_folder_path(self, file_path):
+    def generate_worktype(self):
+        # TODO:  I HAVE NO FUCKING IDEA HOW TO MAKE THIS WORKS
+        """
+        
+        [worktipe]
+        (codigo concreto para los files que nos permiten hacer busquedas automatizadas en el futuro)
+        
+        [group] todos menos seq --------->   [group]+[area]
+        
+        [group] seq [area] todas menos shot ------------------> [seq name] + [area]
+        
+         [group] seq [area] shot ------------------> [area] + [layer 3 primeras letras]
+
+        """
+        pass
+    def get_fields_from_file_path(self, file_path):
         '''
         file_path to extract fields
         :param file_path: (str)
