@@ -347,23 +347,30 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_update_btn_clicked(self):
         self.STATE_EXTERNAL_OPEN_FILE = True
         self.execute_update_process()
-    def execute_update_process(self):
+    def execute_update_process(self,  extra_files_to_download=[]):
         """
         Set The loading gif visible
         Downloads the path if the current doesnt exist in local disk
         Calculates file_dependencies
         """
+        
         file_list = []
+        
+        if extra_files_to_download:
+            file_list.extend(extra_files_to_download)
+        
         if not os.path.exists(self.get_current_text()):
             file_path = self.get_current_text()
             file_path = self.downloader._dpx.getTargetPath(file_path)
-            file_list.append(file_path)
+            if file not in file_list:
+                file_list.append(file_path)
             self.create_default_folders_on_target(file_path)
         else:
             file_path = self.get_current_text()
             if self.download_main_file:
                 file_path = self.downloader._dpx.getTargetPath(file_path)
-                file_list.append(file_path)
+                if file_path not in file_list:
+                    file_list.append(file_path)
                 self.create_default_folders_on_target(file_path)
             else:
                 if self.download_dependencies:

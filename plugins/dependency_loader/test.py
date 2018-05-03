@@ -44,10 +44,15 @@ if __name__ == "__main__":
 #     
 #     tool.state_popup_widget_on_finish = True
 
+
     
     obj = gui_loader.get_default_container(tool, "Update All")
     obj.show()
-    tool.execute_update_process()
+#     tool.execute_update_process()
+
+#     #TEST 4: Download extra files
+    extra_files = [file_path, r"P:\BM2\loc\salaTelefonos\scn\main\main\wip\bm2_locscn_loc_salaTelefonos_scn_main_main_default_none_wip100.ma"]
+    tool.execute_update_process(extra_files)
     app.exec_()
     
     
