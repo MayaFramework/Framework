@@ -195,7 +195,7 @@ def setPref(pref, preferences, init=False, default=False):
             elif default:
                 onOff   = getDefPref(pref, preferences)
                 cmds.menuItem("%sMenu"%name, edit=True, checkBox=onOff)
-                saveInfoWithUser("userPrefs", name, "", True) 
+                saveInfoWithUser("userPrefs", name, "", False)
             else:
                 onOff   = cmds.menuItem("%sMenu"%name, query=True, checkBox=True)
                 saveInfoWithUser("userPrefs", pref, onOff)                
