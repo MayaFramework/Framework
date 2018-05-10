@@ -136,6 +136,7 @@ class FileManager(form, base):
         self.mainContainer.dropped.connect(self._fileDropped)
         self.actionSignIn.triggered.connect(self._signinDialog)
         self.addFileBT.clicked.connect(self._selectedFileToAdd)
+        self.toLocalPathBT.clicked.connect(self.goToLocalPath)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(0, QtCore.Qt.UserRole)
@@ -173,7 +174,8 @@ class FileManager(form, base):
         item = self.mainContainer.itemAt(pos)
         itemData = None
         if item:
-            itemData = item.data(0, QtCore.Qt.UserRole)
+            # itemData = item.data(0, QtCore.Qt.UserRole)
+            itemData = item
         menu = self.generateContextMenu(itemData=itemData)
         menu.move(fixPos(pos ))
         menu.show()
@@ -238,10 +240,16 @@ class FileManager(form, base):
     def generateContextMenu(self, itemData):
         menu = QtWidgets.QMenu(self)
         newFileAction = self.createNewAction("Create new File", self.showNewFileDialog, menu)
+        menu.addSeparator()
         downloadFile = self.createNewAction("Download", self.downloadFile, menu)
-        if len(os.path.normpath(self.currentFolder.local_path).replace("\\", '/').split("/")) != 8:
+        downloadFileOnly = self.createNewAction("Download File only", self.downloadFile, menu)
+        downloadDependencies = self.createNewAction("Download Dependencies only", self.downloadFile, menu)
+        menu.addSeparator()
+        self.createNewAction("Open", self.openFile, menu)
+        if not isinstance(itemData, Maya):
             newFileAction.setDisabled(True)
-            downloadFile.setDisabled(True)
+            downloadFileOnly.setDisabled(True)
+            downloadDependencies.setDisabled(True)
         if itemData:
             menu.addAction("Copy path", partial(self.copyPath, itemData))
         return menu
@@ -253,6 +261,7 @@ class FileManager(form, base):
         return newAction
 
     def copyPath(self, itemData):
+        itemData = itemData.data(0, QtCore.Qt.UserRole)
         clipboard = QtGui.QClipboard()
         clipboard.setText(os.path.normpath(itemData.local_path))
 
@@ -266,6 +275,14 @@ class FileManager(form, base):
         currentFolderDir = os.path.normpath(self.currentFolder.local_path).lower()
         fileFolderDir = os.path.normpath(os.path.dirname(file)).lower()
         return True if str(currentFolderDir) == str(fileFolderDir) else False
+
+    def goToLocalPath(self):
+        currentScene = os.path.dirname(cmds.file(q=True, sn=True))
+        currentScene = os.path.normpath(currentScene)
+        try:
+            self.toFolderPath(currentScene)
+        except:
+            pass
 
     def verifyScenePath(self):
         if not isinstance(self.selectedItem, Folder):
@@ -311,8 +328,6 @@ class FileManager(form, base):
 
     def downloadFile(self):
         self.selectedItem.download()
-        msg = "File downloaded!<br><br><b>{}</b><br><br>".format(self.selectedItem.local_path)
-        QtWidgets.QMessageBox.information(self, "Done!", msg)
 
     def populateMainContainer(self, fileObj, addHistory=True):
         if isinstance(fileObj, Folder):
@@ -331,6 +346,11 @@ class FileManager(form, base):
                                  dropboxMetadata=childDpxMetadata)
             if addHistory:
                 self.addFolder2History(fileObj)
+
+    def toFolderPath(self, path):
+        fileInstance, fileWidget = FileTypeChooser.getClass(path, includeWidget=True)
+        pathObj = fileInstance(path)
+        self.populateMainContainer(fileObj=pathObj)
 
     def showMetadataInfo(self, itemObj):
         if not hasattr(itemObj, "metadata"):

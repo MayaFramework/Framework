@@ -37,6 +37,13 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
+        <widget class="QPushButton" name="toLocalPathBT">
+         <property name="text">
+          <string>Local Path</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="beforeBT">
          <property name="cursor">
           <cursorShape>PointingHandCursor</cursorShape>
