@@ -66,6 +66,8 @@ class Downloader(QtCore.QObject):
     on_file_start_download = QtCore.Signal(DownloaderResponse)
     on_file_finish_download = QtCore.Signal(DownloaderResponse)
     STATE_OVERWRITE_LOCAL_FILES = True
+    STATE_DOWNLOAD_DEPENDENCIES = True
+    STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = True
     def __init__(self, file_list=[]):
         super(Downloader, self).__init__()
         if isinstance(file_list, list):
@@ -85,6 +87,14 @@ class Downloader(QtCore.QObject):
     def set_overwrite_mode(self, value=True):
         if isinstance(value, bool):
             self.STATE_OVERWRITE_LOCAL_FILES = value
+
+    def set_download_dependency_mode(self,  value=True):
+        if isinstance(value, bool):
+            self.STATE_DOWNLOAD_DEPENDENCIES = value
+
+    def set_download_filtered_folder(self,  value=True):
+        if isinstance(value, bool):
+            self.STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = value
 
     def set_maxium_threads(self, maximum):
         if isinstance(maximum, int):
@@ -200,18 +210,21 @@ class Downloader(QtCore.QObject):
         # Now check for new possible files pulling from this one
         new_files = []
         # calculating dependencies
-        dependencies = self.get_file_dependencies(file_path)
-        if dependencies:
-            new_files.extend(dependencies)
-        # check filter folders
-        if self.is_file_in_filter_rules(file_path):
-            folder = file_path.rsplit("/",1)[0]
-            if not folder in self._folders_processed:
-                children = self.get_children_from_folder(folder)
-                if children:
-                    if not folder in self._folders_processed:
-                        self._folders_processed.append(folder)
-                        new_files.extend(children)
+        if self.STATE_DOWNLOAD_DEPENDENCIES:
+            dependencies = self.get_file_dependencies(file_path)
+            if dependencies:
+                new_files.extend(dependencies)
+                
+        if self.STATE_DOWNLOAD_CONTENT_FROM_FOLDERS:
+            # check filter folders
+            if self.is_file_in_filter_rules(file_path):
+                folder = file_path.rsplit("/",1)[0]
+                if not folder in self._folders_processed:
+                    children = self.get_children_from_folder(folder)
+                    if children:
+                        if not folder in self._folders_processed:
+                            self._folders_processed.append(folder)
+                            new_files.extend(children)
         if new_files:
             self.download_files(list(set(new_files)))
             
