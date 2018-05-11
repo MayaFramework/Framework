@@ -9,7 +9,7 @@ class Renamer(object):
     REG_EXP = '{[a-z]*}'
     FOLDER_PATH_FORMAT = "{disk}/{show}/{group}/{name}/{area}/{step}/{layer}/{pipe}"
     FOLDER_PATH_LENGHT = len(re.findall(REG_EXP, FOLDER_PATH_FORMAT))
-    FILE_NAME_FORMAT = "{show}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}.{extension}"
+    FILE_NAME_FORMAT = "{show}_{worktype}_{group}_{name}_{area}_{step}_{layer}_{partition}_{description}_{pipe}.{version}.{extension}"
     FILE_NAME_LENGHT = len(re.findall(REG_EXP, FILE_NAME_FORMAT))
 
     
@@ -27,6 +27,7 @@ class Renamer(object):
     ATTR_DESCRIPTION = "description"
     ATTR_EXTENSION = "extension"
     ATTR_PARTITION = "partition"
+    ATTR_VERSION = "version"
 
     
     def __init__(self):
@@ -59,8 +60,8 @@ class Renamer(object):
         '''
         
         file_name_fields = file_name.split("_")
-        attr_pipe, attr_extension = file_name_fields[-1].split(".")
-        if len(file_name_fields)+1 != self.FILE_NAME_LENGHT:
+        attr_pipe, attr_version, attr_extension = file_name_fields[-1].split(".")
+        if len(file_name_fields)+2 != self.FILE_NAME_LENGHT:
             raise Exception("Not enough fields found for the file name, \nCheck this structure: %s"%self.FILE_NAME_FORMAT)
 
         fields_data = {
@@ -74,6 +75,7 @@ class Renamer(object):
                         self.ATTR_PARTITION: file_name_fields[7],
                         self.ATTR_DESCRIPTION: file_name_fields[8],
                         self.ATTR_PIPE: attr_pipe,
+                        self.ATTR_VERSION: attr_version,
                         self.ATTR_EXTENSION: attr_extension
                         }
         return fields_data
@@ -137,12 +139,13 @@ class Renamer(object):
                 return False
         return True
     
-    def generate_complete_path_from_folder(self, folder_path,partition="partition", description="description", extension="txt"):
+    def generate_complete_path_from_folder(self, folder_path,partition="partition", description="description", extension="txt", version ="version"):
         fields = self.get_fields_from_folder_path(folder_path)
         fields[self.ATTR_WORKTYPE] = fields[self.ATTR_GROUP]+fields[self.ATTR_AREA]
         fields[self.ATTR_PARTITION] = partition
         fields[self.ATTR_DESCRIPTION] = description
         fields[self.ATTR_EXTENSION] = extension
+        fields[self.ATTR_VERSION] = version
         return self.generate_complete_file_path(fields)
         
     def generate_complete_file_path(self, fields):
@@ -216,7 +219,7 @@ class Renamer(object):
     
 if __name__ == "__main__":
     rename = Renamer()
-    file_path = r"P:\bm2\chr\gato\out\rigging\thinHigh\out\bm2_chrout_chr_gato_out_rigging_thinHigh_default_none_out.ma"
+    file_path = r"P:\bm2\elm\gafasGato\mod\high\main\chk\bm2_elmmod_elm_gafasGato_mod_high_main_default_none_chk.0001.ma"
     folder, filename = os.path.normpath(file_path).replace("\\","/").rsplit("/",1)
     wrong_path = r""
     import pprint
@@ -250,7 +253,8 @@ if __name__ == "__main__":
     print rename.generate_complete_path_from_folder(folder,
                                                     partition="[PARTITION]",
                                                     description="[DESCRIPTION]",
-                                                    extension="[EXTENSION]")
+                                                    extension="[EXTENSION]",
+                                                    version ="[VERSION]")
     
     '''    
     
