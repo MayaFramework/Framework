@@ -18,7 +18,7 @@ from filetypes.folder import Folder
 from gui.pathButton import PathButton
 from gui import newfileDialog
 from gui.siginDialog import SignInDialog
-from Framework.plugins.renamer.controller import Renamer
+import Framework.plugins.renamer.controller as renamer
 
 
 from Framework import get_icon_path
@@ -286,18 +286,21 @@ class FileManager(form, base):
 
     def verifyScenePath(self):
         if not isinstance(self.selectedItem, Folder):
-            path = os.path.normpath(self.selectedItem.local_path).replace("\\", "/").rsplit("/", 1)[0]
-        else:
             path = os.path.normpath(self.selectedItem.local_path).replace("\\", "/")
-        renamer = Renamer(path)
-        valid = renamer.compare(os.path.basename(cmds.file(sn=True, q=True)))
-        if not valid:
-            msg = "You are trying to upload a file with the wrong naming convention.\n"
-            msg += "Please, rename the scene with the following name\n\n"
-            msg += "{}".format(renamer.validSceneName)
-            logger.error(msg)
-            return False
-        return True
+            print path
+            sceneName = os.path.basename(path)
+            rename = renamer.Renamer()
+            fields = rename.get_fields_from_file_path(path)
+            fileName = rename.generate_file_name(fields)
+            if sceneName.split(".")[0] == fileName.split(".")[0]:
+                return True
+            else:
+                fixedPath = rename.generate_complete_file_path(fields)
+                msg = "You are trying to upload a file with the wrong naming convention.\n"
+                msg += "Please, rename the scene with the following name\n\n"
+                msg += "{}".format(fixedPath)
+                logger.error(msg)
+                return False
 
     def openFile(self):
         if os.path.isfile(self.selectedItem.local_path):

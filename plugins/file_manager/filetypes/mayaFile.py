@@ -114,8 +114,8 @@ class Maya(GenericFile):
 
     def download(self, open=False):
         tool = DependencyLoaderWidget(file_path=self.local_path)
-        tool.STATE_EXTERNAL_OPEN_FILE = False
-        tool.STATE_INTERNAL_OPEN_FILE = open
+        tool.external_open_file = False
+        tool.internal_open_file = open
         if open:
             tool.openFileSignal.connect(self.openScene)
         self.obj = gui_loader.get_default_container(tool, "Update All")
