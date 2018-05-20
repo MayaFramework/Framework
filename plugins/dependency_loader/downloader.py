@@ -202,13 +202,27 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
+        new_files = []
         if response.state == DownloaderResponse.ERROR_STATE:
             self._threads_processed += 1
+            # if fails before return check if its in the filter rules and
+            # get files
+            if self.is_file_in_filter_rules(file_path):
+                folder = file_path.rsplit("/",1)[0]
+                if not folder in self._folders_processed:
+                    children = self.get_children_from_folder(folder)
+                    if children:
+                        if not folder in self._folders_processed:
+                            self._folders_processed.append(folder)
+                            new_files.extend(children)
+            if new_files:
+                self.download_files(list(set(new_files)))
+                
             if self.is_process_finished():
                 self.on_finish_download.emit()
+
             return
         # Now check for new possible files pulling from this one
-        new_files = []
         # calculating dependencies
         if self.STATE_DOWNLOAD_DEPENDENCIES:
             dependencies = self.get_file_dependencies(file_path)
