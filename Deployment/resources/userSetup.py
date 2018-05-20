@@ -1,8 +1,24 @@
 import sys
 import os
-import git
+
 sys.path.append(r"C:/Python27/Lib/site-packages")
 sys.path.append(r"P:/TOOLS")
+
+import git
+import maya.cmds as cmds
+import Framework.plugins.playblaster.playblasterUI as playblasterUI
+import Framework.plugins.playblaster.playbasterCheck as check
+import Framework.plugins.playblaster.playblasterAnimUtils as playblasterAnimUtils
+
+    
+if not cmds.about(batch=True):
+    # launch playblaster lastState
+    cmds.evalDeferred('playblasterValues=check.checkWindowAtStartMaya()',lowestPriority=True)
+
+    # launch aTools_Animation_Bar
+    cmds.evalDeferred("from Framework.plugins.aTools.animTools.animBar import animBarUI; animBarUI.show('launch')")
+
+
 
 os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "P:/Deployment/Git/bin/git.exe"
 os.environ['GIT_SSL_NO_VERIFY'] = "1"
@@ -12,13 +28,13 @@ REPO_DIR = "P:/TOOLS/Framework"
 
 
 
-
 def is_git_repo(path):
     try:
         _ = git.Repo(path).git_dir
         return True
     except git.exc.InvalidGitRepositoryError:
         return False
+
 
 
 def clone_repo(git_url, repo_dir, branch="master"):
@@ -41,3 +57,5 @@ if not is_git_repo(REPO_DIR):
 else:
     pull_latest_changes(REPO_DIR)
     print ("Finished Clone process")
+
+

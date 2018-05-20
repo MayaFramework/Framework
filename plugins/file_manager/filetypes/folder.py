@@ -1,5 +1,7 @@
 from genericFile import GenericFile
 import os
+from Framework.lib.ext_lib.dropbox.files import FolderMetadata
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 
 
 class Folder(GenericFile):
@@ -30,3 +32,20 @@ class Folder(GenericFile):
     @property
     def remote_children(self):
         return self.dpx.getChildren(self.local_path, includeMetadata=True)
+
+    def download(self, open=False):
+        dependenciesList = list()
+        recursiveFiles = Folder.getRecursiveFiles(self.local_path, dependenciesList)
+        dialog = DependencyLoaderWidget()
+        dialog.show()
+        dialog.execute_upload_process(recursiveFiles)
+
+    @staticmethod
+    def getRecursiveFiles(path, lista):
+        f = Folder(path)
+        for dependency in f.remote_children:
+            if isinstance(dependency[1], FolderMetadata):
+                Folder.getRecursiveFiles(dependency[0], lista)
+            else:
+                lista.append(os.path.normpath(dependency[0]))
+        return lista
