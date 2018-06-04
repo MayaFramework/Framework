@@ -131,7 +131,7 @@ class Renamer(object):
             return file_name_fields
         
         else:
-            raise Exception("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
+            raise WrongNameFormatting("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
     
     def compare_data_fields(self, data_1, data_2):
         for key,value in data_1.iteritems():
@@ -214,7 +214,12 @@ class Renamer(object):
         return result
     
     
+class WrongNameFormatting(Exception):
+    pass
 
+
+class WrongName(Exception):
+    pass
     
     
 if __name__ == "__main__":
