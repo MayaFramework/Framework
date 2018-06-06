@@ -25,8 +25,11 @@ class Saver(form, base):
     def save(self, out=False, chk=False):
         try:
             controller.save(out=out, chk=chk)
-        except controller.NoChangesDetected or controller.renamerController.WrongName:
-            self.noChangesDialog()
+        except (controller.NoChangesDetected, controller.renamerController.WrongName, controller.renamerController.WrongNameFormatting) as e:
+            if isinstance(e, controller.NoChangesDetected):
+                self.noChangesDialog()
+            else:
+                self.wrongNameDialog()
 
     def normalSave(self):
         self.save()
@@ -37,5 +40,9 @@ class Saver(form, base):
     def chk(self):
         self.save(chk=True)
 
+    def wrongNameDialog(self):
+        name = controller.getCorrectName()
+        QtWidgets.QMessageBox.critical(self, "WrongName", "It looks like the scene name is wrong. Please rename it to:<br><br><b>{}</b>".format(name))
+
     def noChangesDialog(self):
-        QtWidgets.QMessageBox.critical(self, "No changes detected", "You must do any change in order to save the scene. Also, check that the scene name is the correct one")
+        QtWidgets.QMessageBox.critical(self, "No changes detected", "You must do any change in order to save the scene")

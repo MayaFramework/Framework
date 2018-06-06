@@ -12,10 +12,12 @@ class NoChangesDetected(Exception):
 def checkSceneName(path):
     try:
         rename = renamerController.Renamer()
-        folder, filename = os.path.normpath(path).replace("\\", "/").rsplit("/", 1)
-        folder_fields = rename.get_fields_from_folder_path(folder)
-        rename.check_fields_value(folder_fields)
-        return rename.check_fields_value(folder_fields)
+        fields = rename.get_fields_from_file_path(path)
+        return rename.check_fields_value(fields)
+        # folder, filename = os.path.normpath(path).replace("\\", "/").rsplit("/", 1)
+        # folder_fields = rename.get_fields_from_folder_path(folder)
+        # rename.check_fields_value(folder_fields)
+        # return rename.check_fields_value(folder_fields)
     except renamerController.WrongNameFormatting:
         return False
 
@@ -25,8 +27,13 @@ def getCorrectName(path=None):
         path = MC.file(q=True, sn=True)
     rename = renamerController.Renamer()
     folder, filename = os.path.normpath(path).replace("\\", "/").rsplit("/", 1)
-    folder_fields = rename.get_fields_from_folder_path(folder)
-    return rename.generate_complete_file_path(folder_fields)
+    filename_fields = rename.get_fields_from_file_name(filename)
+    return rename.generate_complete_path_from_folder(folder,
+                                                     partition=filename_fields.get("partition"),
+                                                     description=filename_fields.get("description"),
+                                                     extension=filename_fields.get("extension"),
+                                                     version =filename_fields.get("version")
+                                                     )
 
 
 def canSceneBeSaved():
@@ -36,8 +43,7 @@ def canSceneBeSaved():
     path = MC.file(q=True, sn=True)
     nameChecked = checkSceneName(path)
     if not nameChecked:
-        # name = getCorrectName(path)
-        name = "TEST"
+        name = getCorrectName(path)
         raise renamerController.WrongName("Wrong name on scene. Scene name must be '{}'".format(name))
     return True
 
