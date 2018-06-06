@@ -27,12 +27,17 @@ def getCorrectName(path=None):
         path = MC.file(q=True, sn=True)
     rename = renamerController.Renamer()
     folder, filename = os.path.normpath(path).replace("\\", "/").rsplit("/", 1)
-    filename_fields = rename.get_fields_from_file_name(filename)
+
+    try:
+        filename_fields = rename.get_fields_from_file_name(filename)
+    except renamerController.OldNamingConvention:
+        filename_fields = dict()
+
     return rename.generate_complete_path_from_folder(folder,
-                                                     partition=filename_fields.get("partition"),
-                                                     description=filename_fields.get("description"),
-                                                     extension=filename_fields.get("extension"),
-                                                     version =filename_fields.get("version")
+                                                     partition=filename_fields.get("partition", "default"),
+                                                     description=filename_fields.get("description", "none"),
+                                                     extension=filename_fields.get("extension", "ma"),
+                                                     version =filename_fields.get("version", "[VERSION]")
                                                      )
 
 

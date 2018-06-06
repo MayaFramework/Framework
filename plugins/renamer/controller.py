@@ -60,7 +60,10 @@ class Renamer(object):
         '''
         
         file_name_fields = file_name.split("_")
-        attr_pipe, attr_version, attr_extension = file_name_fields[-1].split(".")
+        splitted_ext = file_name_fields[-1].split(".")
+        if len(splitted_ext) != 3:
+            raise OldNamingConvention("Looks like this name has the old Naming convention")
+        attr_pipe, attr_version, attr_extension = splitted_ext
         if len(file_name_fields)+2 != self.FILE_NAME_LENGHT:
             raise Exception("Not enough fields found for the file name, \nCheck this structure: %s"%self.FILE_NAME_FORMAT)
 
@@ -219,6 +222,10 @@ class WrongNameFormatting(Exception):
 
 
 class WrongName(Exception):
+    pass
+
+
+class OldNamingConvention(Exception):
     pass
     
     

@@ -25,9 +25,14 @@ class Saver(form, base):
     def save(self, out=False, chk=False):
         try:
             controller.save(out=out, chk=chk)
-        except (controller.NoChangesDetected, controller.renamerController.WrongName, controller.renamerController.WrongNameFormatting) as e:
+        except (controller.NoChangesDetected,
+                controller.renamerController.WrongName,
+                controller.renamerController.WrongNameFormatting,
+                controller.renamerController.OldNamingConvention) as e:
             if isinstance(e, controller.NoChangesDetected):
                 self.noChangesDialog()
+            elif isinstance(e, controller.renamerController.OldNamingConvention):
+                self.oldNamingConvention()
             else:
                 self.wrongNameDialog()
 
@@ -39,6 +44,10 @@ class Saver(form, base):
 
     def chk(self):
         self.save(chk=True)
+
+    def oldNamingConvention(self):
+        name = controller.getCorrectName()
+        QtWidgets.QMessageBox.critical(self, "OldNamingConvention", "It looks like the scene name is using the old naming convention. Please rename it to:<br><br><b>{}<br><br>DON'T FORGET TO CHANGE [VERSION] WITH THE CURRENT VERSION</b>".format(name))
 
     def wrongNameDialog(self):
         name = controller.getCorrectName()
