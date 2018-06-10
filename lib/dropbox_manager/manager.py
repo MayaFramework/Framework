@@ -34,8 +34,11 @@ import os
 import re
 from Framework.lib.ext_lib import dropbox
 from Framework.lib.ext_lib.dropbox import files
+from Framework.lib.ext_lib.dropbox import file_properties
 from Framework.lib.singleton import Singleton
 from Framework.lib.config.config import Config
+
+
 class DropboxManager(Singleton):
     __client = None
     __dpx = None
@@ -275,6 +278,19 @@ class DropboxManager(Singleton):
                 children_path.append(os.path.join(folder, file_metadata.name))
         return sorted(children_path)
 
+    def getAllChildren(self, folder, recursive=False):
+        if not folder.startswith("/work/bm2"):
+            folder = self.getDropboxPath(folder)
+        childList = list()
+        child = self.__dpx.files_list_folder(folder, recursive=recursive)
+        childList.append(child)
+        if recursive:
+            while child.has_more:
+                child = self.__dpx.files_list_folder_continue(child)
+                childList.extend(child)
+        return sorted(childList[0].entries, key=lambda x: x.name)
+
+
     def getFilesChildren(self, folder, extension=None):
         folder = self.getDropboxPath(folder)
         try:
@@ -310,21 +326,53 @@ class DropboxManager(Singleton):
              not file_metadata.name.startswith(".")])
 
     def getFileMetadata(self, fileDpxPath):
+        if not fileDpxPath.startswith("/work/bm2"):
+            fileDpxPath = self.getDropboxPath(fileDpxPath)
         return self.__dpx.files_get_metadata(fileDpxPath)
 
 
 
 if __name__ == "__main__":
-    file_path = r"work/bm2/seq/tst/sho/650/scncmp/out/_old/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.ma"
-    dpx = DropboxManager.instance()
-#     dpx.uploadFile(file_path, overwrite=True)
-    print dpx.getTargetPath(file_path)
-    print dpx.getDropboxPath(file_path)
-    
-    
-    
-    
-    
+    pass
+#     # file_path = r"work/bm2/seq/tst/sho/650/scncmp/out/_old/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.ma"
+#     dpx2 = DropboxManager()
+# #     dpx.uploadFile(file_path, overwrite=True)
+# #     print dpx.getTargetPath(file_path)
+# #     print dpx.getDropboxPath(file_path)
+# #
+#     # path = "/work/bm2"
+#     # a = dpx.getAllChildren(path)
+#     # print a
+#
+#
+#
+#
+#     _config = Config.instance()
+#     DropBox = dropbox
+#     dpx = DropBox.dropbox.Dropbox("JRK_a6mrxaAAAAAAAAAFAVrk1F0DewHl7V_eQrtBo7d6671VCUMaA3ylJ915VkTv")
+#     print file_properties.templates_list_for_team
+#
+#     # imageField = file_properties.PropertyFieldTemplate("cImage", "Imagen", file_properties.PropertyType("string", None))
+#     # dependenciesField = file_properties.PropertyFieldTemplate("cDependencies", "Dependencies", file_properties.PropertyType("string", None))
+#     # versionField = file_properties.PropertyFieldTemplate("cVersion", "version", file_properties.PropertyType("string", None))
+#     # authorField = file_properties.PropertyFieldTemplate("cAuthor", "Author", file_properties.PropertyType("string", None))
+#     # # templateGroup = [file_properties.PropertyGroupTemplate("cMetadata", "Custom Metadata", )]
+#     #
+#     # tempResult = dpx.file_properties_templates_add_for_team("cMetadata", "Custom Metadata", [imageField, dependenciesField, versionField, authorField])
+#     # print templateGroup
+#     # tempResult = dpx.file_properties_templates_add_for_user("testName", "testDescription", [template])
+#     # print tempResult
+#     prp = [file_properties.PropertyGroup("ptid:JRK_a6mrxaAAAAAAAAAFBg", [file_properties.PropertyField("cImage", "a")])]
+#     # pru = [file_properties.PropertyGroupUpdate(tempResult.template_id, file_properties.PropertyField("mtdta", "test"))]
+#     # # a = ["asd", "bst"]
+#     dpx.file_properties_properties_add("/work/bm2/elm/gafasGato/mod/high/main/chk/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_chk.0001.ma", prp)
+#     # file_properties.AddPropertiesArg("/work/bm2/elm/gafasGato/mod/high/main/chk/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_chk.0001.ma", prp)
+#     #
+#
+#     # dpx.file_properties_properties_update("/work/bm2/elm/gafasGato/mod/high/main/chk/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_chk.0001.ma", pru)
+#     # ptid:JRK_a6mrxaAAAAAAAAAFAw
+#     print dpx2.getFileMetadata("/work/bm2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma")
+#
     
     
     

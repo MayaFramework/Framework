@@ -1,6 +1,4 @@
 from Framework.lib.dropbox_manager.manager import DropboxManager
-from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
-from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui import ui
 
@@ -137,10 +135,4 @@ class GenericFile(object):
 
     def download(self, open=False):
         self.dpx.downloadFile(self.local_path)
-
-    def save(self):
-        widget = UploaderWindow(self.local_path)
-        self.obj = gui_loader.get_default_container(widget, "UPLOADER")
-        self.obj.show()
-        widget.execute_analize_process()
 

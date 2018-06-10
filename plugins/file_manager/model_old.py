@@ -1,12 +1,14 @@
 import os
 from functools import partial
 import urllib
+import maya.cmds as cmds
 import datetime
 import threading
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
-from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+# from Framework.plugins.dependency_uploader.uploader_background_widget import UploaderBackgroundWidget
+from Framework.lib.logger import logger
 
 
 from settings import CustomSettings
@@ -24,16 +26,13 @@ from Framework import get_icon_path
 ICON_PATH = get_icon_path()
 
 NOTHUMBNAIL = os.path.join(ICON_PATH, "no-image.png")
-PROJECT_ROOT = "/work/bm2"
+PROJECT_ROOT = "bm2"
 
 form, base = gui_loader.load_ui_type(os.path.join(
     os.path.dirname(__file__), "gui", "main.ui"))
 
-class FileManager(form, base):
 
-    DOWNLOAD = 0
-    DOWNLOAD_FILE_ONLY = 1
-    DOWNLOAD_DEPENDENCIES_ONLY = 2
+class FileManager(form, base):
 
     def __init__(self):
         super(FileManager, self).__init__()
@@ -100,8 +99,20 @@ class FileManager(form, base):
     def _setIcons(self):
         previousArrow = os.path.join(ICON_PATH, "left-arrow.png")
         forwardArrow = os.path.join(ICON_PATH, "right-arrow.png")
+        # open = os.path.join(ICON_PATH, "open_icon.png")
+        open = os.path.join(ICON_PATH, "essential", "folder-10.png")
+        # download = os.path.join(ICON_PATH, "download_icon.png")
+        download = os.path.join(ICON_PATH, "essential", "download.png")
+        # save = os.path.join(ICON_PATH, "save_icon_2.png")
+        # save = os.path.join(ICON_PATH, "essential", "save.png")
+        # addFile = os.path.join(ICON_PATH, "add_cloud_green.png")
+        addFile = os.path.join(ICON_PATH, "essential", "cloud-computing-2.png")
         self.beforeBT.setIcon(QtGui.QIcon(previousArrow))
         self.afterBT.setIcon(QtGui.QIcon(forwardArrow))
+        self.openBT.setIcon(QtGui.QIcon(open))
+        self.downloadBT.setIcon(QtGui.QIcon(download))
+        # self.saveBT.setIcon(QtGui.QIcon(save))
+        self.addFileBT.setIcon(QtGui.QIcon(addFile))
 
     def setSettings(self):
         if len(self.settings.items()) != 0:
@@ -119,8 +130,8 @@ class FileManager(form, base):
         self.mainContainer.customContextMenuRequested.connect(self._mainContainerContextMenu)
         self.mainContainer.dropped.connect(self._fileDropped)
         self.actionSignIn.triggered.connect(self._signinDialog)
-        self.pathLE.returnPressed.connect(self.pathChanged)
-        # self.addFileBT.clicked.connect(self._selectedFileToAdd)
+        self.addFileBT.clicked.connect(self._selectedFileToAdd)
+        self.toLocalPathBT.clicked.connect(self.goToLocalPath)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(0, QtCore.Qt.UserRole)
@@ -130,6 +141,11 @@ class FileManager(form, base):
         itemObj = item.data(0, QtCore.Qt.UserRole)
         if isinstance(itemObj, Maya):
             self.showMetadataInfo(itemObj=itemObj)
+        self.openBT.setEnabled(itemObj.couldBeOpened)
+        self.chkSaveBT.setEnabled(itemObj.couldBeSaved)
+        self.outSaveBT.setEnabled(itemObj.couldBeSaved)
+        self.saveBT.setEnabled(itemObj.couldBeSaved)
+        self.downloadBT.setEnabled(itemObj.couldBeDownloaded)
         self.selectedItem = itemObj
 
     def _handleBackButton(self):
@@ -158,11 +174,6 @@ class FileManager(form, base):
         menu = self.generateContextMenu(itemData=itemData)
         menu.move(fixPos(pos ))
         menu.show()
-
-    def pathChanged(self):
-        path = os.path.normpath(self.pathLE.text()).replace("\\", "/")
-        folderObj = Folder(path=path)
-        self.populateMainContainer(fileObj=folderObj, addHistory=True)
 
     def _fileDropped(self, files):
         isCorrectDir = self.compareFilesPath(files[0])
@@ -222,33 +233,32 @@ class FileManager(form, base):
         self.centralwidget.setEnabled(True)
 
     def generateContextMenu(self, itemData):
-
-        def createNewAction(actionName, connectTo, menu, *args, **kwargs):
-            newAction = QtWidgets.QAction(actionName, menu)
-            newAction.triggered.connect(partial(connectTo, *args, **kwargs))
-            menu.addAction(newAction)
-            return newAction
-
         menu = QtWidgets.QMenu(self)
-        # newFileAction = createNewAction("Create new File", self.showNewFileDialog, menu)
+        newFileAction = self.createNewAction("Create new File", self.showNewFileDialog, menu)
         menu.addSeparator()
-        downloadFile = createNewAction("Download", self.downloadFile, menu, FileManager.DOWNLOAD)
-        downloadFileOnly = createNewAction("Download File only", self.downloadFile, menu, FileManager.DOWNLOAD_FILE_ONLY)
-        downloadDependencies = createNewAction("Download Dependencies only", self.downloadFile, menu, FileManager.DOWNLOAD_DEPENDENCIES_ONLY)
+        downloadFile = self.createNewAction("Download", self.downloadFile, menu)
+        downloadFileOnly = self.createNewAction("Download File only", self.downloadFile, menu)
+        downloadDependencies = self.createNewAction("Download Dependencies only", self.downloadFile, menu)
         menu.addSeparator()
-        # createNewAction("Open", self.openFile, menu)
-        if not isinstance(self.selectedItem, Maya):
-            # newFileAction.setDisabled(True)
+        self.createNewAction("Open", self.openFile, menu)
+        if not isinstance(itemData, Maya):
+            newFileAction.setDisabled(True)
             downloadFileOnly.setDisabled(True)
             downloadDependencies.setDisabled(True)
         if itemData:
             menu.addAction("Copy path", partial(self.copyPath, itemData))
         return menu
 
+    def createNewAction(self, actionName, connectTo, menu):
+        newAction = QtWidgets.QAction(actionName, menu)
+        newAction.triggered.connect(connectTo)
+        menu.addAction(newAction)
+        return newAction
+
     def copyPath(self, itemData):
         itemData = itemData.data(0, QtCore.Qt.UserRole)
         clipboard = QtGui.QClipboard()
-        clipboard.setText(os.path.normpath(itemData.local_path).replace("\\", "/"))
+        clipboard.setText(os.path.normpath(itemData.local_path))
 
     def showNewFileDialog(self):
         dialog = newfileDialog.NewFileDialog(parent=self)
@@ -260,6 +270,14 @@ class FileManager(form, base):
         currentFolderDir = os.path.normpath(self.currentFolder.local_path).lower()
         fileFolderDir = os.path.normpath(os.path.dirname(file)).lower()
         return True if str(currentFolderDir) == str(fileFolderDir) else False
+
+    def goToLocalPath(self):
+        currentScene = os.path.dirname(cmds.file(q=True, sn=True))
+        currentScene = os.path.normpath(currentScene)
+        try:
+            self.toFolderPath(currentScene)
+        except:
+            pass
 
     def verifyScenePath(self):
         if not isinstance(self.selectedItem, Folder):
@@ -276,6 +294,7 @@ class FileManager(form, base):
                 msg = "You are trying to upload a file with the wrong naming convention.\n"
                 msg += "Please, rename the scene with the following name\n\n"
                 msg += "{}".format(fixedPath)
+                logger.error(msg)
                 return False
 
     def openFile(self):
@@ -299,31 +318,21 @@ class FileManager(form, base):
         if verifiedPath:
             self.selectedItem.save(author=self.userInfo[0], publish2Chk=chk, publish2Out=out)
 
-    def downloadFile(self, downloadOption=0):
-        if isinstance(self.selectedItem, Folder):
-            # print "Downloading Folder"
-            files = self.selectedItem.allChildren()
-            files = [entry.path_display.replace("/work/", "P:/") for entry in files]
-            downloader = DependencyLoaderWidget()
-            downloader.execute_update_process(extra_files_to_download=files)
-        else:
-            if downloadOption == FileManager.DOWNLOAD:
-                self.selectedItem.downloadAll()
-            elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
-                self.selectedItem.download()
-            elif downloadOption == FileManager.DOWNLOAD_DEPENDENCIES_ONLY:
-                raise NotImplementedError("Download dependencies only is not implemented")
-            else:
-                raise ValueError("downloadOption must be 0, 1 or 2")
-            # self.selectedItem.download()
+    def publishOut(self):
+        self.saveFile(out=True, chk=False)
+
+    def publishChk(self):
+        self.saveFile(out=False, chk=True)
+
+    def downloadFile(self):
+        self.selectedItem.download()
 
     def populateMainContainer(self, fileObj, addHistory=True):
         if isinstance(fileObj, Folder):
             self.currentFolder = fileObj
             self.mainContainer.clear()
             self.mainContainer.setIconSize(QtCore.QSize(200,200))
-            for childDpxMetadata in fileObj.remote_children:
-                childFile = childDpxMetadata.path_display
+            for childFile, childDpxMetadata in fileObj.remote_children:
                 listItem = QtWidgets.QTreeWidgetItem(self.mainContainer)
                 fileInstance, fileWidget = FileTypeChooser.getClass(childFile, includeWidget=True)
                 newFile = fileInstance(childFile)
@@ -359,7 +368,10 @@ class FileManager(form, base):
 
     def addFolder2History(self, folder):
         self.history.append(folder)
-        self.pathLE.setText(os.path.normpath(folder.local_path).replace("\\", "/"))
+        pathButton = PathButton(folder)
+        pathButton.clicked.connect(self._pathButtonClicked)
+        self.pathLayout.addWidget(pathButton)
+        self.pathBar.append(pathButton)
 
     def setItemData(self, item, data, parentTree, widget=None, dropboxMetadata=None):
         item.setData(0, QtCore.Qt.UserRole, data)
@@ -398,6 +410,6 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     widget = FileManager()
-    obj = gui_loader.get_default_container(widget, "Update All", style=False, simple_bar=False)
+    obj = gui_loader.get_default_container(widget, "UPLOADER")
     obj.show()
     app.exec_()

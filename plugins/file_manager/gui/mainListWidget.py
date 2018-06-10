@@ -1,4 +1,4 @@
-from PySide2 import QtWidgets, QtCore
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 
 class CustomTreeWidget(QtWidgets.QTreeWidget):
 
