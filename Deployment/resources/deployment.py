@@ -96,7 +96,7 @@ else:
     
     
 #Copy Bats
-bats_to_copy = ["Downloader.bat", "Uploader.bat"]
+bats_to_copy = ["Downloader.bat", "Uploader.bat", "FileExplorer.bat"]
 target_copy = os.path.join(REPO_DIR, "..")
 for bat in bats_to_copy:
     shutil.copy2(os.path.join(current_folder, bat), target_copy)
