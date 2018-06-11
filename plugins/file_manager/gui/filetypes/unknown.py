@@ -1,5 +1,5 @@
 from generic import GenericWidget
-from PySide2 import QtCore, QtGui, QtWidgets
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 import os
 from Framework import get_icon_path
 

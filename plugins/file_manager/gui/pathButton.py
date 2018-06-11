@@ -1,4 +1,4 @@
-from PySide2 import QtWidgets
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 
 class PathButton(QtWidgets.QPushButton):
 

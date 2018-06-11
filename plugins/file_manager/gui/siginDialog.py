@@ -1,7 +1,7 @@
 import os
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
-from PySide2 import QtCore, QtGui, QtWidgets
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 
 
 from Framework import get_icon_path

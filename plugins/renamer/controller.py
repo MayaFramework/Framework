@@ -60,7 +60,10 @@ class Renamer(object):
         '''
         
         file_name_fields = file_name.split("_")
-        attr_pipe, attr_version, attr_extension = file_name_fields[-1].split(".")
+        splitted_ext = file_name_fields[-1].split(".")
+        if len(splitted_ext) != 3:
+            raise OldNamingConvention("Looks like this name has the old Naming convention")
+        attr_pipe, attr_version, attr_extension = splitted_ext
         if len(file_name_fields)+2 != self.FILE_NAME_LENGHT:
             raise Exception("Not enough fields found for the file name, \nCheck this structure: %s"%self.FILE_NAME_FORMAT)
 
@@ -131,7 +134,7 @@ class Renamer(object):
             return file_name_fields
         
         else:
-            raise Exception("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
+            raise WrongNameFormatting("There are different values found for the same path fields. Check its format\nFILE_NAME_FORMAT: %s\nFOLDER_FORMAT: %s"%(self.FILE_NAME_FORMAT, self.FOLDER_PATH_FORMAT))
     
     def compare_data_fields(self, data_1, data_2):
         for key,value in data_1.iteritems():
@@ -214,7 +217,16 @@ class Renamer(object):
         return result
     
     
+class WrongNameFormatting(Exception):
+    pass
 
+
+class WrongName(Exception):
+    pass
+
+
+class OldNamingConvention(Exception):
+    pass
     
     
 if __name__ == "__main__":
