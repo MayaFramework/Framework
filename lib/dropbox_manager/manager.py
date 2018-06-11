@@ -373,8 +373,22 @@ if __name__ == "__main__":
 #     # ptid:JRK_a6mrxaAAAAAAAAAFAw
 #     print dpx2.getFileMetadata("/work/bm2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma")
 #
-    
-    
-    
+    from dropboxMetadata import DropboxMetadata
+    # FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip001.ma"
+    FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma"
+    TOKENID = "JRK_a6mrxaAAAAAAAAAFAVrk1F0DewHl7V_eQrtBo7d6671VCUMaA3ylJ915VkTv"
+    TEMPLATEID = "ptid:JRK_a6mrxaAAAAAAAAAFAw"
+    USERID = "dbmid:AAB3VU3cmHRAMVZZwYwvzzKnR_NQKEYTHN8"
+
+    _config = Config.instance()
+    DropBox = dropbox
+    dpx = DropBox.dropbox.Dropbox(TOKENID, headers={"Dropbox-Api-Select-User":USERID})
+    # prp = [file_properties.PropertyGroupUpdate(TEMPLATEID, [file_properties.PropertyField("cAuthor", "Alberto Sierra")])]
+    # dpx.file_properties_properties_update(FILENAME, prp)
+    dpxmeta = DropboxMetadata(dpx.files_alpha_get_metadata(FILENAME, include_property_templates=[TEMPLATEID]))
+    # print dpxmeta.customProperties
+    template =  dpxmeta.getTemplateFields()
+    print template.fields
+    # print template.getField("cVersion")
     
     

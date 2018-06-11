@@ -1,8 +1,5 @@
 from genericFile import GenericFile
 import os
-from Framework.lib.ext_lib.dropbox.files import FolderMetadata
-# from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
-from threading import Thread
 
 
 class Folder(GenericFile):
@@ -18,19 +15,6 @@ class Folder(GenericFile):
     def children(self):
         return os.listdir(self.local_path)
 
-    @property
-    def remote_children_folders(self):
-        return self.dpx.getAllChildren(self.local_path)
-
-    @property
-    def remote_children_maya_files(self):
-        return self.dpx.getFilesChildren(self.local_path, ".ma")
-
-    @property
-    def remote_children_files(self):
-        return self.dpx.getFilesChildren(self.local_path)
-
-    @property
     def remote_children(self):
         # return self.dpx.getChildren(self.local_path, includeMetadata=True)
         return self.dpx.getAllChildren(self.remote_path)
@@ -50,9 +34,9 @@ class Folder(GenericFile):
 # b = list()
 # a = Folder.getRecursiveFiles(path, b)
 # print a
-path = "/work/bm2/elm"
-f = Folder(path)
-metadata = f.dpx.getFileMetadata(f.remote_path)
+# path = "/work/bm2/elm"
+# f = Folder(path)
+# metadata = f.dpx.getFileMetadata(f.remote_path)
 
 
 

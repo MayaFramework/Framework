@@ -124,6 +124,7 @@ class FileManager(form, base):
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(0, QtCore.Qt.UserRole)
+        print folderObj.local_path, folderObj.remote_path
         self.populateMainContainer(fileObj=folderObj)
 
     def _itemClicked(self, item):
@@ -136,6 +137,7 @@ class FileManager(form, base):
         self.history.pop(-1)
         previousFolder = self.history[-1]
         self.populateMainContainer(previousFolder, addHistory=False)
+        self.pathLE.setText(os.path.normpath(previousFolder.local_path).replace("\\", "/"))
 
     def _pathButtonClicked(self):
         pathButton = self.sender()
@@ -161,6 +163,7 @@ class FileManager(form, base):
 
     def pathChanged(self):
         path = os.path.normpath(self.pathLE.text()).replace("\\", "/")
+
         folderObj = Folder(path=path)
         self.populateMainContainer(fileObj=folderObj, addHistory=True)
 
@@ -261,23 +264,6 @@ class FileManager(form, base):
         fileFolderDir = os.path.normpath(os.path.dirname(file)).lower()
         return True if str(currentFolderDir) == str(fileFolderDir) else False
 
-    def verifyScenePath(self):
-        if not isinstance(self.selectedItem, Folder):
-            path = os.path.normpath(self.selectedItem.local_path).replace("\\", "/")
-            print path
-            sceneName = os.path.basename(path)
-            rename = renamer.Renamer()
-            fields = rename.get_fields_from_file_path(path)
-            fileName = rename.generate_file_name(fields)
-            if sceneName.split(".")[0] == fileName.split(".")[0]:
-                return True
-            else:
-                fixedPath = rename.generate_complete_file_path(fields)
-                msg = "You are trying to upload a file with the wrong naming convention.\n"
-                msg += "Please, rename the scene with the following name\n\n"
-                msg += "{}".format(fixedPath)
-                return False
-
     def openFile(self):
         if os.path.isfile(self.selectedItem.local_path):
             msg = "It looks like the path <br><b>{}</b><br>exists in local.<br>".format(self.selectedItem.local_path)
@@ -293,11 +279,6 @@ class FileManager(form, base):
                 self.selectedItem.openScene()
         else:
             self.selectedItem.open()
-
-    def saveFile(self, out=False, chk=False):
-        verifiedPath = self.verifyScenePath()
-        if verifiedPath:
-            self.selectedItem.save(author=self.userInfo[0], publish2Chk=chk, publish2Out=out)
 
     def downloadFile(self, downloadOption=0):
         if isinstance(self.selectedItem, Folder):
@@ -319,12 +300,13 @@ class FileManager(form, base):
 
     def populateMainContainer(self, fileObj, addHistory=True):
         if isinstance(fileObj, Folder):
+            self.setUpdatesEnabled(False)
             self.currentFolder = fileObj
             self.mainContainer.clear()
             self.mainContainer.setIconSize(QtCore.QSize(200,200))
-            for childDpxMetadata in fileObj.remote_children:
+            for childDpxMetadata in fileObj.remote_children():
                 childFile = childDpxMetadata.path_display
-                listItem = QtWidgets.QTreeWidgetItem(self.mainContainer)
+                listItem = QtWidgets.QTreeWidgetItem()
                 fileInstance, fileWidget = FileTypeChooser.getClass(childFile, includeWidget=True)
                 newFile = fileInstance(childFile)
                 newFileWidget = fileWidget(newFile, parent=self.mainContainer)
@@ -333,6 +315,7 @@ class FileManager(form, base):
                                  parentTree=self.mainContainer,
                                  widget=newFileWidget,
                                  dropboxMetadata=childDpxMetadata)
+            self.setUpdatesEnabled(True)
             if addHistory:
                 self.addFolder2History(fileObj)
 
@@ -362,6 +345,7 @@ class FileManager(form, base):
         self.pathLE.setText(os.path.normpath(folder.local_path).replace("\\", "/"))
 
     def setItemData(self, item, data, parentTree, widget=None, dropboxMetadata=None):
+        self.setUpdatesEnabled(False)
         item.setData(0, QtCore.Qt.UserRole, data)
         parentTree.addTopLevelItem(item)
         if dropboxMetadata:
@@ -378,6 +362,7 @@ class FileManager(form, base):
             item.setSizeHint(0, QtCore.QSize(widgetSize.width() + 20, widgetSize.height()))
         for column in xrange(parentTree.columnCount()):
             parentTree.resizeColumnToContents(column)
+        self.setUpdatesEnabled(True)
 
     def _refreshPathBar(self, pathButton):
         found = False
