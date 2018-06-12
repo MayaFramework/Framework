@@ -18,7 +18,7 @@ from Framework.lib.ui.widgets import tree_widget, common_widgets
 from exceptions import *
 import threading
 import time
-
+from shutil import copyfile
 CSS_PATH = get_css_path()
 ICON_PATH = get_icon_path()
 
@@ -150,7 +150,8 @@ class UploaderWindow(QtWidgets.QDialog):
         
         new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
         self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
-            
+        
+        copyfile(file_path,new_file)
             
     def publish_file_to_out(self, file_path):
         current_level = file_path.split("/")[-2]
@@ -173,6 +174,7 @@ class UploaderWindow(QtWidgets.QDialog):
         
         new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
         self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
+        copyfile(file_path, new_file)
 
     def clean_version_from_file_path(self, file_path):
         fields = file_path.split(".")
