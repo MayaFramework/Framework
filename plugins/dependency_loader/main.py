@@ -16,7 +16,3 @@ if __name__ == "__main__":
     obj = gui_loader.get_default_container(tool, "Update All")
     obj.show()
     app.exec_()
-    
-    """
-    P:bm2/seq/dip/sho/010/animation/wip/bm2_shoani_seq_dip_sho_010_animation_default_scene_wip0001.ma
-    """

@@ -10,12 +10,12 @@ if __name__ == "__main__":
     from Framework.lib.gui_loader import gui_loader
     app = QtWidgets.QApplication(sys.argv)
     file_path = r"P:\BM2\loc\salaTelefonos\scn\main\main\wip\bm2_locscn_loc_salaTelefonos_scn_main_main_default_none_wip0020.ma"
-#     tool = DependencyLoaderWidget()
+    tool = DependencyLoaderWidget(file_path)
 
 
     
     
-    tool = DependencyLoaderWidget()
+    tool = DependencyLoaderWidget(file_path)
     # TEST 1: Download just main file
 #     tool.download_dependencies=False
 #     tool.download_main_file = True
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 #     tool.state_popup_widget_on_finish = True
 
 
-
+    
     obj = gui_loader.get_default_container(tool, "Update All")
     obj.show()
 #     tool.execute_update_process()
