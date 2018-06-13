@@ -60,6 +60,7 @@ class Downloader(QtCore.QObject):
     
     #filters
     FILTER_ERROR_PATHS = ['.mayaSwatches']
+    NONEXISTENT_PATH = ["<UDIM>", "###"]
     #signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
@@ -160,6 +161,7 @@ class Downloader(QtCore.QObject):
 #             else:
 #                 print "t_path: {t_path} not in this list {processed}".format(t_path = t_path,
 #                                                                              processed = str(self._processed_file_list))
+                        
             self._processed_file_list.append(t_path)
             cThread = CustomQThread(func=self.download_file, file_path=t_path)
             cThread.on_finishing.connect(self.on_finished_download_file, QtCore.Qt.QueuedConnection)
@@ -198,8 +200,14 @@ class Downloader(QtCore.QObject):
         result, file_path, dpx_response = tuple_response
         response = DownloaderResponse()
         response.message = dpx_response
-        response.state = result
         response.file_path = file_path
+        # some paths are not found in dropbox because maya format some routs
+        # to indicate a sequence of images, etc... 
+        if [x for x in self.NONEXISTENT_PATH if x in file_path]:
+            response.state = DownloaderResponse.SUCCESS_STATE
+        else:
+            response.state = result
+            
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
         new_files = []

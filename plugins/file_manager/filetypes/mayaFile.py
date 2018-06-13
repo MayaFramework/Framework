@@ -14,10 +14,7 @@ class Maya(GenericFile):
     #     downloader = DependencyLoaderWidget(file_path=self.local_path)
     #     downloader.show()
 
-    def download(self, open=False):
+    def downloadAll(self):
         downloader = DependencyLoaderWidget(file_path=self.local_path)
         downloader.external_open_file = False
         downloader.show()
-
-    def downloadFileOnly(self):
-        super(Maya, self).download()
