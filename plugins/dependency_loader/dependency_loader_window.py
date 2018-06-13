@@ -229,7 +229,6 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
             self._failed_downloaded.append(downloaderResponse)
         else:
             self._correct_downloaded.append(downloaderResponse)
-            
     def _on_file_start_download(self, downloaderResponse):
         self.add_item_in_list(downloaderResponse.file_path, state= downloaderResponse.state)
         self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
@@ -360,30 +359,25 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         if extra_files_to_download:
             file_list.extend(extra_files_to_download)
         
-        try:
-            current_file_path = self.get_current_text()
-        except:
-            current_file_path = ""
-
-        if current_file_path:
-            if  not os.path.exists(current_file_path):
-                file_path = self.downloader._dpx.getTargetPath(current_file_path)
-                if file not in file_list:
+        if not os.path.exists(self.get_current_text()):
+            file_path = self.get_current_text()
+            file_path = self.downloader._dpx.getTargetPath(file_path)
+            if file not in file_list:
+                file_list.append(file_path)
+            self.create_default_folders_on_target(file_path)
+        else:
+            file_path = self.get_current_text()
+            if self.download_main_file:
+                file_path = self.downloader._dpx.getTargetPath(file_path)
+                if file_path not in file_list:
                     file_list.append(file_path)
                 self.create_default_folders_on_target(file_path)
             else:
-                if self.download_main_file:
-                    file_path = self.downloader._dpx.getTargetPath(current_file_path)
-                    if file_path not in file_list:
-                        file_list.append(file_path)
-                    self.create_default_folders_on_target(file_path)
-
-            if self.download_dependencies:
-                if current_file_path:
-                    dependencies = self.downloader.get_file_dependencies(current_file_path)
+                if self.download_dependencies:
+                    dependencies = self.downloader.get_file_dependencies(file_path)
                     if dependencies:
                         file_list.extend(self.downloader.get_file_dependencies(file_path))
-            
+        
         self.dependency_list.clear()
         self.log_text_widget.clear()
         self.set_log_visible(True)

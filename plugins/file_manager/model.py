@@ -236,7 +236,7 @@ class FileManager(form, base):
         # newFileAction = createNewAction("Create new File", self.showNewFileDialog, menu)
         menu.addSeparator()
         downloadFile = createNewAction("Download", self.downloadFile, menu, FileManager.DOWNLOAD)
-        downloadFileOnly = createNewAction("Download File only", self.downloadFile, menu, FileManager.DOWNLOAD_FILE_ONLY)
+        downloadFileOnly = createNewAction("Download MA only", self.downloadFile, menu, FileManager.DOWNLOAD_FILE_ONLY)
         downloadDependencies = createNewAction("Download Dependencies only", self.downloadFile, menu, FileManager.DOWNLOAD_DEPENDENCIES_ONLY)
         menu.addSeparator()
         # createNewAction("Open", self.openFile, menu)
@@ -289,9 +289,9 @@ class FileManager(form, base):
             downloader.execute_update_process(extra_files_to_download=files)
         else:
             if downloadOption == FileManager.DOWNLOAD:
-                self.selectedItem.downloadAll()
-            elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
                 self.selectedItem.download()
+            elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
+                self.selectedItem.downloadFileOnly()
             elif downloadOption == FileManager.DOWNLOAD_DEPENDENCIES_ONLY:
                 raise NotImplementedError("Download dependencies only is not implemented")
             else:
