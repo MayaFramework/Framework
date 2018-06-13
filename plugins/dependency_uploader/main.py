@@ -12,3 +12,8 @@ if __name__ == "__main__":
     obj = gui_loader.get_default_container(widget, "UPLOADER")
     obj.show()
     app.exec_()
+
+
+"""
+P:\bm2\seq\tst\sho\300\scncmp\wip\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_wip.0007.ma
+"""
