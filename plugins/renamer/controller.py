@@ -4,6 +4,8 @@ import re
 # "P:\bm2\chr\gato\out\rigging\thinHigh\out\bm2_chrout_chr_gato_out_rigging_thinHigh_default_none_out.ma " 
 from Framework.lib.config.config import Config
 import propierties
+
+
 class Renamer(object):
 
     REG_EXP = '{[A-Z]*}'
@@ -294,6 +296,9 @@ class WrongName(Exception):
 class OldNamingConvention(Exception):
     pass
     
+
+RENAMER_EXCEPTIONS = [WrongNameFormatting, WrongName, OldNamingConvention]
+
     
 if __name__ == "__main__":
     rename = Renamer()
