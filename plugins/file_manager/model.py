@@ -313,7 +313,10 @@ class FileManager(form, base):
             downloader.execute_update_process(extra_files_to_download=files)
         else:
             if downloadOption == FileManager.DOWNLOAD:
-                self.selectedItem.downloadAll()
+                if isinstance(self.selectedItem, Maya):
+                    self.selectedItem.downloadAll()
+                else:
+                    self.selectedItem.download()
             elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
                 self.selectedItem.download()
                 QtWidgets.QMessageBox.information(self, "Download successfully", "File downloaded")
