@@ -111,8 +111,11 @@ class GenericFile(object):
         if path.startswith("P:/"):
             local_path = path
             remote_path = path.replace("P:/BM2", "/work/bm2")
-        elif path.startswith("/work"):
-            local_path = path.replace("/work/bm2", "P:/BM2")
+        elif path.lower().startswith("/work"):
+            if path.lower().startswith("/work/bm2"):
+                local_path = path.lower().replace("/work/bm2", "P:/BM2")
+            else:
+                local_path = path.lower().replace("/work/BM2", "P:/BM2")
             remote_path = path
         elif path.startswith("bm2"):
             local_path = "bm2"
