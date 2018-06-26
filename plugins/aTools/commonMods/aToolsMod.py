@@ -25,7 +25,8 @@ from Framework.plugins.aTools.generalTools.aToolsGlobals import aToolsGlobals as
 from Framework.plugins.aTools.commonMods import utilMod
     
 G.A_NODE              = "aTools_StoreNode"
-G.USER_FOLDER       = G.USER_FOLDER or mel.eval('getenv MAYA_APP_DIR') + os.sep + "aToolsSettings"
+G.USER_FOLDER       = G.USER_FOLDER or r'P:\TOOLS\Framework\plugins\aTools' + os.sep + "aToolsSettings"
+#G.USER_FOLDER       = G.USER_FOLDER or mel.eval('getenv MAYA_APP_DIR') + os.sep + "aToolsSettings"
 G.UM_timerMessage   = ""  
 
 utilMod.makeDir(G.USER_FOLDER)
@@ -83,12 +84,16 @@ def deleteFileWithUser(folder, file, ext="aTools"):
     if os.path.isfile(filePath):            os.remove(filePath)   
     
 def deleteFolderWithUser(folder):
-    folderPath = "%s%s%s"%(G.USER_FOLDER, os.sep, folder)
-    if os.path.isdir(folderPath): shutil.rmtree(folderPath) 
+    folderPath = "%s%s%s"%(r'P:\TOOLS\Framework\plugins\aTools', os.sep, folder)
+#    folderPath = "%s%s%s" % (G.USER_FOLDER, os.sep, folder)
+    if os.path.isdir(folderPath): shutil.rmtree(folderPath)
     
 def renameFolderWithUser(oldFolder, newFolder):
-    oldUserFolder = "%s%s%s"%(G.USER_FOLDER, os.sep, oldFolder)
-    newUserFolder = "%s%s%s"%(G.USER_FOLDER, os.sep, newFolder)    
+    oldUserFolder = "%s%s%s"%(r'P:\TOOLS\Framework\plugins\aTools', os.sep, oldFolder)
+    newUserFolder = "%s%s%s"%(r'P:\TOOLS\Framework\plugins\aTools', os.sep, newFolder)
+    #oldUserFolder = "%s%s%s"%(G.USER_FOLDER, os.sep, oldFolder)
+    #newUserFolder = "%s%s%s"%(G.USER_FOLDER, os.sep, newFolder)
+
     if os.path.isdir(oldUserFolder): os.rename(oldUserFolder, newUserFolder)  
 
 def loadFileWithUser(folder, file, ext="aTools"):    
@@ -117,8 +122,9 @@ def readFilesWithUser(folder, ext=None):
     return filesInFolder
 
 def readFoldersWithUser(folder):
-    folderPath = "%s%s%s"%(G.USER_FOLDER, os.sep, folder)
-    
+    folderPath = "%s%s%s"%(r'P:\TOOLS\Framework\plugins\aTools', os.sep, folder)
+    #folderPath = "%s%s%s"%(G.USER_FOLDER, os.sep, folder)
+
     if not os.path.isdir(folderPath): return []
     
     foldersInFolder = [loopFolder for loopFolder in os.listdir(folderPath) if os.path.isdir(folderPath) if loopFolder != ".directory"]
@@ -222,16 +228,20 @@ def getDefPref(pref, preferences):
 def getaToolsPath(level=1, inScriptsFolder=True):
     if inScriptsFolder: 
         mayaAppDir      = mel.eval('getenv MAYA_APP_DIR')
-        scriptsDir      = "%s%sscripts%s"%(mayaAppDir, os.sep, os.sep)
-        aToolsFolder    = "%s%saTools%s"%(scriptsDir, os.sep, os.sep)
+        #scriptsDir      = "%s%sscripts%s"%(mayaAppDir, os.sep, os.sep)
+        #aToolsFolder    = "%s%saTools%s"%(scriptsDir, os.sep, os.sep)
+        scriptsDir      = r'P:\TOOLS\Framework\plugins\aTools'
+        aToolsFolder    = r'P:\TOOLS\Framework\plugins\aTools'
+
         if level==1: return aToolsFolder
         if level==2: return scriptsDir
     return utilMod.getFolderFromFile(__file__, level)
     
     
 def getSaveFilePath(saveFile, ext="aTools"):
-    
-    saveFilePath    = G.USER_FOLDER + os.sep + saveFile
+
+    saveFilePath = r'P:\TOOLS\Framework\plugins\aTools' + os.sep + saveFile
+    #saveFilePath    = G.USER_FOLDER + os.sep + saveFile
     if ext:         saveFilePath += ".%s"%ext
     
     return saveFilePath

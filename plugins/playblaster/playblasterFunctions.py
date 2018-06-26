@@ -15,6 +15,12 @@ def blast(*args):
     endTime = cmds.intField('endFrame', v=True, q=True)
     scale = playblasterUI.playblasterValues['scale']
 
+    gPlayBackSlider = mel.eval('$temp=$gPlayBackSlider')
+    if cmds.timeControl(gPlayBackSlider, query=True, rv=True):
+        rangeSelected=cmds.timeControl(gPlayBackSlider, query=True, ra=True)
+        startTime = int(rangeSelected[0])
+        endTime = int(rangeSelected[1])
+
     if sceneSound and playblasterUI.playblasterValues['activateSound']:
         playblasterUI.playblasterValues['sound']= sceneSound[0]
     else:

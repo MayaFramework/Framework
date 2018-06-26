@@ -44,19 +44,21 @@ def stepTangents(*args):
     selection=cmds.ls(sl=True)
     if selection:
         cmds.selectKey() 
-        cmds.keyTangent(itt='linear', ott='step')
-        cmds.keyTangent(g=True, itt='linear', ott= 'step')
     else:
         cmds.warning('there is no object selected but new keys will be in stepped')
+    cmds.keyTangent(itt='linear', ott='step')
+    cmds.keyTangent(g=True, itt='linear', ott= 'step')
+
 
 def autoTangents(*args):
     selection=cmds.ls(sl=True)
     if selection:
         cmds.selectKey()
-        cmds.keyTangent(itt='auto', ott= 'auto')
-        cmds.keyTangent(g=True, itt='auto', ott= 'auto')
     else:
         cmds.warning('there is no object selected but new keys will be in auto')
+    cmds.keyTangent(itt='auto', ott= 'auto')
+    cmds.keyTangent(g=True, itt='auto', ott= 'auto')
+
 
 def intermediateAndConstraint(*args):
     selection= cmds.ls(sl=True)
