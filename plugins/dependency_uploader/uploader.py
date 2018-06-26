@@ -125,7 +125,8 @@ class Uploader(object):
         
         parent_folder = self.get_parent_folder(target_file)
         if parent_folder in ["mps","chk","wip", 'out']:
-            new_target = self.dpx.normpath(target_file.replace("/"+parent_folder+"/", "/"+os.path.join(parent_folder,"_old")+"/"))
+            dir_name, file_name = target_file.rsplit("/",1)
+            new_target = self.dpx.normpath(os.path.join(dir_name, "_old",file_name))
 #             if self.dpx.existFile(file_path):
             try:
                 """
@@ -134,8 +135,8 @@ class Uploader(object):
                 So the fastest way to check it its trying and if it fails i dont care.
                 """
 
-                print "resource file:    ", file_path
-                print "target file:    ", new_target
+#                 print "resource file:    ", file_path
+#                 print "target file:    ", new_target
                 print self.dpx.moveFile(resource_file=target_file,
                                   target_file=new_target,
                                   autorename=True)

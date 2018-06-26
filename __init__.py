@@ -2,7 +2,7 @@ import os
 from Framework.lib.file import utils
 
 def get_environ_file():
-    return os.path.join(os.path.dirname(__file__),"environ.json")
+    return os.path.join(os.path.dirname(__file__),"config","environ.json")
 
 def get_environ_config():
     return utils.read_json(get_environ_file())

@@ -1,4 +1,4 @@
-from PySide2 import QtCore, QtGui, QtWidgets
+from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 import os
 from Framework.lib.gui_loader import gui_loader
 

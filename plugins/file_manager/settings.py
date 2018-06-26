@@ -1,4 +1,4 @@
-from PySide2 import QtCore
+from Framework.lib.ui.qt.QT import QtCore
 
 class CustomSettings(QtCore.QSettings):
 

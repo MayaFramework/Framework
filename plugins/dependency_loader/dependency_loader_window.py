@@ -35,18 +35,20 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     _correct_downloaded = []
     _failed_downloaded = []
     # main flags
-    STATE_POPUP_WIDGET_ON_FINISHED_PROCESS = True
-    STATE_UNATENDED_CREATE_FOLDER_PRROCESS = True
-    STATE_OVERWRITE_LOCAL_FILES = True
-    STATE_DOWNLOAD_MAIN_MA_FILE = True
-    STATE_EXTERNAL_OPEN_FILE = True
-    STATE_INTERNAL_OPEN_FILE = False
+    __STATE_POPUP_WIDGET_ON_FINISHED_PROCESS = True
+    __STATE_UNATENDED_CREATE_FOLDER_PRROCESS = True
+    __STATE_OVERWRITE_LOCAL_FILES = True
+    __STATE_DOWNLOAD_MAIN_MA_FILE = True
+    __STATE_DOWNLOAD_DEPENDENCIES = True
+    __STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = True
+    __STATE_INTERNAL_OPEN_FILE = False
+    __STATE_EXTERNAL_OPEN_FILE = True
     # Signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
     openFileSignal = QtCore.Signal()
 
-    def __init__(self,parent=None, file_path=""):
+    def __init__(self, file_path="",parent=None):
         super(DependencyLoaderWidget, self).__init__(parent=parent)
         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
@@ -59,45 +61,86 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self._correct_downloaded = []
 
     @property
-    def state_download_main_ma_state(self):
-        return self.STATE_DOWNLOAD_MAIN_MA_FILE
+    def download_dependencies(self):
+        return self.__STATE_DOWNLOAD_DEPENDENCIES
     
-    @state_download_main_ma_state.setter
-    def state_download_main_ma_state(self, value):
+    @download_dependencies.setter
+    def download_dependencies(self, value):
         if isinstance(value, bool):
-            self.STATE_DOWNLOAD_MAIN_MA_FILE = value
+            self.__STATE_DOWNLOAD_DEPENDENCIES = value
             self.download_ma_file.setChecked(value)
+            self.downloader.set_download_dependency_mode(self.__STATE_DOWNLOAD_DEPENDENCIES)
 
     @property
+    def download_content_from_filtered_folders(self):
+        return self.__STATE_DOWNLOAD_CONTENT_FROM_FOLDERS
+    
+    @download_content_from_filtered_folders.setter
+    def download_content_from_filtered_folders(self, value):
+        if isinstance(value, bool):
+            self.__STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = value
+            self.download_ma_file.setChecked(value)
+            self.downloader.set_download_filtered_folder(value)
+
+    @property
+    def download_main_file(self):
+        return self.__STATE_DOWNLOAD_MAIN_MA_FILE
+    
+    @download_main_file.setter
+    def download_main_file(self, value):
+        if isinstance(value, bool):
+            self.__STATE_DOWNLOAD_MAIN_MA_FILE = value
+            self.download_ma_file.setChecked(value)
+    @property
     def state_unatended_create_folder_process(self):
-        return self.STATE_UNATENDED_CREATE_FOLDER_PRROCESS
+        return self.__STATE_UNATENDED_CREATE_FOLDER_PRROCESS
     
     @state_unatended_create_folder_process.setter
     def state_unatended_create_folder_process(self, value):
         if isinstance(value, bool):
-            self.STATE_UNATENDED_CREATE_FOLDER_PRROCESS = value
+            self.__STATE_UNATENDED_CREATE_FOLDER_PRROCESS = value
 
 
     @property
     def state_popup_widget_on_finish(self):
-        return self.STATE_POPUP_WIDGET_ON_FINISHED_PROCESS
+        return self.__STATE_POPUP_WIDGET_ON_FINISHED_PROCESS
     
     @state_popup_widget_on_finish.setter
     def state_popup_widget_on_finish(self, value):
         if isinstance(value, bool):
-            self.STATE_POPUP_WIDGET_ON_FINISHED_PROCESS = value
+            self.__STATE_POPUP_WIDGET_ON_FINISHED_PROCESS = value
 
     @property
-    def state_overwrite_local_files(self):
-        return self.STATE_POPUP_WIDGET_ON_FINISHED_PROCESS
+    def overwrite_local_files(self):
+        return self.__STATE_POPUP_WIDGET_ON_FINISHED_PROCESS
     
-    @state_overwrite_local_files.setter
-    def state_overwrite_local_files(self, value):
+    @overwrite_local_files.setter
+    def overwrite_local_files(self, value):
         if isinstance(value, bool):
-            self.STATE_OVERWRITE_LOCAL_FILES = value
+            self.__STATE_OVERWRITE_LOCAL_FILES = value
             self.overwrite_chk_box.setChecked(value)
             self.downloader.set_overwrite_mode(value)
     
+    
+    @property
+    def external_open_file(self):
+        return self.__STATE_EXTERNAL_OPEN_FILE
+    
+    @external_open_file.setter
+    def external_open_file(self, value):
+        if isinstance(value, bool):
+            self.__STATE_EXTERNAL_OPEN_FILE = value
+    
+    
+    @property
+    def internal_open_file(self):
+        return self.__STATE_INTERNAL_OPEN_FILE
+    
+    @internal_open_file.setter
+    def internal_open_file(self, value):
+        if isinstance(value, bool):
+            self.__STATE_INTERNAL_OPEN_FILE = value
+
 
     def _init_widgets(self):
         self.__init_icons()
@@ -108,9 +151,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         
     def _update_advance_options(self):
         self.advance_options_widget.setVisible(False)
-        self.state_overwrite_local_files = self.STATE_OVERWRITE_LOCAL_FILES
-        self.state_download_main_ma_state = self.STATE_DOWNLOAD_MAIN_MA_FILE
-    
+        self.download_main_file = self.__STATE_DOWNLOAD_MAIN_MA_FILE
+        self.overwrite_local_files = self.__STATE_OVERWRITE_LOCAL_FILES
+        self.download_dependencies = self.__STATE_DOWNLOAD_DEPENDENCIES
+        self.download_content_from_filtered_folders = self.__STATE_DOWNLOAD_CONTENT_FROM_FOLDERS
+        
         
     def _init_signals(self):
         #setting downloader signals
@@ -153,12 +198,6 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.log_widget.setVisible(state)
         
 
-    def get_maya_exe_path(self):
-        custom_environ_dict = f_util.read_json(get_environ_file())
-
-        if "maya_exe" in custom_environ_dict:
-            return custom_environ_dict["maya_exe"]
-
     def copy_selected_rout(self):
         selected_item = self.dependency_list.selectedItems()
         if not selected_item:
@@ -190,6 +229,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
             self._failed_downloaded.append(downloaderResponse)
         else:
             self._correct_downloaded.append(downloaderResponse)
+            
     def _on_file_start_download(self, downloaderResponse):
         self.add_item_in_list(downloaderResponse.file_path, state= downloaderResponse.state)
         self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
@@ -197,7 +237,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def _on_finish_download(self):
         # update GIF
         self.set_loading_gif(False)        
-        if self.STATE_POPUP_WIDGET_ON_FINISHED_PROCESS:
+        if self.state_popup_widget_on_finish:
             if self._failed_downloaded:
                 level = MessageWindow.ERROR_LEVEL
                 files = "\n ".join([obj.file_path for obj in self._failed_downloaded])
@@ -218,11 +258,11 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
                     # means its the right click so retry the failled files
                     self.retry_download_process()
                     return
-
-        if self.STATE_EXTERNAL_OPEN_FILE:
+            
+        if self.external_open_file:
             self.open_file()
 
-        if self.STATE_INTERNAL_OPEN_FILE:
+        if self.internal_open_file:
             self.openFileSignal.emit()
             
         self.on_finish_download.emit()
@@ -245,6 +285,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.downloader.processed_folder_list = folder_processed
         self.downloader.processed_file_list = self._correct_downloaded
         self.downloader.set_maxium_threads(self.thread_spinBox.value())
+        self._failed_downloaded = []
+        self._correct_downloaded = []
         self.downloader.download_files()
 
 
@@ -306,34 +348,48 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
     def on_update_btn_clicked(self):
         self.STATE_EXTERNAL_OPEN_FILE = True
         self.execute_update_process()
-    def execute_update_process(self):
+    def execute_update_process(self,  extra_files_to_download=[]):
         """
         Set The loading gif visible
         Downloads the path if the current doesnt exist in local disk
         Calculates file_dependencies
         """
+        
         file_list = []
-        if not os.path.exists(self.get_current_text()):
-            file_path = self.get_current_text()
-            file_path = self.downloader._dpx.getTargetPath(file_path)
-            file_list.append(file_path)
-            self.create_default_folders_on_target(file_path)
-        else:
-            file_path = self.get_current_text()
-            if self.STATE_DOWNLOAD_MAIN_MA_FILE:
-                file_path = self.downloader._dpx.getTargetPath(file_path)
-                file_list.append(file_path)
+        
+        if extra_files_to_download:
+            file_list.extend(extra_files_to_download)
+        
+        try:
+            current_file_path = self.get_current_text()
+        except:
+            current_file_path = ""
+
+        if current_file_path:
+            if  not os.path.exists(current_file_path):
+                file_path = self.downloader._dpx.getTargetPath(current_file_path)
+                if file not in file_list:
+                    file_list.append(file_path)
                 self.create_default_folders_on_target(file_path)
             else:
-                dependencies = self.downloader.get_file_dependencies(file_path)
-                if dependencies:
-                    file_list.extend(self.downloader.get_file_dependencies(file_path))
-        
+                if self.download_main_file:
+                    file_path = self.downloader._dpx.getTargetPath(current_file_path)
+                    if file_path not in file_list:
+                        file_list.append(file_path)
+                    self.create_default_folders_on_target(file_path)
+
+            if self.download_dependencies:
+                if current_file_path:
+                    dependencies = self.downloader.get_file_dependencies(current_file_path)
+                    if dependencies:
+                        file_list.extend(self.downloader.get_file_dependencies(file_path))
+            
         self.dependency_list.clear()
         self.log_text_widget.clear()
         self.set_log_visible(True)
         self.downloader.set_files_to_process(file_list)
         self.downloader.set_maxium_threads(self.thread_spinBox.value())
+        QtWidgets.QApplication.processEvents()
         self.downloader.start_download_process()
 
     def create_default_folders_on_target(self, file_path):
@@ -386,7 +442,7 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
         self.path.setText(file_path)
     
     def open_file(self):
-        maya_path = self.get_maya_exe_path()
+        maya_path = self._config.environ["maya_exe"]
         current_path = self.get_current_text()
         command = '"{0}" -file "{1}"'.format(maya_path,current_path)
         f_util.execute_command(command)

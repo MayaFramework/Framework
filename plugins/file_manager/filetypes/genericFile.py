@@ -1,6 +1,4 @@
-from Framework.lib.dropbox_manager.manager import DropboxManager
-from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
-from Framework.plugins.dependency_uploader.uploader_window import UploaderWindow
+from Framework.lib.dropbox_manager.manager2 import DropboxManager2
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui import ui
 
@@ -22,7 +20,7 @@ class GenericFile(object):
         self._associatedExtensions = list()
         self._local_path, self._remote_path = self.validate_scene_path(path)
         self._dpxMetadata = None
-        self.dpx = DropboxManager()
+        self.dpx = DropboxManager2()
 
     @property
     def name(self):
@@ -112,9 +110,12 @@ class GenericFile(object):
     def validate_scene_path(self, path):
         if path.startswith("P:/"):
             local_path = path
-            remote_path = path.replace("P:/BM2/", "/work/bm2/")
-        elif path.startswith("/work"):
-            local_path = path.replace("/work", "P:/")
+            remote_path = path.replace("P:/BM2", "/work/bm2")
+        elif path.lower().startswith("/work"):
+            if path.lower().startswith("/work/bm2"):
+                local_path = path.lower().replace("/work/bm2", "P:/BM2")
+            else:
+                local_path = path.lower().replace("/work/BM2", "P:/BM2")
             remote_path = path
         elif path.startswith("bm2"):
             local_path = "bm2"
@@ -136,11 +137,5 @@ class GenericFile(object):
             exec(self.openCommand.format(self.local_path.replace("\\", "/")))
 
     def download(self, open=False):
-        self.dpx.downloadFile(self.local_path)
-
-    def save(self):
-        widget = UploaderWindow(self.local_path)
-        self.obj = gui_loader.get_default_container(widget, "UPLOADER")
-        self.obj.show()
-        widget.execute_analize_process()
+        self.dpx.downloadFile(self.remote_path)
 
