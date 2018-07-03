@@ -7,6 +7,7 @@ from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
 from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+from Framework.lib.dropbox_manager.manager import DropboxManager
 
 
 from settings import CustomSettings
@@ -120,7 +121,7 @@ class FileManager(form, base):
         self.mainContainer.dropped.connect(self._fileDropped)
         self.actionSignIn.triggered.connect(self._signinDialog)
         self.pathLE.returnPressed.connect(self.pathChanged)
-        # self.addFileBT.clicked.connect(self._selectedFileToAdd)
+        self.createFileBT.clicked.connect(self.showNewFileDialog)
 
     def _itemDoubleClicked(self, item):
         folderObj = item.data(0, QtCore.Qt.UserRole)
@@ -166,19 +167,23 @@ class FileManager(form, base):
 
         folderObj = Folder(path=path)
         self.populateMainContainer(fileObj=folderObj, addHistory=True)
+        self.selectedItem = folderObj
+
+    def refresh(self):
+        self.populateMainContainer(fileObj=self.selectedItem, addHistory=True)
 
     def _fileDropped(self, files):
-        isCorrectDir = self.compareFilesPath(files[0])
-        if not isCorrectDir:
-            msg = "You are trying to upload a file from<br><br><b>{}</b><br>to<br><b>{}</b><br><br>".format(
-                                                            os.path.normpath(self.currentFolder.local_path),
-                                                            os.path.normpath(os.path.dirname(files[0]))
-                                                        )
-            msg += "Please, move the file to the current folder that you have open in the File Explorer\n"
-            msg += "or navigate to the file path within the File Explorer"
-            QtWidgets.QMessageBox.critical(self, "Check your file/folder!", msg)
-        else:
-            self.addFiles(files)
+        # isCorrectDir = self.compareFilesPath(files[0])
+        # if not isCorrectDir:
+        #     msg = "You are trying to upload a file from<br><br><b>{}</b><br>to<br><b>{}</b><br><br>".format(
+        #                                                     os.path.normpath(self.currentFolder.local_path),
+        #                                                     os.path.normpath(os.path.dirname(files[0]))
+        #                                                 )
+        #     msg += "Please, move the file to the current folder that you have open in the File Explorer\n"
+        #     msg += "or navigate to the file path within the File Explorer"
+        #     QtWidgets.QMessageBox.critical(self, "Check your file/folder!", msg)
+        # else:
+        self.addFiles(files)
 
     def _signinDialog(self):
         dialog = SignInDialog(self)
@@ -201,9 +206,18 @@ class FileManager(form, base):
         super(FileManager, self).closeEvent(event)
 
     def addFiles(self, files):
-        dialog = UploaderBackgroundWidget(files, max_threads=5)
-        dialog.show()
-        dialog.execute_upload_process()
+        dpx = DropboxManager()
+        for selectedFile in files:
+            if not os.path.isdir(os.path.dirname(selectedFile)):
+                os.makedirs(os.path.dirname(selectedFile))
+
+            newFileLocation = os.path.normpath(os.path.join(self.selectedItem.remote_path, os.path.basename(selectedFile))).replace("\\", "/")
+            dpx.uploadFile(local_file=os.path.normpath(selectedFile), target_file=newFileLocation, check_repository=False)
+        QtWidgets.QMessageBox.information(self, "Upload Succesfully", "Files uploaded succesfully to {}".format(self.selectedItem.local_path))
+        self.refresh()
+        # dialog = UploaderBackgroundWidget(files, max_threads=5)
+        # dialog.show()
+        # dialog.execute_upload_process()
 
     def authorizeUser(self, enableUI=False):
         sg = ShotgunInit()
@@ -254,10 +268,20 @@ class FileManager(form, base):
         clipboard.setText(os.path.normpath(itemData.local_path).replace("\\", "/"))
 
     def showNewFileDialog(self):
-        dialog = newfileDialog.NewFileDialog(parent=self)
-        response = dialog.exec_()
-        if response:
-            dialog.newFile.save(force=True, create_snapshot=False, checkPaths=False, isNewfile=True, author=self.userInfo[0])
+        dialog = newfileDialog.NewFileDialog(currentDir=self.selectedItem.local_path.replace("BM2", "bm2"), parent=self)
+        dialog.createFile.connect(self.createNewFile)
+        dialog.show()
+
+    def createNewFile(self, newFile):
+        dpx = DropboxManager()
+        if not os.path.isdir(os.path.dirname(newFile)):
+            os.makedirs(os.path.dirname(newFile))
+
+        createFile = open(newFile, "w")
+        newFileLocation = os.path.normpath(os.path.join(self.selectedItem.remote_path, os.path.basename(newFile))).replace("\\", "/")
+        dpx.uploadFile(local_file=os.path.normpath(newFile), target_file=newFileLocation, check_repository=False)
+        QtWidgets.QMessageBox.information(self, "Upload Succesfully", "Files uploaded succesfully to {}".format(self.selectedItem.local_path))
+        self.refresh()
 
     def compareFilesPath(self, file):
         currentFolderDir = os.path.normpath(self.currentFolder.local_path).lower()
@@ -289,9 +313,13 @@ class FileManager(form, base):
             downloader.execute_update_process(extra_files_to_download=files)
         else:
             if downloadOption == FileManager.DOWNLOAD:
-                self.selectedItem.downloadAll()
+                if isinstance(self.selectedItem, Maya):
+                    self.selectedItem.downloadAll()
+                else:
+                    self.selectedItem.download()
             elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
                 self.selectedItem.download()
+                QtWidgets.QMessageBox.information(self, "Download successfully", "File downloaded")
             elif downloadOption == FileManager.DOWNLOAD_DEPENDENCIES_ONLY:
                 raise NotImplementedError("Download dependencies only is not implemented")
             else:

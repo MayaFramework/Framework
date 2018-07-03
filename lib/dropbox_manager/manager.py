@@ -40,26 +40,32 @@ from Framework.lib.config.config import Config
 
 
 class DropboxManager(Singleton):
+
+    TOKENID = "JRK_a6mrxaAAAAAAAAAFAVrk1F0DewHl7V_eQrtBo7d6671VCUMaA3ylJ915VkTv"
+    TEMPLATEID = "ptid:JRK_a6mrxaAAAAAAAAAFAw"
+    USERID = "dbmid:AAB3VU3cmHRAMVZZwYwvzzKnR_NQKEYTHN8"
     __client = None
-    __dpx = None
+    _dpx = None
     __subfolder = "WORK"
     _base_path = "P:"
+
     def __init__(self):
         super(DropboxManager, self).__init__()
         self._config = Config.instance()
         self.DropBox = dropbox
-        self.__dpx = self.DropBox.dropbox.Dropbox(self._config.environ["dpx_token"])
+        self._dpx = self.DropBox.dropbox.Dropbox(DropboxManager.TOKENID, headers={"Dropbox-Api-Select-User":DropboxManager.USERID})
 
 
-    def uploadFile(self, local_file, overwrite=True, target_file=None):
+    def uploadFile(self, local_file, overwrite=True, target_file=None, check_repository=True):
         """
         Get the correct file_path from dropbox
         Upload file using overwrite key to be forced on the upload
         Checks the local file size, if it has more than the chunk size split the file
         in subprocess to upload piece by piece 
         """
-        if not local_file.startswith(self._base_path):
-            raise Exception("Wrong repository")
+        if check_repository:
+            if not local_file.startswith(self._base_path):
+                raise Exception("Wrong repository")
 
         if overwrite:
             mode= self.DropBox.dropbox.files.WriteMode.overwrite
@@ -74,11 +80,11 @@ class DropboxManager(Singleton):
         with open(local_file, 'rb') as my_file:
             CHUNK_SIZE = 4 * 1024 * 1024
             if file_size <= CHUNK_SIZE:
-                response = self.__dpx.files_upload(my_file.read(), dropbox_path, mode=mode)
+                response = self._dpx.files_upload(my_file.read(), dropbox_path, mode=mode)
             
             else:
                 
-                upload_session_start_result = self.__dpx.files_upload_session_start(my_file.read(CHUNK_SIZE))
+                upload_session_start_result = self._dpx.files_upload_session_start(my_file.read(CHUNK_SIZE))
                 cursor = dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id,
                                                            offset=my_file.tell())
                 commit = dropbox.files.CommitInfo(path=dropbox_path)
@@ -87,13 +93,13 @@ class DropboxManager(Singleton):
                 while my_file.tell() < file_size:
                     if ((file_size - my_file.tell()) <= CHUNK_SIZE):
                         # to save all the data to a file in Dropbox.
-                        response = self.__dpx.files_upload_session_finish(my_file.read(CHUNK_SIZE),
-                                                        cursor,
-                                                        commit)
+                        response = self._dpx.files_upload_session_finish(my_file.read(CHUNK_SIZE),
+                                                                         cursor,
+                                                                         commit)
                     else:
-                        self.__dpx.files_upload_session_append(my_file.read(CHUNK_SIZE),
-                                                        cursor.session_id,
-                                                        cursor.offset)
+                        self._dpx.files_upload_session_append(my_file.read(CHUNK_SIZE),
+                                                              cursor.session_id,
+                                                              cursor.offset)
                         cursor.offset = my_file.tell()
             print response
             if response:
@@ -118,7 +124,7 @@ class DropboxManager(Singleton):
 
         try:
             print "DOWNLOADING the file: %s" % dropbox_path
-            self.__dpx.files_download_to_file(target_path, dropbox_path)
+            self._dpx.files_download_to_file(target_path, dropbox_path)
             print "DOWNLOADING FINISHED"
         except Exception as e:
             message = "Something was wrong downloading the file: %s " % dropbox_path
@@ -189,7 +195,7 @@ class DropboxManager(Singleton):
         try:
             dpx_local_path = self.getDropboxPath(file_path)
             print dpx_local_path
-            self.__dpx.files_get_metadata(dpx_local_path)
+            self._dpx.files_get_metadata(dpx_local_path)
             return True
         except Exception as e:
             print e
@@ -200,7 +206,7 @@ class DropboxManager(Singleton):
         resource_file = self.getDropboxPath(resource_file)
         target_file = self.getDropboxPath(target_file)
         print "...", resource_file, target_file
-        response = self.__dpx.files_move(resource_file, target_file, autorename=True)
+        response = self._dpx.files_move(resource_file, target_file, autorename=True)
         if response:
             msg = "MOVED File from: %s to %s" % (resource_file, target_file)
             print msg
@@ -249,7 +255,7 @@ class DropboxManager(Singleton):
         folder = self.getDropboxPath(folder)
 #         metadata = self.__client.metadata(folder)
         try:
-            metadata = self.__dpx.files_list_folder(folder)
+            metadata = self._dpx.files_list_folder(folder)
         except Exception as e:
             print e
             return []
@@ -268,7 +274,7 @@ class DropboxManager(Singleton):
             folder = self.getDropboxPath(folder)
         #         metadata = self.__client.metadata(folder)
         try:
-            metadata = self.__dpx.files_list_folder(folder)
+            metadata = self._dpx.files_list_folder(folder)
         except Exception as e:
             print e
             return []
@@ -278,23 +284,10 @@ class DropboxManager(Singleton):
                 children_path.append(os.path.join(folder, file_metadata.name))
         return sorted(children_path)
 
-    def getAllChildren(self, folder, recursive=False):
-        if not folder.startswith("/work/bm2"):
-            folder = self.getDropboxPath(folder)
-        childList = list()
-        child = self.__dpx.files_list_folder(folder, recursive=recursive)
-        childList.append(child)
-        if recursive:
-            while child.has_more:
-                child = self.__dpx.files_list_folder_continue(child)
-                childList.extend(child)
-        return sorted(childList[0].entries, key=lambda x: x.name)
-
-
     def getFilesChildren(self, folder, extension=None):
         folder = self.getDropboxPath(folder)
         try:
-            metadata = self.__dpx.files_list_folder(folder)
+            metadata = self._dpx.files_list_folder(folder)
         except Exception as e:
             print e
             return []
@@ -310,7 +303,7 @@ class DropboxManager(Singleton):
         return children_path
 
     def getAllrecursiveChildren(self, folder):
-        children = self.__dpx.files_list_folder(folder, recursive=True)
+        children = self._dpx.files_list_folder(folder, recursive=True)
         return children
 
     def getChildren(self, folder, includeMetadata=False):
@@ -318,7 +311,7 @@ class DropboxManager(Singleton):
             folder = "/work/bm2/"
         else:
             folder = self.getDropboxPath(folder)
-        children = self.__dpx.files_list_folder(folder)
+        children = self._dpx.files_list_folder(folder)
         if includeMetadata:
             return sorted([(os.path.join(folder,file_metadata.name), file_metadata) for file_metadata in children.entries if not file_metadata.name.startswith(".")])
         return sorted(
@@ -328,7 +321,34 @@ class DropboxManager(Singleton):
     def getFileMetadata(self, fileDpxPath):
         if not fileDpxPath.startswith("/work/bm2"):
             fileDpxPath = self.getDropboxPath(fileDpxPath)
-        return self.__dpx.files_get_metadata(fileDpxPath)
+        return self._dpx.files_get_metadata(fileDpxPath)
+
+
+    def getAllChildren(self, folder, recursive=False):
+        if not folder.startswith("/work/bm2"):
+            folder = self.getDropboxPath(folder)
+        childList = list()
+        child = self._dpx.files_list_folder(folder, recursive=recursive)
+        childList.append(child)
+        if recursive:
+            while child.has_more:
+                child = self._dpx.files_list_folder_continue(child.cursor)
+                childList.extend(child)
+        return sorted(childList[0].entries, key=lambda x: x.name)
+
+    def getMetadata(self, path, customProperties=False):
+        if customProperties:
+            return DropboxMetadata(self._dpx.files_alpha_get_metadata(path, include_property_templates=[DropboxManager.TEMPLATEID]))
+        return DropboxMetadata(self._dpx.files_alpha_get_metadata(path))
+
+    def updateMetadata(self, path, **properties):
+        metadata = self.getMetadata(path, customProperties=True)
+        if not metadata.customProperties:
+            propertyGroup = metadata.addCustomProperties()
+            self._dpx.file_properties_properties_add(path, propertyGroup)
+            metadata = self.getMetadata(path, customProperties=True)
+        propertyGroupUpdate = metadata.updateCustomProperties(**properties)
+        self._dpx.file_properties_properties_update(path, propertyGroupUpdate)
 
 
 

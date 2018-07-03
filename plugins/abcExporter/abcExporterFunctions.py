@@ -6,42 +6,7 @@ import abcExporterUI as abcExporterUI
 #from uploader_background_widget import UploaderBackgroundWidget
 #from Framework.plugins.dependency_uploader.uploader_window import UploaderBackgroundWidget
 
-def publish(*args):
-    '''junto con la publicacion deberia hacer un playblast de los caches exportados y incluirlo en la carpeta out asi como una copia de la escena
-    ''' 
-    chars = cmds.textScrollList('charsList', si=True, q=True)
-    props = cmds.textScrollList('propsList', si=True, q=True)
 
-    if not chars and not props:
-        cmds.warning('there is no caches to publish')
-
-    if chars:
-        if props:
-            allElems = list(set(chars + props))
-        else: 
-            allElems= chars            
-    else:
-        if props:
-            allElems= props
-            
-    allPaths = []
-    
-    if allElems:
-        for each in allElems:
-            fileToUpload = getPaths(each)['outName']
-            allPaths.append(fileToUpload)
-
-        sendToDropbox(allPaths,4)
-
-
-def sendToDropbox(file_path_list,max_threads):
-    '''por revisar, esta funcion en teoria deberia subir los archivos a dropbox
-    '''
-    uploader_background_widget = UploaderBackgroundWidget(file_path_list=file_path_list,
-                                                          max_threads=max_threads)
-
-    uploader_background_widget.show()
-    uploader_background_widget.execute_upload_process()
 
 
 def abcWriter(startFrame,endFrame,description,flags=('uvWrite', 'worldSpace', 'writeVisibility', 'writeUVSets')):
@@ -218,8 +183,8 @@ def publishSelectedCaches(*args):
 
     userChoice = cmds.confirmDialog(db='ok', b= ['ok', 'cancel'], cb='cancel', t="Warning:", m=" it's about to publish this caches: " + ', '.join(selection) + ", \nare you sure??")
     if userChoice == 'ok':
-        print 'ahora subiria los caches seleccionados a dropbox'
-        #falta llamara a la tool de miguel para que suba esta lista a dropbox
+        playblasterFunctions.sendToDropbox(filestoQueu,4)
+        
 
 def refreshCachesInDiskWindow():
     if cmds.textScrollList('cachesExportedList', ex=True):

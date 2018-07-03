@@ -1,5 +1,6 @@
 import shotgun_api3 as sapi
-from user import ShotgunUser
+from Framework.lib.shotgun.user import ShotgunUser
+
 
 class ShotgunInit(object):
     def __init__(self):
@@ -13,5 +14,24 @@ class ShotgunInit(object):
         if user:
             return ShotgunUser(self.shotgun, **user)
         return None
+
+    def getSeqs(self, names=False, fields=["code"]):
+        seqs = self.shotgun.find("Sequence", [["project", "is", {"type":"Project", "id":86}]], fields)
+        if names:
+            return sorted([seq.get("code") for seq in seqs])
+        return seqs
+
+    def getSeq(self, sequence, fields=["code"]):
+        return self.shotgun.find_one("Sequence", [["code", "is", sequence]], fields)
+
+    def getShots(self, sequence, names=False, fields=["code"]):
+        sequenceObj = self.getSeq(sequence)
+        if sequenceObj:
+            shots = self.shotgun.find("Shot", [["sg_sequence", "is", {"type":"Sequence", "id":sequenceObj.get("id")}]], fields)
+            if names:
+                return sorted([shot.get("code") for shot in shots])
+            return shots
+        return None
+
 
         

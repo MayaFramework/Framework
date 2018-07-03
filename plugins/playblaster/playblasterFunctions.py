@@ -1,9 +1,11 @@
 import json
 import os
 import sys
+import shutil
 import maya.cmds as cmds
 import maya.mel as mel
 import playblasterUI as playblasterUI
+from Framework.plugins.dependency_uploader.uploader_window import UploaderBackgroundWidget
 
 def blast(*args):    
     
@@ -14,6 +16,12 @@ def blast(*args):
     startTime = cmds.intField('startFrame', v=True, q=True) 
     endTime = cmds.intField('endFrame', v=True, q=True)
     scale = playblasterUI.playblasterValues['scale']
+
+    gPlayBackSlider = mel.eval('$temp=$gPlayBackSlider')
+    if cmds.timeControl(gPlayBackSlider, query=True, rv=True):
+        rangeSelected=cmds.timeControl(gPlayBackSlider, query=True, ra=True)
+        startTime = int(rangeSelected[0])
+        endTime = int(rangeSelected[1])
 
     if sceneSound and playblasterUI.playblasterValues['activateSound']:
         playblasterUI.playblasterValues['sound']= sceneSound[0]
@@ -77,12 +85,17 @@ def blast(*args):
         sendToCheck(name)
 
 def sendToCheck(filePath):
-    maFile = filePath.replace('.mov','.ma')
+
     userCheck = cmds.confirmDialog(db='ok', b= ['ok', 'cancel'], cb='cancel', t="Warning: ", m="it's about to send playblast and scene to review, \nThe scene will be saved, are you sure??")
     if userCheck == 'ok':
-        print 'ahora haria cosas'
-        #hay que guardar la escena y una copia en chk
-        #hay que subir los dos archivos a dropbox
+        fileInfo = pipeInfo()
+        sceneFullName = fileInfo['folder'] + fileInfo['fileName'] + fileInfo['extension']   
+        chkFullName = getPaths(description=fileInfo['description'], fileType='scene', prodState='chk')
+ 
+        cmds.file(save=True)
+        shutil.copy(sceneFullName, chkFullName)
+        sendToDropbox([filePath, chkFullName],4)
+
     else:
         print 'no se ha enviado nada a review si quieres enviar algo relanza el playblast'
     
@@ -537,6 +550,15 @@ def getPaths(fileType, description=None, prodState='out'):
     outName = outFolder + cacheName
 
     return outName
+
+def sendToDropbox(file_path_list,max_threads):
+    '''por revisar, esta funcion en teoria deberia subir los archivos a dropbox
+    '''
+    uploader_background_widget = UploaderBackgroundWidget(file_path_list=file_path_list,
+                                                          max_threads=max_threads)
+
+    uploader_background_widget.show()
+    uploader_background_widget.execute_upload_process()
 
 
 def confirm(path=None, incrementalOption=False, message=None):

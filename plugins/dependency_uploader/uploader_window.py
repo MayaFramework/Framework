@@ -151,6 +151,8 @@ class UploaderWindow(QtWidgets.QDialog):
         new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
         self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
         
+        if not os.path.exists(os.path.dirname(new_file)):
+            os.makedirs(os.path.dirname(new_file))
         copyfile(file_path,new_file)
             
     def publish_file_to_out(self, file_path):
@@ -174,6 +176,8 @@ class UploaderWindow(QtWidgets.QDialog):
         
         new_file_dpx = self.uploader_background_widget.uploader.dpx.getDropboxPath(new_file)
         self.uploader_background_widget.upload_custom_file(file_path=file_path, target_path=new_file_dpx)
+        if not os.path.exists(os.path.dirname(new_file)):
+            os.makedirs(os.path.dirname(new_file))
         copyfile(file_path, new_file)
 
     def clean_version_from_file_path(self, file_path):
