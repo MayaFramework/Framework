@@ -12,8 +12,28 @@ una Task Class, y asi recursivamente
 
 """
 
+# fields = ['id', 'name', 'sg_shot', 'code']
+
+
+# sg = sapi.Shotgun("https://esdip.shotgunstudio.com",
+#                                     script_name="shotgunAPI", api_key="f8da64a710923a25352e3d0e06bd31c56395cb5943e03bfaf9a90a73794e1ac1")
+
+# print sg.schema_entity_read()
+# print sg.find("Sequence", [["project", "is", {"type":"Project", "id":86}]], ["code", "name"])
+# secId = sg.find_one("Sequence", [["code", "is", "TST"]], fields)
+# print sg.find("Shot", [["sg_sequence", "is", {"type":"Sequence", "id":secId.get("id")}]], ["code"])
+# print sg.find("Shot", [["code", "is", "tst.180"]], ["sg_sequence"])
+
+# seqs = sg.find("Sequence",filters ,fields)
+# print seqs
+
+# from shotgunInit import ShotgunInit
+
+# a = ShotgunInit()
+# user = a.getUser("Alberto Sierra")
+# print user.getUserImage()
+
 from shotgunInit import ShotgunInit
 
-a = ShotgunInit()
-user = a.getUser("Alberto Sierra")
-print user.getUserImage()
+sg = ShotgunInit()
+print sg.getSeqs(names=True)

@@ -3,6 +3,7 @@ from Framework.lib.shotgun.user import ShotgunUser
 
 
 class ShotgunInit(object):
+    
     def __init__(self):
         
         # TODO Change my credentials with the admin ones
