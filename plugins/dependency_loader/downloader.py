@@ -335,7 +335,7 @@ class Downloader(QtCore.QObject):
         """
         return every children from the folder formated
         """
-        children = self._dpx.getChildrenFromFolder(folder)
+        children = self._dpx.getChildren(folder)
         return [self._dpx.getTargetPath(x) for x in children]
 
         
