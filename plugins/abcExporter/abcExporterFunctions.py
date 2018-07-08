@@ -3,16 +3,11 @@ import sys
 import maya.cmds as cmds
 import Framework.plugins.playblaster.playblasterFunctions as playblasterFunctions
 import abcExporterUI as abcExporterUI 
-#from uploader_background_widget import UploaderBackgroundWidget
-#from Framework.plugins.dependency_uploader.uploader_window import UploaderBackgroundWidget
-
-
 
 
 def abcWriter(startFrame,endFrame,description,flags=('uvWrite', 'worldSpace', 'writeVisibility', 'writeUVSets')):
     '''esta funcion 
     '''
-    #outName=playblasterFunctions.userConfirmDescriptionField(description=description, fileType='abc', prodState='out')
     outName=playblasterFunctions.confirm(path=playblasterFunctions.getPaths(description=description, fileType='abc', prodState='out'), message= 'Ooops, seems there is previous cache for ' + description.capitalize() + '.\nDo you want to overwrite it?')
     
     if outName:
@@ -122,7 +117,6 @@ def refreshUI(*args):
         cmds.textScrollList('charsList',ra=True, e=True, en=False)
         cmds.textScrollList('propsList',ra=True, e=True, en=False)
         cmds.button('doAbcs', en=False, e=True)
-        #cmds.button('publish', en=False, e=True)
     else:
         cmds.textField('projectField',tx=sceneInfo['project'], e=True)
         cmds.textField('seqField',tx=sceneInfo['seq'], e=True)
@@ -132,11 +126,11 @@ def refreshUI(*args):
         setCharsInList()
         setPropsInList()
         cmds.button('doAbcs', en=True, e=True)
-        #cmds.button('publish', en=True, e=True)
 
 
 def doTheCaches(*args):
-
+    cmds.refresh(suspend=True)
+    
     endFrame = cmds.playbackOptions(q=True,max=True)
     propList=cmds.textScrollList('propsList', ai=True, q=True)
     charList=cmds.textScrollList('charsList', ai=True, q=True)
@@ -164,7 +158,9 @@ def doTheCaches(*args):
     
     if exportedList:    
         cmds.tabLayout('tabsLayout', e=True, sti=2)
-    
+
+    cmds.refresh(suspend=False)
+  
 
 def importCacheToScene(*args):
     cachesFiles=readCachesInDisk()
@@ -172,6 +168,7 @@ def importCacheToScene(*args):
     if selection:
         for o in selection:
             cmds.file(cachesFiles[o], i=True, type="Alembic", ignoreVersion=True, mergeNamespacesOnClash= False, namespace= o+'Exported', pr= True)
+
 
 def publishSelectedCaches(*args):
     cachesdict=readCachesInDisk()

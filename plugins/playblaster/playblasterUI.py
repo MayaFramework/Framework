@@ -39,12 +39,14 @@ def refreshPlayblasterWindow():
         if fileInformation and fileInformation['department'] == 'animation':
             cmds.radioButton('version2Review', e=True, en=True, vis=True) 
             cmds.menu('caches', e=True, en=True, vis=True)
+            cmds.button('setToSceneRange', l='Set Shotgun Range', e=True)
 
         else :
             cmds.radioButton('version2Review', e=True, en=False, vis=False)
             cmds.radioButton('temporaryPlayblast', e=True, sl=True)
             playblasterValues['saveOption']='temporaryPlayblast'
             cmds.menu('caches', e=True, en=False, vis=False)
+            cmds.button('setToSceneRange', l='Set Scene Range', e=True)
 
     if cmds.window('abcExporter', exists=True):
         abcExporterFunctions.refreshUI()

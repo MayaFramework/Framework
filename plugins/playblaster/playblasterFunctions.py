@@ -5,6 +5,7 @@ import shutil
 import maya.cmds as cmds
 import maya.mel as mel
 import playblasterUI as playblasterUI
+import shotgun_api3 as sapi
 from Framework.plugins.dependency_uploader.uploader_window import UploaderBackgroundWidget
 
 def blast(*args):    
@@ -216,6 +217,17 @@ def sceneRange(*args):
     '''
     min=cmds.playbackOptions(q=True,min=True)
     max=cmds.playbackOptions(q=True,max=True)
+    sceneInfo = pipeInfo()
+    
+    if sceneInfo:
+        sg = sapi.Shotgun("https://esdip.shotgunstudio.com",
+                                 login="tdevelopment",
+                                 password="BM@Developement") 
+        shot=sceneInfo['seq'] + '.' + sceneInfo['shot']
+        shotgunInfo = sg.find("Shot", filters=[["code", "is", shot],['project','is', {'type': 'Project','id': 86}]], fields=["sg_cut_in", "sg_cut_out"])[0]
+        min=int(shotgunInfo['sg_cut_in'])
+        max=int(shotgunInfo['sg_cut_out'])
+
     cmds.intField('startFrame', v=min, e=True) 
     cmds.intField('endFrame', v=max, e=True)
     
