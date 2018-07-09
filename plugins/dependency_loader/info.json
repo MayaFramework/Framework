@@ -1,0 +1,7 @@
+{
+    "type": "tool",
+    "code": "dependency_loader",
+    "category": "general",
+    "name": "Downloader",
+    "icon": "downloading.png"
+}
