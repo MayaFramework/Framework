@@ -217,20 +217,35 @@ def sceneRange(*args):
     '''
     min=cmds.playbackOptions(q=True,min=True)
     max=cmds.playbackOptions(q=True,max=True)
-    sceneInfo = pipeInfo()
+    shotgunRange = getShotgunRange()
     
+    if shotgunRange:
+       min=shotgunRange['start']
+       max=shotgunRange['end']
+
+    cmds.intField('startFrame', v=min, e=True) 
+    cmds.intField('endFrame', v=max, e=True)
+    
+def getShotgunRange():
+
+    sceneInfo = pipeInfo()
+    shotRange = {}
     if sceneInfo:
         sg = sapi.Shotgun("https://esdip.shotgunstudio.com",
                                  login="tdevelopment",
                                  password="BM@Developement") 
         shot=sceneInfo['seq'] + '.' + sceneInfo['shot']
-        shotgunInfo = sg.find("Shot", filters=[["code", "is", shot],['project','is', {'type': 'Project','id': 86}]], fields=["sg_cut_in", "sg_cut_out"])[0]
-        min=int(shotgunInfo['sg_cut_in'])
-        max=int(shotgunInfo['sg_cut_out'])
+        shotgunInfo = sg.find("Shot", filters=[["code", "is", shot],['project','is', {'type': 'Project','id': 86}]],
+                                      fields=["sg_cut_in", "sg_cut_out"])[0]
+        
+        if shotgunInfo['sg_cut_in']:
+            shotRange['start'] = int(shotgunInfo['sg_cut_in'])	
+        
+        if shotgunInfo['sg_cut_out']:
+            shotRange['end'] = int(shotgunInfo['sg_cut_out'])
+        
+        return shotRange
 
-    cmds.intField('startFrame', v=min, e=True) 
-    cmds.intField('endFrame', v=max, e=True)
-    
 def blasterPencil(*args):
     '''esta funcion activa el context de grease pencil
     '''

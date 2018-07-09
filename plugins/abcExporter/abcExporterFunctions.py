@@ -130,8 +130,12 @@ def refreshUI(*args):
 
 def doTheCaches(*args):
     cmds.refresh(suspend=True)
-    
-    endFrame = cmds.playbackOptions(q=True,max=True)
+    shotgunRange = playblasterFunctions.getShotgunRange()
+    if shotgunRange:
+        endFrame = shotgunRange['end'] + 15
+    else:
+        endFrame = cmds.playbackOptions(q=True,max=True)
+
     propList=cmds.textScrollList('propsList', ai=True, q=True)
     charList=cmds.textScrollList('charsList', ai=True, q=True)
 
