@@ -5,6 +5,8 @@ import os
 
 
 def changeRotateOrder(newRotateOrder, *args):
+    keyInRange(atributes='rotate')
+    cmds.refresh(suspend=True)
     selection = cmds.ls(sl=True)
     if selection:
         scriptPath = (os.path.dirname(playblasterUI.__file__)+ '/zooChangeRoo.mel').replace('\\','/')
@@ -14,10 +16,12 @@ def changeRotateOrder(newRotateOrder, *args):
         mel.eval("zooChangeRoo " + newRotateOrder)
         mel.eval('performEulerFilter graphEditor1FromOutliner')
     else:
-        cmds.warning('there is no object selected')     
+        cmds.warning('there is no object selected')
+    cmds.refresh(suspend=False)         
 
 
-def keyInRange(*args):
+def keyInRange(atributes='all',*args):
+    cmds.refresh(suspend=True)
     start=cmds.playbackOptions(q=True, min=True)
     end=cmds.playbackOptions(q=True, max=True)
 
@@ -35,9 +39,15 @@ def keyInRange(*args):
 
         for o in range(len(simplifiedList)):
             cmds.currentTime(cmds.findKeyframe(timeSlider=True, which="next"), edit=True)
-            cmds.setKeyframe()
+            if atributes == 'all':
+                cmds.setKeyframe()
+            else:
+                cmds.setKeyframe(at=atributes)
+
     else:
-        cmds.warning('there is no object selected')    
+        cmds.warning('there is no object selected')
+
+    cmds.refresh(suspend=False)        
 
 
 def stepTangents(*args):
