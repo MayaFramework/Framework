@@ -2,6 +2,7 @@ import inspect
 import pprint
 import sys
 import os
+import Framework
 from Framework.lib import ui
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
@@ -111,8 +112,14 @@ class ToolManagerMainWidget(QtWidgets.QWidget):
     '''
         to be run only once at the beginning with a delay
     '''
+
     def fill_tools_list(self):
-        self._tools = tool_manager.get_tools()
+
+        ext_tools = tool_manager.get_ext_tools()
+        int_tools = tool_manager.get_internal_tools()
+        
+        
+        self._tools = ext_tools + int_tools
         for tool in self._tools:
             tool_widget = ToolManagerToolWidget(self,tool)
             self.vl_tools_list.addWidget(tool_widget)
@@ -240,13 +247,13 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
             
 def run(tab_position=False):
     import os
-#     app = QtWidgets.QApplication(sys.argv)
-    from Framework.lib.ui.ui import getMayaWindow
-    maya_window = getMayaWindow()
-    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=maya_window)
+    app = QtWidgets.QApplication(sys.argv)
+#     from Framework.lib.ui.ui import getMayaWindow
+#     maya_window = getMayaWindow()
+    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=None)
     obj.show()
 
-#     sys.exit(app.exec_())
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     run()

@@ -43,6 +43,28 @@ import types
 import shutil
 import importlib
 
+from simple_pipeline.cmn.python.lib.config.config import Config
+
+config = Config.instance()
+
+if config.engine.name == config.constants.ENGINE_PYTHON:
+    os.environ["QT_PREFERRED_BINDING"] = "PySide"
+if config.engine.name == config.constants.ENGINE_MAYA:
+    if config.engine.version >= config.constants.ENGINE_MAYA_2017:
+        os.environ["QT_PREFERRED_BINDING"] = "PySide2"
+    else:
+        os.environ["QT_PREFERRED_BINDING"] = "PySide"
+
+if config.engine.name == config.constants.ENGINE_NUKE:
+    os.environ['QT_PREFERRED_BINDING'] = 'PySide2'
+    
+if config.engine.name == config.constants.ENGINE_BLENDER:
+    os.environ['QT_PREFERRED_BINDING'] = 'PyQt5'
+
+if any(config.engine.name == code for code in (config.constants.ENGINE_HOUDINIFX,
+                                               'happrentice')):
+    os.environ['QT_PREFERRED_BINDING'] = 'PySide2'
+
 __version__ = "1.1.0.b1"
 
 # Enable support for `from Qt import *`
