@@ -10,6 +10,8 @@ from Framework.lib.config.config import Config
 from Framework import get_environ_file, get_css_path, get_icon_path
 from Framework.plugins import tool_manager
 from Framework.lib.file import utils as file_utils
+from Framework.lib.ui.ui import getMayaWindow
+
 config = Config.instance()
 CSS_PATH = get_css_path()
 ICON_PATH = get_icon_path()
@@ -19,12 +21,7 @@ class ToolManager(QtWidgets.QWidget):
         super(ToolManager,self).__init__(parent=parent)
         ui.apply_resource_style(self)
         self.setObjectName("tool_manager")
-        self.initUI()        
-
-        # if self._config.engine.name == self._config.constants.ENGINE_MAYA:
-        #     import maya.cmds as cmds
-        #     allowedAreas = ['right', 'left']
-        #     self.dockCtrl = cmds.dockControl(label='SIMPLE Tool Manager', area='right', content=self.objectName(), allowedArea=allowedAreas)
+        self.initUI()
 
     def initUI(self):
         # Title
@@ -69,24 +66,16 @@ class ToolManagerMainWidget(QtWidgets.QWidget):
         self.tm_paint_timer.setSingleShot(True)
         self.tm_paint_timer.setInterval(1000)
 
-#         self.lbl_logo_image = image.create_pixmap(image.get_image_file("simple_logo_neg_150x64.png", self.current_folder))
-#         self.lbl_logo.setPixmap(self.lbl_logo_image)
-        
         self.filter_widget = common_widgets.FilterWidget(parent=self)
  
         self.filter_widget_image = QtGui.QIcon(os.path.join(ICON_PATH,"search.png"))
         self.filter_widget.pb_filter.setIcon(self.filter_widget_image)
         self.filter_layout.addWidget(self.filter_widget)
-        
-#         self.context_widget = ContextWidget(parent=self, engine_unique_id = self._engine_unique_id)
-#         self.context_widget.setObjectName('ToolManagerMainWidget.context_widget_' + str(id(self.context_widget)))
-#         self.context_layout.addWidget(self.context_widget)
 
         
         self._tools = None
 
         # Signals
-        
         self.refresh_btn.clicked.connect(self.schedule_refresh)
         self.filter_widget.pb_filter.clicked.connect(self.schedule_refresh)
         self.filter_widget.add_custom_filters(['tool','script'])
@@ -123,8 +112,6 @@ class ToolManagerMainWidget(QtWidgets.QWidget):
         to be run only once at the beginning with a delay
     '''
     def fill_tools_list(self):
-        #self.clear_tools()
-        
         self._tools = tool_manager.get_tools()
         for tool in self._tools:
             tool_widget = ToolManagerToolWidget(self,tool)
@@ -205,7 +192,8 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
         
       
         self.tool = self._tool["definition"]()
-        self._tool_instance = gui_loader.get_default_container(self.tool, "UPLOADER")
+        maya_window = getMayaWindow()
+        self._tool_instance = gui_loader.get_default_container(self.tool, self._tool["name"], parent=maya_window)
         self._tool_instance.setWindowFlags(QtCore.Qt.Window)
         ui.apply_resource_style(self._tool_instance)
         self.move_tool_to_cursor_position(self._tool_instance)
@@ -242,9 +230,9 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
                 tool_center_y = tool_widget.height()/2 + Y_OFFSET
             elif bottom_limit > desktop_height:
                 tool_center_y = desktop_height - tool_widget.height()/2 - Y_OFFSET
-                
+                 
             return QtCore.QPoint(tool_center_x, tool_center_y)
-        
+         
         tool_pos = fit_tool_inside_screen(tool_instance_frame_geometry)
         tool_instance_frame_geometry.moveCenter(tool_pos)
 
@@ -252,11 +240,13 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
             
 def run(tab_position=False):
     import os
-    app = QtWidgets.QApplication(sys.argv)
-    ui.apply_resource_style(app)
-    print('PHUCK')
-    tool = ToolManager()
-    sys.exit(app.exec_())
+#     app = QtWidgets.QApplication(sys.argv)
+    from Framework.lib.ui.ui import getMayaWindow
+    maya_window = getMayaWindow()
+    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=maya_window)
+    obj.show()
+
+#     sys.exit(app.exec_())
 
 if __name__ == "__main__":
     run()
