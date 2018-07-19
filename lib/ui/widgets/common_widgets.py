@@ -8,11 +8,15 @@ import sys
 import pprint
 import os
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui, QtXml
-# from cmn.cmn.python.lib import PyQt5
+from Framework.lib.types import types 
+# from cmn.cmn.python.lib imporPyQt5
 # from PyQt5 import QtWidgets, QtCore, Qt
 from Framework import get_css_path
-
-
+from Framework.lib.gui_loader import gui_loader
+from Framework.lib.file import utils as file_utils
+from Framework import get_environ_file, get_css_path, get_icon_path
+CSS_PATH = get_css_path()
+ICON_PATH = get_icon_path()
 def set_style_sheet(Qt_object, css_file):
     with open(css_file, 'r') as style_file:
         Qt_object.setStyleSheet(style_file.read())
@@ -248,7 +252,90 @@ class MovieLabel(QtWidgets.QWidget):
         self.movie_screen.setMovie(self.movie)
         self.movie.start()
 
-# #
+class FilterableWidget(object):
+    
+    def __init__(self, parent=None):
+        super(FilterableWidget, self).__init__()
+        self.is_filtered = True
+        
+    '''
+    implement this method in the widget that inherits specifying the rules that filter
+    '''
+    def filtering_behaviour(self):
+        pass
+    
+    def IsFiltered(self, filters):
+        
+        self.is_filtered = self.filtering_behaviour(filters)
+        return self.is_filtered
+    
+
+
+class FilterWidget(QtWidgets.QWidget):
+        
+    def __init__(self, parent = None,widgets_to_filter=[]):
+        super(FilterWidget,self).__init__(parent)
+        self.widgets_to_filter = widgets_to_filter
+        gui_loader.loadUiWidget(os.path.normpath(os.path.join(os.path.dirname(__file__),'../..','ui',"uis",'filter_widget.ui')), self)
+        self.le_filter.textChanged.connect(self.filter)
+        self.custom_filters = None
+        self.pb_filter.setIcon(QtGui.QIcon(os.path.join(ICON_PATH,"search.png")))
+        self.widget_names = {}
+        
+    def filter(self):
+        """ provokes error C++. Use findChild instead. """
+        ''' 
+        print('testing C++ error')
+        filters = self.le_filter.text().split('')
+        '''
+        filters = self.findChild(QtWidgets.QLineEdit,'le_filter').text().split(' ')
+        
+        if self.custom_filters:
+            filters.extend(self.custom_filters)
+            
+        self.hide_all()
+        
+        for w in self.parentWidget().findChildren(FilterableWidget):
+            if w.IsFiltered(filters):
+                w.show()
+        '''
+        for w in self.widgets_to_filter:
+            if w.IsFiltered(filters):
+                w.show()
+        '''
+    def clear_filter_widget(self, clear_custom_filters = True):
+        self.widgets_to_filter = {}
+        if clear_custom_filters:
+            self.clear_custom_filters()
+        
+    def hide_all(self):
+        for w in self.parentWidget().findChildren(QtWidgets.QWidget):
+            if isinstance(w,FilterableWidget):
+                w.hide()
+        '''    
+        for w in self.widgets_to_filter:
+            w = self.findChild(FilterableWidget, w_name)
+            w.hide()
+        '''
+    def add_filterable_widget(self, w):
+        if not self.widgets_to_filter:
+            self.widgets_to_filter = []
+        if isinstance(w, FilterableWidget):
+            self.widgets_to_filter.append(w)
+        else:
+            raise Exception('Widget must inherit from FilterableWidget class!')
+        
+    def add_custom_filters(self, custom_filters):
+        if not self.custom_filters:
+            self.custom_filters = []
+        if any(type(custom_filters) == string_type for string_type in (types.StringType,types.UnicodeType,types.StringTypes)):
+            if not custom_filters in self.custom_filters:
+                self.custom_filters.append(unicode(custom_filters))
+        elif type(custom_filters) == type([]):
+            self.custom_filters = list(set(self.custom_filters) | set(unicode(f) for f in custom_filters))
+        
+    def clear_custom_filters(self):
+        self.custom_filters = None
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)

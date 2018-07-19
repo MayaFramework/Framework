@@ -25,6 +25,26 @@ except:
 import xml.etree.ElementTree as xml
 from cStringIO import StringIO
 
+def get_child(root_element, name):
+    """
+    Get a children element by name.
+
+    Args:
+        root_element (QtCore.QObject): UI object root to search recursive the child that has the given name.
+        name (str): The name of the ui element that is searched.
+
+    Returns:
+        QtCore.QObject: UI object that uses the given name.
+    """
+    if root_element:
+        children = root_element.findChildren(QtCore.QObject, name)
+        if children:
+            return children[0]
+
+    return None
+
+
+
 def loadUiWidget(uifilename, parent=None):
     """
     Load an ui file from a given file.

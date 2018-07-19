@@ -1,5 +1,9 @@
 import os
+import sys
 from Framework.lib.file import utils
+
+def get_base_framework_path():
+    return os.path.dirname(__file__)
 
 def get_environ_file():
     return os.path.join(os.path.dirname(__file__),"config","environ.json")
@@ -18,3 +22,8 @@ def get_icon_path():
 def get_uis_path():
 	from .lib.ui.uis import get_uis_path
 	return get_uis_path()
+    
+    
+    
+if __name__ == "__main__":
+    pass

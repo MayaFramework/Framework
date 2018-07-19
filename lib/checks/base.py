@@ -13,7 +13,9 @@ import os
 
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.gui_loader import gui_loader
-from simple.cmn import image
+from Framework import get_environ_file, get_css_path, get_icon_path, get_environ_config
+
+CSS_PATH = get_css_path()
 from Framework import get_environ_file, get_css_path, get_icon_path
 IMAGE_PATH = get_icon_path()
 '''
@@ -768,6 +770,7 @@ class CheckSceneName(BaseCheck):
 
 if __name__ == "__main__":
 
+    from Framework.lib.gui_loader import gui_loader
     QtWidgets.QApplication(sys.argv)
     # # EXAMPLE BATTERY
     GENERAL_CHECKS_BATTERY = [CleanPlugins(), CheckSceneName()]
@@ -776,5 +779,9 @@ if __name__ == "__main__":
 
     checker_widget = BaseChecksWidget([general_batery_check])
 
-    maya_widget = gui_loader.get_maya_container(checker_widget)
-    maya_widget.exec_()
+    obj = gui_loader.get_default_container(checker_widget, "Checker")
+    obj.exec_()
+
+#     DependencyLoaderWidget().show()
+#     app.exec_()
+    obj.exec_()
