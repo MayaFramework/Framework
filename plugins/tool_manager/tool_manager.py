@@ -248,12 +248,12 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
 def run(tab_position=False):
     import os
     app = QtWidgets.QApplication(sys.argv)
-#     from Framework.lib.ui.ui import getMayaWindow
-#     maya_window = getMayaWindow()
-    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=None)
+    from Framework.lib.ui.ui import getMayaWindow
+    maya_window = getMayaWindow()
+    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=maya_window)
     obj.show()
 
-    sys.exit(app.exec_())
+#     sys.exit(app.exec_())
 
 if __name__ == "__main__":
     run()
