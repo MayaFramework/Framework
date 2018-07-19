@@ -233,16 +233,20 @@ def getShotgunRange():
     if sceneInfo:
         sg = sapi.Shotgun("https://esdip.shotgunstudio.com",
                                  login="tdevelopment",
-                                 password="BM@Developement") 
+                                 password="BM@Developement")
+                                          
         shot=sceneInfo['seq'] + '.' + sceneInfo['shot']
-        shotgunInfo = sg.find("Shot", filters=[["code", "is", shot],['project','is', {'type': 'Project','id': 86}]],
-                                      fields=["sg_cut_in", "sg_cut_out"])[0]
         
-        if shotgunInfo['sg_cut_in']:
-            shotRange['start'] = int(shotgunInfo['sg_cut_in'])	
-        
-        if shotgunInfo['sg_cut_out']:
-            shotRange['end'] = int(shotgunInfo['sg_cut_out'])
+        try:
+            shotgunInfo = sg.find("Shot", filters=[["code", "is", shot],['project','is', {'type': 'Project','id': 86}]],
+                                          fields=["sg_cut_in", "sg_cut_out"])[0]
+            if shotgunInfo['sg_cut_in']:
+                shotRange['start'] = int(shotgunInfo['sg_cut_in'])	
+            if shotgunInfo['sg_cut_out']:
+                shotRange['end'] = int(shotgunInfo['sg_cut_out'])
+                
+        except:
+            return None
         
         return shotRange
 
