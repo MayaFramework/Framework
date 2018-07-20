@@ -1,5 +1,6 @@
 import shotgun_api3 as sapi
-from Framework.lib.shotgun.user import ShotgunUser
+from Framework.lib.shotgun.user import ShotgunUser, User
+from Framework.lib.shotgun.sequence import Sequence
 
 
 class ShotgunInit(object):
@@ -16,23 +17,38 @@ class ShotgunInit(object):
             return ShotgunUser(self.shotgun, **user)
         return None
 
-    def getSeqs(self, names=False, fields=["code"]):
-        seqs = self.shotgun.find("Sequence", [["project", "is", {"type":"Project", "id":86}]], fields)
-        if names:
-            return sorted([seq.get("code") for seq in seqs])
-        return seqs
-
-    def getSeq(self, sequence, fields=["code"]):
-        return self.shotgun.find_one("Sequence", [["code", "is", sequence]], fields)
-
-    def getShots(self, sequence, names=False, fields=["code"]):
-        sequenceObj = self.getSeq(sequence)
-        if sequenceObj:
-            shots = self.shotgun.find("Shot", [["sg_sequence", "is", {"type":"Sequence", "id":sequenceObj.get("id")}]], fields)
-            if names:
-                return sorted([shot.get("code") for shot in shots])
-            return shots
+    def getUserV2(self, loginName):
+        user = self.shotgun.find_one("HumanUser", filters=[["login", "is", loginName]], fields=["login", "name"])
+        if user:
+            return User(user.get("id"), **user)
         return None
 
+    def getSeqs(self, names=False, fields=["code"]):
+        seqs = self.shotgun.find("Sequence", [["project", "is", {"type":"Project", "id":86}]], fields)
+        if seqs:
+            if names:
+                return sorted([seq.get("code") for seq in seqs])
+            return [Sequence(seq.get("id"), **seq) for seq in seqs]
+        return None
 
-        
+    def getSeq(self, sequence, fields=["code"]):
+        seq = self.shotgun.find_one("Sequence", [["code", "is", sequence]], fields)
+        if seq:
+            _id = seq.get("id")
+            return Sequence(_id, **seq)
+        return None
+
+# s = ShotgunInit()
+# # seq = s.getSeq("WTF")
+# # print seq
+# # shot = seq.getShot("020")
+# # print shot.getTask("Light")
+
+# user = s.getUserV2("asierra")
+# print user.getTasks()[0]
+# # print s.getUserV2("asierra").getTasks()
+# # sType = "HumanUser"
+# # filters = [["name", "is", "Dalia Gutierrez"]]
+# # user = s.shotgun.find_one(sType, filters)
+# # # print user
+# # print s.shotgun.find_one("Task",  , ["content", "entity", "sg_status_list"])
