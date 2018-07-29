@@ -43,7 +43,7 @@ import types
 import shutil
 import importlib
 
-from simple_pipeline.cmn.python.lib.config.config import Config
+from Framework.lib.config.config import Config
 
 config = Config.instance()
 
