@@ -6,9 +6,9 @@ sys.path.append(r"P:/TOOLS")
 
 import git
 import maya.cmds as cmds
-import Framework.plugins.playblaster.playblasterUI as playblasterUI
-import Framework.plugins.playblaster.playbasterCheck as check
-import Framework.plugins.playblaster.playblasterAnimUtils as playblasterAnimUtils
+import BM2Public.tools.animation.playblaster.playblasterUI as playblasterUI
+import BM2Public.tools.animation.playblaster.playbasterCheck as check
+import BM2Public.tools.animation.playblaster.playblasterAnimUtils as playblasterAnimUtils
 
     
 if not cmds.about(batch=True):
@@ -16,7 +16,7 @@ if not cmds.about(batch=True):
     cmds.evalDeferred('playblasterValues=check.checkWindowAtStartMaya()',lowestPriority=True)
 
     # launch aTools_Animation_Bar
-    cmds.evalDeferred("from Framework.plugins.aTools.animTools.animBar import animBarUI; animBarUI.show('launch')")
+    cmds.evalDeferred("from BM2Public.tools.animation.aTools.animTools.animBar import animBarUI; animBarUI.show('launch')")
 
 
 
