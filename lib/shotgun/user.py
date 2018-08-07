@@ -1,4 +1,8 @@
 import shotgun_api3
+from shotgunObject import ShotgunObject
+from shotgunExceptions import NotRegisteredUser
+from task import Task
+
 
 class ShotgunUser(object):
     
@@ -62,3 +66,38 @@ class ShotgunUser(object):
 
     def getUserImage(self):
         return self.getField("image")
+
+
+class User(ShotgunObject):
+
+    TYPE = "HumanUser"
+    NAMINGATTR = "name"
+
+    def __init__(self, userID, **userInfo):
+        super(User, self).__init__(userID, **userInfo)
+
+    def getTasks(self):
+        if not hasattr(self, "userName"):
+            user = self.shotgun.find_one("HumanUser", filters=[["id", "is", self.id]], fields=["login", "name"])
+            if not user:
+                raise NotRegisteredUser("Can't find user with id {}".format(self.id))
+            userName = user.get("name")
+            setattr(self, "userName", userName)
+
+        filters = [
+            ["project", "is", {"type":"Project", "id":86}], 
+            ["task_assignees", "name_contains", self.userName]
+            ]
+
+        fields = [
+            "content",
+            "entity", 
+            "sg_status_list"
+            ]
+
+        tasks = self.shotgun.find("Task", filters, fields)
+        if tasks:
+            return [Task(task.get("id"), **task) for task in tasks]
+
+        return None
+
