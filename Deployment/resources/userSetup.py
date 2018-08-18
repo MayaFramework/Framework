@@ -6,18 +6,16 @@ sys.path.append(r"P:/TOOLS")
 
 import git
 import maya.cmds as cmds
-import BM2Public.tools.animation.playblaster.playblasterUI as playblasterUI
-import BM2Public.tools.animation.playblaster.playbasterCheck as check
+import BM2Public.tools.animation.playblaster.playblasterClass as playblaster
 import BM2Public.tools.animation.playblaster.playblasterAnimUtils as playblasterAnimUtils
 
     
 if not cmds.about(batch=True):
     # launch playblaster lastState
-    cmds.evalDeferred('playblasterValues=check.checkWindowAtStartMaya()',lowestPriority=True)
+    cmds.evalDeferred('playblasterWindow=playblaster.playblaster(); playblasterWindow.checkWindowAtStartMaya()',lowestPriority=True)
 
     # launch aTools_Animation_Bar
     cmds.evalDeferred("from BM2Public.tools.animation.aTools.animTools.animBar import animBarUI; animBarUI.show('launch')")
-
 
 
 os.environ["GIT_PYTHON_GIT_EXECUTABLE"] = "P:/Deployment/Git/bin/git.exe"
