@@ -280,6 +280,10 @@ class Downloader(QtCore.QObject):
                     file_path (str)
                     dropboxManager response (object)
         '''
+        # TODO: set only readable when download finished and if exists in local
+        # and the permission its just readable change it to editable
+        # TODO: Add format error to regroup them into more understandable messages
+        
         
         response = DownloaderResponse()
         response.message =  "Downloading: %s " % file_path
