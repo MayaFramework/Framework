@@ -30,8 +30,9 @@ def setStyleSheet(uiClass, cssFile):
     file = open(cssFile).read()
     uiClass.setStyleSheet(file)
 
+form_class, base_class = gui_loader.load_ui_type(os.path.join(os.path.dirname(__file__), "gui", "main.ui"))
 
-class DependencyLoaderWidget(QtWidgets.QDialog):
+class DependencyLoaderWidget(base_class, form_class):
     _correct_downloaded = []
     _failed_downloaded = []
     # main flags
@@ -50,7 +51,8 @@ class DependencyLoaderWidget(QtWidgets.QDialog):
 
     def __init__(self, file_path="",parent=None):
         super(DependencyLoaderWidget, self).__init__(parent=parent)
-        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
+        self.setupUi(self)
+#         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         setStyleSheet(self, os.path.join(CSS_PATH, 'dark_style1.qss'))
         if file_path:
             self.path.setText(file_path)
