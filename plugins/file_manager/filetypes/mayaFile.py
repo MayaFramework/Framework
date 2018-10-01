@@ -14,7 +14,8 @@ class Maya(GenericFile):
     #     downloader = DependencyLoaderWidget(file_path=self.local_path)
     #     downloader.show()
 
-    def downloadAll(self):
-        downloader = DependencyLoaderWidget(file_path=self.local_path)
+    def downloadAll(self, parent=None):
+        downloader = DependencyLoaderWidget(parent=parent,file_path=self.local_path)
         downloader.external_open_file = False
         downloader.show()
+        downloader.execute_update_process()

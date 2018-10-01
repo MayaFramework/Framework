@@ -309,12 +309,12 @@ class FileManager(form, base):
             # print "Downloading Folder"
             files = self.selectedItem.allChildren()
             files = [entry.path_display.replace("/work/", "P:/") for entry in files]
-            downloader = DependencyLoaderWidget()
+            downloader = DependencyLoaderWidget(parent=self)
             downloader.execute_update_process(extra_files_to_download=files)
         else:
             if downloadOption == FileManager.DOWNLOAD:
                 if isinstance(self.selectedItem, Maya):
-                    self.selectedItem.downloadAll()
+                    self.selectedItem.downloadAll(parent=self)
                 else:
                     self.selectedItem.download()
             elif downloadOption == FileManager.DOWNLOAD_FILE_ONLY:
