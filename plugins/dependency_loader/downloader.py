@@ -251,7 +251,7 @@ class Downloader(QtCore.QObject):
                     response.state = DownloaderResponse.ERROR_STATE
                     response.message = "Download success but different size from the local content"
                     
-                print file_path, local_size, file_path_mtd.size
+#                 print file_path, local_size, file_path_mtd.size
         
         
         # Now check for new possible files pulling from this one
