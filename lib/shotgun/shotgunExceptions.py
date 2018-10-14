@@ -1,4 +1,4 @@
-import shotgun_api3 as sapi
+from Framework.lib.ext_lib import shotgun_api3 as sapi
 
 class NotRegisteredUser(sapi.ShotgunError):
     pass

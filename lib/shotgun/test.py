@@ -1,4 +1,4 @@
-import shotgun_api3 as sapi
+
 # sg = sapi.Shotgun("https://esdip.shotgunstudio.com",
 #                   login="asierra", password="Ba090313ba-")
 # #print sg.authenticate_human_user(user_login="asierra", user_password="Ba090313ba-")

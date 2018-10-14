@@ -1,4 +1,5 @@
-import shotgun_api3 as sapi
+from Framework.lib.ext_lib import shotgun_api3 as sapi
+
 from Framework.lib.shotgun.user import ShotgunUser, User
 from Framework.lib.shotgun.sequence import Sequence
 
