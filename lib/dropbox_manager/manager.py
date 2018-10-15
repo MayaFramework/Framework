@@ -37,7 +37,7 @@ from Framework.lib.ext_lib.dropbox import files
 from Framework.lib.ext_lib.dropbox import file_properties
 from Framework.lib.singleton import Singleton
 from Framework.lib.config.config import Config
-
+from dropboxMetadata import DropboxMetadata
 
 class DropboxManager(Singleton):
 
@@ -353,9 +353,13 @@ class DropboxManager(Singleton):
 
 
 if __name__ == "__main__":
-    pass
-#     # file_path = r"work/bm2/seq/tst/sho/650/scncmp/out/_old/bm2_seqsho_seq_tst_sho_650_scncmp_default_none_wip.ma"
-#     dpx2 = DropboxManager()
+    
+    file_path = r"P:/BM2/seq/dip/sho/020/lighting/wip/bm2_seqsho_seq_dip_sho_020_lighting_david_none_wip.0001.ma"
+    dpx = DropboxManager()
+    metadata = dpx.getFileMetadata(file_path)
+    print metadata
+    import os
+    os.path.getsize('C:\\Python27\\Lib\\genericpath.py')
 # #     dpx.uploadFile(file_path, overwrite=True)
 # #     print dpx.getTargetPath(file_path)
 # #     print dpx.getDropboxPath(file_path)
@@ -393,22 +397,22 @@ if __name__ == "__main__":
 #     # ptid:JRK_a6mrxaAAAAAAAAAFAw
 #     print dpx2.getFileMetadata("/work/bm2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma")
 #
-    from dropboxMetadata import DropboxMetadata
-    # FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip001.ma"
-    FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma"
-    TOKENID = "JRK_a6mrxaAAAAAAAAAFAVrk1F0DewHl7V_eQrtBo7d6671VCUMaA3ylJ915VkTv"
-    TEMPLATEID = "ptid:JRK_a6mrxaAAAAAAAAAFAw"
-    USERID = "dbmid:AAB3VU3cmHRAMVZZwYwvzzKnR_NQKEYTHN8"
-
-    _config = Config.instance()
-    DropBox = dropbox
-    dpx = DropBox.dropbox.Dropbox(TOKENID, headers={"Dropbox-Api-Select-User":USERID})
-    # prp = [file_properties.PropertyGroupUpdate(TEMPLATEID, [file_properties.PropertyField("cAuthor", "Alberto Sierra")])]
-    # dpx.file_properties_properties_update(FILENAME, prp)
-    dpxmeta = DropboxMetadata(dpx.files_alpha_get_metadata(FILENAME, include_property_templates=[TEMPLATEID]))
-    # print dpxmeta.customProperties
-    template =  dpxmeta.getTemplateFields()
-    print template.fields
-    # print template.getField("cVersion")
+#     from dropboxMetadata import DropboxMetadata
+#     # FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip001.ma"
+#     FILENAME = "/WORK/BM2/elm/gafasGato_TEST/mod/high/main/wip/bm2_elmmod_elm_gafasGato_mod_high_main_default_none_wip.0001.ma"
+#     TOKENID = "JRK_a6mrxaAAAAAAAAAFAVrk1F0DewHl7V_eQrtBo7d6671VCUMaA3ylJ915VkTv"
+#     TEMPLATEID = "ptid:JRK_a6mrxaAAAAAAAAAFAw"
+#     USERID = "dbmid:AAB3VU3cmHRAMVZZwYwvzzKnR_NQKEYTHN8"
+# 
+#     _config = Config.instance()
+#     DropBox = dropbox
+#     dpx = DropBox.dropbox.Dropbox(TOKENID, headers={"Dropbox-Api-Select-User":USERID})
+#     # prp = [file_properties.PropertyGroupUpdate(TEMPLATEID, [file_properties.PropertyField("cAuthor", "Alberto Sierra")])]
+#     # dpx.file_properties_properties_update(FILENAME, prp)
+#     dpxmeta = DropboxMetadata(dpx.files_alpha_get_metadata(FILENAME, include_property_templates=[TEMPLATEID]))
+#     # print dpxmeta.customProperties
+#     template =  dpxmeta.getTemplateFields()
+#     print template.fields
+#     # print template.getField("cVersion")
     
     

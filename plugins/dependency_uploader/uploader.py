@@ -55,7 +55,7 @@ class Uploader(object):
         if not file_path.endswith(".ma"):
             return False
 
-        self.work_environ = file_path.rsplit("/",2)[0]
+        self.work_environ = file_path.rsplit("/",2)[0].replace("BM2","bm2")
         dependencies = self._ma_reader.get_references(file_path)
         if dependencies and isinstance(dependencies, dict):
             aux_dict = {}

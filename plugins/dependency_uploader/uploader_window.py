@@ -35,8 +35,8 @@ ICON_PATH = get_icon_path()
 
 '''
 
-
-class UploaderWindow(QtWidgets.QDialog):
+form_class, base_class = gui_loader.load_ui_type(os.path.join(os.path.dirname(__file__), "gui", "main.ui"))
+class UploaderWindow(base_class,form_class):
     timeout = 60*60
     TOOL_NAME = "UPLOADER"
     CURRENT_AREA_WORK_PATH = " "
@@ -46,12 +46,12 @@ class UploaderWindow(QtWidgets.QDialog):
     ASK_TO_PUBLISH = True
     def __init__(self, parent=None, file_path=""):
         super(UploaderWindow, self).__init__(parent=parent)
+        self.setupUi(self)
         self.setWindowTitle(self.TOOL_NAME)
         self.current_threads = 0
         self.maximum_threads = 4
-        gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
+#         gui_loader.loadUiWidget(os.path.join(os.path.dirname(__file__), "gui", "main.ui"), self)
         ui.apply_resource_style(self)
-#         self.setupUi(self)
         self.uploader = Uploader()
         self._init_widget()
         if file_path:

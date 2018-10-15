@@ -1,16 +1,19 @@
-import shotgun_api3 as sapi
+from Framework.lib.ext_lib import shotgun_api3 as sapi
+
 from shotgunObject import ShotgunObject
 
 
 class Shot(ShotgunObject):
 
     TYPE = "Shot"
+    NAMINGATTR = "code"
 
-    def __init__(self, code=None, shotID=None, **shotInfo):
-        super(Shot, self).__init__(code=code, objectID=shotID, **shotInfo)
+    def __init__(self, shotID=None, **shotInfo):
+        super(Shot, self).__init__(shotID, **shotInfo)
 
         self._image = shotInfo.pop("image", None)
         self._status = shotInfo.pop("status", None)
+        # self._name = shotInfo.pop("code", None)
 
     @property
     def image(self):

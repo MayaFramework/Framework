@@ -1,0 +1,7 @@
+{
+    "type": "tool",
+    "code": "file_manager",
+    "category": "general",
+    "name": "File Manager",
+    "icon": "dropbox-icon.png"
+}

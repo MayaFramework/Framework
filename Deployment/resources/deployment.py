@@ -93,11 +93,13 @@ def pull_latest_changes(repo_dir):
     repo.git.stash('save')
     o = repo.remotes.origin
     o.pull()
+    return True
 
 
 
 
 def load_repo(git_url, local_path, branch):
+    result = None
     if not is_git_repo(local_path):
         print "Cloning project: {project}... wait a few minutes".format(project=local_path)
         result = clone_repo(git_url, local_path, branch=branch)
@@ -105,7 +107,7 @@ def load_repo(git_url, local_path, branch):
             print "Finished Update process"
     else:
         print "Project exists in  {project}, pulling changes... wait a few minutes".format(project=local_path)
-        pull_latest_changes(local_path)
+        result = pull_latest_changes(local_path)
         if result:
             print "Finished Update process"
     

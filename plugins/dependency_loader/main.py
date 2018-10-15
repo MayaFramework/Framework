@@ -16,7 +16,16 @@ if __name__ == "__main__":
     obj = gui_loader.get_default_container(tool, "Update All")
     obj.show()
     app.exec_()
-    
+
     """
     P:bm2/seq/dip/sho/010/animation/wip/bm2_shoani_seq_dip_sho_010_animation_default_scene_wip0001.ma
+    #problemas abc
+    P:/bm2/seq/wtf/sho/030/layout/out/bm2_seqsho_seq_wtf_sho_030_layout_default_scene_out.ma
+    
+    # Problema   fur
+    OUT 
+    WORK/BM2/seq/dip/sho/020/lighting/out/bm2_seqsho_seq_dip_sho_020_lighting_scenery_none_out.ma
+    WIP
+    WORK/BM2/seq/dip/sho/020/lighting/wip/bm2_seqsho_seq_dip_sho_020_lighting_scenery_none_wip.0005.ma
+    
     """

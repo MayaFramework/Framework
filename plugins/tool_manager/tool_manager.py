@@ -245,18 +245,25 @@ class ToolManagerToolWidget(common_widgets.FilterableWidget, QtWidgets.QWidget):
 
         tool_instance.setGeometry(tool_instance_frame_geometry)
             
-def run(tab_position=False):
+def run_maya(tab_position=False):
     import os
-    app = QtWidgets.QApplication(sys.argv)
     from Framework.lib.ui.ui import getMayaWindow
     maya_window = getMayaWindow()
     obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=maya_window)
     obj.show()
 
+
+def run_python():
+    app = QtWidgets.QApplication(sys.argv)
+    from Framework.lib.ui.ui import getMayaWindow
+    obj = gui_loader.get_default_container(ToolManager(), "Update All", parent=None)
+    obj.show()
+    app.exec_()
+
 #     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    run()
+    run_python()
     
     
     

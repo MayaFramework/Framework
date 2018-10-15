@@ -63,3 +63,6 @@ def save(chk=False, out=False):
     widget.PUBLISH_TO_CHK = chk
     widget.PUBLISH_TO_OUT = out
     widget.show()
+    widget.execute_upload_process()
+    
+    
