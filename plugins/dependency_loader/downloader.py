@@ -4,6 +4,7 @@
 :author: Miguel Molledo Alvarez
 :email: miguel.molledo.alvarez@gmail.com
 """
+import copy
 import os, sys
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.config.config import Config
@@ -154,8 +155,10 @@ class Downloader(QtCore.QObject):
             if not self._file_list:
                 raise Exception("Not file list defined")
         # for each file list check if its a maya file and get its dependencies
-        aux_file_list = file_list
-        for f in file_list:
+        aux_file_list = copy.deepcopy(file_list)
+        tmp_file_list = copy.deepcopy(file_list)
+        for f in tmp_file_list:
+            print f
             if not self.is_loadable(f):
                 self._processed_file_list.append(f)
                 continue
