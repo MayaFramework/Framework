@@ -13,7 +13,7 @@ from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.shotgun.shotgunInit import ShotgunInit
 from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
 from Framework.lib.dropbox_manager.manager import DropboxManager
-
+from Framework.lib.ui.widgets import common_widgets
 
 from settings import CustomSettings
 from filetypes.mayaFile import Maya
@@ -312,8 +312,28 @@ class FileManager(form, base):
     def downloadFile(self, downloadOption=0):
         if isinstance(self.selectedItem, Folder):
             # print "Downloading Folder"
-            files = self.selectedItem.allChildren()
-            files = [entry.path_display.replace("/work/", "P:/") for entry in files]
+            files_tmp = self.selectedItem.allChildren()
+            files = []
+            for entry in files_tmp:
+                
+#                 local_file = entry.path_display.replace("/work/", "P:/")
+                local_file = entry.replace("/work/", "P:/")
+                if "." in os.path.basename(local_file):
+                    files.append(local_file)
+            if files:
+                msg = "\n".join(files)
+                prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg="We are going to download all these files:\n %s"%msg)
+                prompt.exec_()
+                if not prompt.get_response():
+                    return
+
+            else:
+                prompt = common_widgets.MessageWindow("NO CHILDREN",
+                                             common_widgets.MessageWindow.ERROR_LEVEL,
+                                             "Not children found for this folder: %s"%self.selectedItem.local_path)
+                prompt.exec_()
+                return
+
             downloader = DependencyLoaderWidget(parent=self)
             downloader.execute_update_process(extra_files_to_download=files)
         else:

@@ -306,12 +306,13 @@ class DropboxManager(Singleton):
         children = self._dpx.files_list_folder(folder, recursive=True)
         return children
 
-    def getChildren(self, folder, includeMetadata=False):
+    def getChildren(self, folder, includeMetadata=False, recursive=True):
         if folder == "bm2":
             folder = "/work/bm2/"
         else:
             folder = self.getDropboxPath(folder)
-        children = self._dpx.files_list_folder(folder)
+
+        children = self._dpx.files_list_folder(folder, recursive=recursive)
         if includeMetadata:
             return sorted([(os.path.join(folder,file_metadata.name), file_metadata) for file_metadata in children.entries if not file_metadata.name.startswith(".")])
         return sorted(

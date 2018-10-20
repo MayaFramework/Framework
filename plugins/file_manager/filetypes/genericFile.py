@@ -1,6 +1,7 @@
 from Framework.lib.dropbox_manager.manager2 import DropboxManager2
 from Framework.lib.gui_loader import gui_loader
 from Framework.lib.ui import ui
+from Framework.lib.dropbox_manager.manager import DropboxManager
 
 
 import os
@@ -21,6 +22,7 @@ class GenericFile(object):
         self._local_path, self._remote_path = self.validate_scene_path(path)
         self._dpxMetadata = None
         self.dpx = DropboxManager2()
+        self._old_dpx = DropboxManager.instance()
 
     @property
     def name(self):
