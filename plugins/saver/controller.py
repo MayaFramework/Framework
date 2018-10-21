@@ -85,7 +85,7 @@ widget.PUBLISH_TO_CHK = {chk}
 widget.PUBLISH_TO_OUT = {out}
 widget.execute_upload_process()
 app.exec_()
-    """.format(ask=False, chk=False, out=False, file_path=file_path)
+    """.format(ask=False, chk=chk, out=out, file_path=file_path)
     if not os.path.exists(os.path.dirname(python_file_route)):
         os.makedirs(os.path.dirname(python_file_route))
     with open(python_file_route, "w+") as my_file:
