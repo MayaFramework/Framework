@@ -1,4 +1,4 @@
-from .. import baseIcon
+from Framework.plugins.toolbar import baseIcon
 
 TOOLS = [
     baseIcon.TestButton(),

@@ -6,5 +6,6 @@
   "disk": "P:",
   "show": "bm2",
   "internal_plugins":["Framework/plugins"],
-  "external_plugins":["BM2Public"]
+  "external_plugins":["BM2Public"],
+  "bm2_tmp_files_folder": "BM2_tmp"
 }
