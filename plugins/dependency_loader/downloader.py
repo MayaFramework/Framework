@@ -4,6 +4,7 @@
 :author: Miguel Molledo Alvarez
 :email: miguel.molledo.alvarez@gmail.com
 """
+import copy
 import os, sys
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.config.config import Config
@@ -61,6 +62,7 @@ class Downloader(QtCore.QObject):
     #filters
     FILTER_ERROR_PATHS = ['.mayaSwatches']
     NONEXISTENT_PATH = ["<UDIM>", "###"]
+    
     #signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
@@ -69,6 +71,11 @@ class Downloader(QtCore.QObject):
     STATE_OVERWRITE_LOCAL_FILES = True
     STATE_DOWNLOAD_DEPENDENCIES = True
     STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = True
+    
+    #checks
+    CHECK_FILE_SIZE = True
+    
+    
     def __init__(self, file_list=[]):
         super(Downloader, self).__init__()
         if isinstance(file_list, list):
@@ -148,8 +155,10 @@ class Downloader(QtCore.QObject):
             if not self._file_list:
                 raise Exception("Not file list defined")
         # for each file list check if its a maya file and get its dependencies
-        aux_file_list = file_list
-        for f in file_list:
+        aux_file_list = copy.deepcopy(file_list)
+        tmp_file_list = copy.deepcopy(file_list)
+        for f in tmp_file_list:
+            print f
             if not self.is_loadable(f):
                 self._processed_file_list.append(f)
                 continue
@@ -203,10 +212,13 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         # some paths are not found in dropbox because maya format some routs
         # to indicate a sequence of images, etc... 
+        
         if [x for x in self.NONEXISTENT_PATH if x in file_path]:
             response.state = DownloaderResponse.SUCCESS_STATE
         else:
             response.state = result
+        
+
             
         self._current_thread_count -=1
         self.on_file_finish_download.emit(response)
@@ -230,6 +242,21 @@ class Downloader(QtCore.QObject):
                 self.on_finish_download.emit()
 
             return
+        elif response.state == DownloaderResponse.SUCCESS_STATE:
+            if self.CHECK_FILE_SIZE and os.path.exists(file_path):
+                file_path_mtd = self._dpx.getFileMetadata(file_path)
+                local_size = 0
+                try:
+                    local_size = os.path.getsize(file_path)
+                except Exception as e:
+                    print e, "problem getting the size of file: %s"%(file_path)
+                if local_size and not int(local_size) == int(file_path_mtd.size):
+                    response.state = DownloaderResponse.ERROR_STATE
+                    response.message = "Download success but different size from the local content"
+                    
+#                 print file_path, local_size, file_path_mtd.size
+        
+        
         # Now check for new possible files pulling from this one
         # calculating dependencies
         if self.STATE_DOWNLOAD_DEPENDENCIES:

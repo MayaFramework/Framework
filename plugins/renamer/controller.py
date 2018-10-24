@@ -302,76 +302,67 @@ RENAMER_EXCEPTIONS = [WrongNameFormatting, WrongName, OldNamingConvention]
     
 if __name__ == "__main__":
     rename = Renamer()
-    file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_chk.ma"
+    file_path = r"P:/BM2/elm/atariderecha/sha/high/shading/wip/bm2_elmsha_elm_atariderecha_sha_high_shading_default_none_wip.0030.ma"
     folder, filename = os.path.normpath(file_path).replace("\\","/").rsplit("/",1)
     wrong_path = r""
     import pprint
-
     
-    folder_fields = rename.get_fields_from_folder_path(folder)
-    print "FOLDER_FIELDS"
-    pprint.pprint(folder_fields)
-    
-    
-    file_name_fields = rename.get_fields_from_file_name(filename)
-    print "FILENAME_FIELDS"
-    pprint.pprint(file_name_fields)
-
-    fields = rename.get_fields_from_file_path(file_path)
-    print "FILE_PATH_FIELDS"
-    pprint.pprint(fields)
-    print "CHECKING FILEDS VALUE FORMAT: %s"%file_path
-    print rename.check_fields_value(fields)
-    
-    print "CREATING A PATH FROM FIELDS"
-    print rename.generate_complete_file_path(fields)
-    print "CREATING A FILE_NAME FROM FIELDS"
-    print rename.generate_file_name(fields)
-    
-    print "CREATING A FOLDER PATH FROM FIELDS"
-    print rename.generate_folder_path(fields)
-    
-    
-    print "GENERATE COMPLETE PATH FROM FOLDER"
-    print rename.generate_complete_path_from_folder(folder,
-                                                    partition="[PARTITION]",
-                                                    description="[DESCRIPTION]",
-                                                    extension="[EXTENSION]",
-                                                    version ="[VERSION]")
-    
-    
-    
-    
-    print "GENERATE COMPLETE PATH FROM FILEPATH"
-    file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_chk.001.ma"
-    partition = ""
-    description=""
-    extension=""
-    version=""
-    print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
-    file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\cncmp_default_none_chk"
-    partition = ""
-    description=""
-    extension=""
-    version="002"
-    print "GENERATE COMPLETE PATH FROM FILEPATH"
-    print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
-    file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_chk.001.ma"
-    partition = ""
-    description="medueleunhuevo"
-    extension="peneduro"
-    version="002"
-    print "GENERATE COMPLETE PATH FROM FILEPATH"
-    print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
-    
-    
-    '''    
-    
-
-    print "CREATING A FILE NAME FROM A ROUT"
-    print ""
-    
-    
-    '''
-    
-    
+    print rename.get_fields_from_file_path(file_path)
+# 
+#     
+#     folder_fields = rename.get_fields_from_folder_path(folder)
+#     print "FOLDER_FIELDS"
+#     pprint.pprint(folder_fields)
+#     
+#     
+#     file_name_fields = rename.get_fields_from_file_name(filename)
+#     print "FILENAME_FIELDS"
+#     pprint.pprint(file_name_fields)
+# 
+#     fields = rename.get_fields_from_file_path(file_path)
+#     print "FILE_PATH_FIELDS"
+#     pprint.pprint(fields)
+#     print "CHECKING FILEDS VALUE FORMAT: %s"%file_path
+#     print rename.check_fields_value(fields)
+#     
+#     print "CREATING A PATH FROM FIELDS"
+#     print rename.generate_complete_file_path(fields)
+#     print "CREATING A FILE_NAME FROM FIELDS"
+#     print rename.generate_file_name(fields)
+#     
+#     print "CREATING A FOLDER PATH FROM FIELDS"
+#     print rename.generate_folder_path(fields)
+#     
+#     
+#     print "GENERATE COMPLETE PATH FROM FOLDER"
+#     print rename.generate_complete_path_from_folder(folder,
+#                                                     partition="[PARTITION]",
+#                                                     description="[DESCRIPTION]",
+#                                                     extension="[EXTENSION]",
+#                                                     version ="[VERSION]")
+#     
+#     
+#     
+#     
+#     print "GENERATE COMPLETE PATH FROM FILEPATH"
+#     file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_chk.001.ma"
+#     partition = ""
+#     description=""
+#     extension=""
+#     version=""
+#     print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
+#     file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\cncmp_default_none_chk"
+#     partition = ""
+#     description=""
+#     extension=""
+#     version="002"
+#     print "GENERATE COMPLETE PATH FROM FILEPATH"
+#     print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
+#     file_path = r"P:\bm2\seq\tst\sho\300\scncmp\chk\bm2_seqsho_seq_tst_sho_300_scncmp_default_none_chk.001.ma"
+#     partition = ""
+#     description="medueleunhuevo"
+#     extension="peneduro"
+#     version="002"
+#     print "GENERATE COMPLETE PATH FROM FILEPATH"
+#     print rename.generate_complete_file_path_from_file(file_path, partition, description, extension, version)
+#     

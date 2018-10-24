@@ -1,4 +1,5 @@
-import shotgun_api3 as sapi
+from Framework.lib.ext_lib import shotgun_api3 as sapi
+
 from shotgunExceptions import NotValidField
 from abc import ABCMeta
 import logging

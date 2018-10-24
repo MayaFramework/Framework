@@ -93,9 +93,14 @@ class ToolsLauncherUI(form, base):
 
 # EXAMPLE!!!
 
-# from Framework.plugins.toolbar import baseIcon, model, controller
-# reload(baseIcon)
-# reload(controller)
-# reload(model)
-# ui = model.ToolsLauncherUI()
-# ui.show()
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    from Framework.plugins.toolbar import baseIcon, model, controller
+    reload(baseIcon)
+    reload(controller)
+    reload(model)
+    ui = model.ToolsLauncherUI()
+    ui.show()
+    app.exec_()

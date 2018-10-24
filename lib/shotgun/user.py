@@ -1,4 +1,5 @@
-import shotgun_api3
+from Framework.lib.ext_lib import shotgun_api3 as sapi
+
 from shotgunObject import ShotgunObject
 from shotgunExceptions import NotRegisteredUser
 from task import Task

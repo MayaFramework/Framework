@@ -19,20 +19,27 @@ EXTRAPACKAGES = {
 }
 
 PACKAGES = ['pyside', 'six', 'dropbox', 'requests',
-            'urllib3', 'GitPython', EXTRAPACKAGES["shotgun"]]
+            'urllib3', 'GitPython', EXTRAPACKAGES["shotgun"], "pyside"]
 
 
 subprocess.call('setx PYTHONPATH "P:\TOOLS;C:\Python27\Lib\site-packages"')
 subprocess.call('setx Path "%USERPROFILE%\AppData\Local\Microsoft\WindowsApps;C:\Python27;C:\Python27\Scripts;"')
 
+import subprocess
 for package in PACKAGES:
-    args = ["install", package]
-    msg = "INSTALLING {}".format(package)
-    if package in sys.modules:
-        msg = "UPDATING {}".format(package)
-        args.append("-U")
-    print msg, args
-    pip.main(args)
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+
+    except Exception as e:
+        print e
+#     args = ["install", package]
+#     msg = "INSTALLING {}".format(package)
+#     if package in sys.modules:
+#         msg = "UPDATING {}".format(package)
+#         args.append("-U")
+#     print msg, args
+#     pip.main(args)
+
 
 
 # Set environ file 

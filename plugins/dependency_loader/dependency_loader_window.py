@@ -114,7 +114,7 @@ class DependencyLoaderWidget(base_class, form_class):
 
     @property
     def overwrite_local_files(self):
-        return self.__STATE_POPUP_WIDGET_ON_FINISHED_PROCESS
+        return self.__STATE_OVERWRITE_LOCAL_FILES
     
     @overwrite_local_files.setter
     def overwrite_local_files(self, value):
@@ -224,6 +224,9 @@ class DependencyLoaderWidget(base_class, form_class):
         self.log_text_widget.setPlainText(self.log_text)
         
         
+    def clean_flags(self):
+        pass
+        
     def _on_file_finish_download(self, downloaderResponse):
         self.add_log(file_path=downloaderResponse.file_path, message=downloaderResponse.message, state=downloaderResponse.state)
         self.update_item(downloaderResponse.file_path, state=downloaderResponse.state)
@@ -267,7 +270,10 @@ class DependencyLoaderWidget(base_class, form_class):
         if self.internal_open_file:
             self.openFileSignal.emit()
             
+        self.clean_flags()
         self.on_finish_download.emit()
+
+
 
 
     def _on_start_download(self):
@@ -350,6 +356,22 @@ class DependencyLoaderWidget(base_class, form_class):
     def on_update_btn_clicked(self):
         self.STATE_EXTERNAL_OPEN_FILE = True
         self.execute_update_process()
+
+    def execute_download_file(self, download_file):
+        file_list = [download_file]
+        
+
+        
+        self.dependency_list.clear()
+        self.log_text_widget.clear()
+        self.set_log_visible(True)
+        QtWidgets.QApplication.processEvents()
+        self.downloader.set_files_to_process(file_list)
+        self.create_default_folders_on_target(download_file)
+        self.downloader.start_download_process()
+        
+
+
     def execute_update_process(self,  extra_files_to_download=[]):
         """
         Set The loading gif visible
@@ -421,6 +443,21 @@ class DependencyLoaderWidget(base_class, form_class):
     def on_log_btn_clicked(self):
         self.set_log_visible(self.log_widget.isHidden())
     
+
+    @QtCore.Slot()
+    def on_download_file_btn_clicked(self):
+        try:
+            current_file_path = self.get_current_text()
+        except Exception as e:
+            print e
+            return
+
+        if  not os.path.exists(current_file_path):
+            current_file_path = self.downloader._dpx.getTargetPath(current_file_path)
+        self.download_dependencies = False
+        self.execute_download_file(current_file_path)
+        
+            
     @QtCore.Slot()
     def on_advance_options_btn_clicked(self):
         self.advance_options_widget.setVisible(self.advance_options_widget.isHidden())
@@ -428,13 +465,12 @@ class DependencyLoaderWidget(base_class, form_class):
     
     @QtCore.Slot(bool)
     def on_overwrite_chk_box_clicked(self, checked):
-        self.state_overwrite_local_files = checked
+        self.overwrite_local_files = checked
     
     
     @QtCore.Slot(bool)
     def on_download_ma_file_clicked(self, checked):
-        self.state_download_main_ma_state = checked
-    
+        self.download_dependencies = checked
     
     
     @QtCore.Slot(str)

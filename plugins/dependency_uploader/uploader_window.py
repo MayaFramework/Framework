@@ -103,11 +103,12 @@ class UploaderWindow(base_class,form_class):
         files_to_upload = self.find_tree_selection()
         files_to_upload.append(main_file)
         files_text = "\n".join(files_to_upload)
-        message = "You are going to upload these files, do you agree?\n %s " % files_text
-        prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
-        prompt.exec_()
-        if not prompt.get_response():
-            return
+        if self.ASK_TO_PUBLISH:
+            message = "You are going to upload these files, do you agree?\n %s " % files_text
+            prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg=message)
+            prompt.exec_()
+            if not prompt.get_response():
+                return
         # get chk and out options
 
         chk = None
