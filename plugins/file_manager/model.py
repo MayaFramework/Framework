@@ -232,7 +232,7 @@ class FileManager(form, base):
             data = urllib.urlopen(imageURL).read()
             image = QtGui.QImage()
             image.loadFromData(data)
-        except ValueError:
+        except:
             image = QtGui.QImage()
         self.userImageLB.setPixmap(QtGui.QPixmap(image))
         self.userNameLB.setText(self.userInfo[0])
