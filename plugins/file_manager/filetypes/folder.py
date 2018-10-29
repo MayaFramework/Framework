@@ -18,6 +18,9 @@ class Folder(GenericFile):
     def remote_children(self):
         # return self.dpx.getChildren(self.local_path, includeMetadata=True)
         return self.dpx.getAllChildren(self.remote_path)
+    
+    def remote_children_old(self):
+        return self._old_dpx.getChildren(self.remote_path, includeMetadata=True)
 
     def download(self, open=False):
         # dependenciesList = list()
