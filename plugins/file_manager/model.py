@@ -316,8 +316,8 @@ class FileManager(form, base):
             files = []
             for entry in files_tmp:
                 
-#                 local_file = entry.path_display.replace("/work/", "P:/")
-                local_file = entry.replace("/work/", "P:/")
+                local_file = entry.path_display.replace("/work/", "P:/")
+#                 local_file = entry.replace("/work/", "P:/")
                 if "." in os.path.basename(local_file):
                     files.append(local_file)
             if files:
@@ -333,9 +333,8 @@ class FileManager(form, base):
                                              "Not children found for this folder: %s"%self.selectedItem.local_path)
                 prompt.exec_()
                 return
+            self.execute_download_sub_process(file_list=files)
 
-            downloader = DependencyLoaderWidget(parent=self)
-            downloader.execute_update_process(extra_files_to_download=files)
         else:
             if downloadOption == FileManager.DOWNLOAD:
                 if isinstance(self.selectedItem, Maya):
@@ -350,6 +349,40 @@ class FileManager(form, base):
             else:
                 raise ValueError("downloadOption must be 0, 1 or 2")
             # self.selectedItem.download()
+    
+    def execute_download_sub_process(self, file_list):
+        import subprocess
+        from Framework.lib.config.config import Config 
+    #     python_file_route = "C:\Users\Miguel\AppData\Roaming\BM2_TMPORAL_FILES\saver_tmp_file.py"
+        python_file_route = os.path.join(os.getenv('APPDATA'), Config.instance().environ["bm2_tmp_files_folder"], "tmp_download_file_python.py")
+        file_list_string = ""
+        total_len = len(file_list)
+        for x, tmp_file in enumerate(file_list):
+            if x == 0:
+                file_list_string += "r'%s' "%tmp_file
+            elif x>0:
+                file_list_string += ",r'%s' "%tmp_file
+        
+        python_code = u"""
+from Framework.lib.ui.qt.QT import QtCore, QtGui, QtWidgets
+from Framework.plugins.dependency_loader.dependency_loader_window import DependencyLoaderWidget
+import sys
+app = QtWidgets.QApplication(sys.argv)
+downloader = DependencyLoaderWidget()
+downloader.show()
+downloader.execute_update_process(extra_files_to_download=[{file_list_string}])
+
+app.exec_()
+        """.format(file_list_string=file_list_string)
+        print python_file_route
+        if not os.path.exists(os.path.dirname(python_file_route)):
+            os.makedirs(os.path.dirname(python_file_route))
+        with open(python_file_route, "w+") as my_file:
+            my_file.write(python_code)
+        subprocess.Popen(['python', python_file_route])
+    
+
+
 
     def populateMainContainer(self, fileObj, addHistory=True):
         if isinstance(fileObj, Folder):

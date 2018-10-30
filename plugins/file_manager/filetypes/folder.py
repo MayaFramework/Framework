@@ -31,9 +31,9 @@ class Folder(GenericFile):
         pass
 
     def allChildren(self):
-        return self._old_dpx.getChildren(self.remote_path, recursive=True)
+        return self.dpx.getAllChildren(self.remote_path, recursive=True)
+#         return self._old_dpx.getChildren(self.remote_path, recursive=True)
         # PETA CON SUBCARPETAS
-#         return self.dpx.getAllChildren(self.remote_path, recursive=True)
 
 # path = "P:/bm2/elm/altavozPie"
 # b = list()

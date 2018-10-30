@@ -125,7 +125,7 @@ class DropboxManager2(Singleton):
         if recursive:
             while child.has_more:
                 child = self._apiObj.files_list_folder_continue(child.cursor)
-                childList.extend(child)
+                childList.append(child)
         return sorted(childList[0].entries, key=lambda x: x.name)
 
     def downloadFile(self, filePath):
