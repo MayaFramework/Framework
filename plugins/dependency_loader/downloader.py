@@ -12,6 +12,7 @@ from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.ui.qt_thread import CustomQThread
 from Framework.lib.ma_utils.reader import MaReader
 import time
+import datetime
 import DATA as D_DATA
 class DownloaderResponse(object):
     SUCCESS_STATE = 2
@@ -74,7 +75,7 @@ class Downloader(QtCore.QObject):
     
     #checks
     CHECK_FILE_SIZE = True
-    
+    CHECK_MODIFIED_DATE = False
     
     def __init__(self, file_list=[]):
         super(Downloader, self).__init__()
@@ -307,10 +308,10 @@ class Downloader(QtCore.QObject):
                     file_path (str)
                     dropboxManager response (object)
         '''
+
         # TODO: set only readable when download finished and if exists in local
         # and the permission its just readable change it to editable
         # TODO: Add format error to regroup them into more understandable messages
-        
         
         response = DownloaderResponse()
         response.message =  "Downloading: %s " % file_path
@@ -318,6 +319,20 @@ class Downloader(QtCore.QObject):
         response.file_path = file_path
         self.on_file_start_download.emit(response)
         response = "ERROR"
+        if self.CHECK_MODIFIED_DATE and os.path.exists(file_path):
+            
+            try:
+                file_path_metadata= self._dpx.getFileMetadata(file_path)
+            except Exception as e:
+                print e
+                return (DownloaderResponse.ERROR_STATE, file_path, e)
+            local_datetime = datetime.datetime.fromtimestamp(os.path.getctime(file_path))
+            dropbox_datetime = file_path_metadata.client_modified
+            print local_datetime, dropbox_datetime, file_path
+            if local_datetime and dropbox_datetime:
+                if local_datetime > dropbox_datetime:
+                    return (DownloaderResponse.SUCCESS_STATE, file_path, "Remote file older than local")
+        
         try:
             if not os.path.exists(file_path):
                 response = self._dpx.downloadFile(file_path)

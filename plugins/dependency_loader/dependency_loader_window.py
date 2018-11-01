@@ -44,6 +44,7 @@ class DependencyLoaderWidget(base_class, form_class):
     __STATE_DOWNLOAD_CONTENT_FROM_FOLDERS = True
     __STATE_INTERNAL_OPEN_FILE = False
     __STATE_EXTERNAL_OPEN_FILE = True
+    __CHECK_REMOTE_DATETIME = True
     # Signals
     on_finish_download = QtCore.Signal()
     on_start_download = QtCore.Signal()
@@ -113,6 +114,18 @@ class DependencyLoaderWidget(base_class, form_class):
             self.__STATE_POPUP_WIDGET_ON_FINISHED_PROCESS = value
 
     @property
+    def check_remote_date(self):
+        return self.__CHECK_REMOTE_DATETIME
+    
+    @check_remote_date.setter
+    def check_remote_date(self, value):
+        if isinstance(value, bool):
+            self.__CHECK_REMOTE_DATETIME = value
+            self.check_datetime_chk_box.setChecked(value)
+            self.downloader.CHECK_MODIFIED_DATE = value
+    
+
+    @property
     def overwrite_local_files(self):
         return self.__STATE_OVERWRITE_LOCAL_FILES
     
@@ -157,7 +170,7 @@ class DependencyLoaderWidget(base_class, form_class):
         self.overwrite_local_files = self.__STATE_OVERWRITE_LOCAL_FILES
         self.download_dependencies = self.__STATE_DOWNLOAD_DEPENDENCIES
         self.download_content_from_filtered_folders = self.__STATE_DOWNLOAD_CONTENT_FROM_FOLDERS
-        
+        self.check_remote_date = self.__CHECK_REMOTE_DATETIME
         
     def _init_signals(self):
         #setting downloader signals
@@ -466,6 +479,12 @@ class DependencyLoaderWidget(base_class, form_class):
     @QtCore.Slot(bool)
     def on_overwrite_chk_box_clicked(self, checked):
         self.overwrite_local_files = checked
+    
+    
+    
+    @QtCore.Slot(bool)
+    def on_check_datetime_chk_box_clicked(self, checked):
+        self.check_remote_date = checked
     
     
     @QtCore.Slot(bool)
