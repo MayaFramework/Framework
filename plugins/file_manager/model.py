@@ -315,11 +315,16 @@ class FileManager(form, base):
             files_tmp = self.selectedItem.allChildren()
             files = []
             for entry in files_tmp:
-                
                 local_file = entry.path_display.replace("/work/", "P:/")
-#                 local_file = entry.replace("/work/", "P:/")
-                if "." in os.path.basename(local_file):
-                    files.append(local_file)
+                if "." not in os.path.basename(local_file):
+                    continue
+                
+
+                if local_file  in  files:
+                    continue                    
+                
+                files.append(local_file)
+            files.sort()
             if files:
                 msg = "\n".join(files)
                 prompt = common_widgets.MessageWindow(title="CONFIRMATION",msg="We are going to download all these files:\n %s"%msg)
@@ -469,6 +474,6 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication(sys.argv)
     widget = FileManager()
-    obj = gui_loader.get_default_container(widget, "Update All", style=False, simple_bar=False)
+    obj = gui_loader.get_default_container(widget, "Update All", style=True, simple_bar=False)
     obj.show()
     app.exec_()

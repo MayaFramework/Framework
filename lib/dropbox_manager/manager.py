@@ -335,7 +335,11 @@ class DropboxManager(Singleton):
             while child.has_more:
                 child = self._dpx.files_list_folder_continue(child.cursor)
                 childList.append(child)
-        return sorted(childList[0].entries, key=lambda x: x.name)
+        result = []
+        for child_ in childList:
+            for entry in child_.entries:
+                result.append(entry)
+        return sorted(result, key=lambda x: x.name)
 
     def getMetadata(self, path, customProperties=False):
         if customProperties:
