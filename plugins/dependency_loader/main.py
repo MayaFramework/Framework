@@ -29,3 +29,9 @@ if __name__ == "__main__":
     WORK/BM2/seq/dip/sho/020/lighting/wip/bm2_seqsho_seq_dip_sho_020_lighting_scenery_none_wip.0005.ma
     
     """
+    
+    
+    #P:/bm2/chr/gato/cfx/thingHigh/groom/mps
+    #P:/bm2/seq/wtf/sho/040/hair/mps
+    
+    #
