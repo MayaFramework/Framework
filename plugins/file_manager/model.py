@@ -316,6 +316,8 @@ class FileManager(form, base):
             files = []
             for entry in files_tmp:
                 local_file = entry.path_display.replace("/work/", "P:/")
+                if "_old" in local_file:
+                    continue
                 if "." not in os.path.basename(local_file):
                     continue
                 
