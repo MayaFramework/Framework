@@ -11,6 +11,7 @@ from Framework.lib.config.config import Config
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.ui.qt_thread import CustomQThread
 from Framework.lib.ma_utils.reader import MaReader
+from Framework.lib.nk_utils.reader import NkReader
 import time
 import DATA as D_DATA
 class DownloaderResponse(object):
@@ -336,6 +337,11 @@ class Downloader(QtCore.QObject):
 
     def get_file_dependencies(self, file_path):
         try:
+            if self.is_nk_file(file_path):
+                dependencies = NkReader.get_references(file_path)
+                if dependencies: 
+                    return [self._dpx.getTargetPath(x) for x in dependencies]
+                
             if self.is_ma_file(file_path):
                 dependencies = MaReader.get_references(file_path)
                 if dependencies: 
@@ -350,8 +356,13 @@ class Downloader(QtCore.QObject):
             return True
         else:
             return False
+        
+    def is_nk_file(self, file_path):
+        if file_path.endswith(".nk"):
+            return True
+        else:
+            return False
    
-    
     def is_file_in_filter_rules(self, file_path):
         """
         Check if the path fits with the filters
