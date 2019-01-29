@@ -13,7 +13,8 @@ import pprint
 import re
 from Framework.lib.dropbox_manager.manager import DropboxManager
 
-REG_EXPRESSION = "(\"P:/.*);"
+REG_EXPRESSION = "(file C:/.*)"
+SUB_REG_EXPRESSION = "(C:/.*)"
 
 
 class NkReader(object):
@@ -30,14 +31,24 @@ class NkReader(object):
     
     @staticmethod
     def get_references(nk_file):
-        #TODO:
-        pass
+        _references = {}
+        with open(nk_file) as file:
+            lines = file.readlines()
+            for line in lines:
+                match_result = re.findall(REG_EXPRESSION, line)
+                if match_result:
+                    result = match_result[0].replace("\"", "")
+                    match_result_path = re.findall(SUB_REG_EXPRESSION, result)
+                    if match_result_path:
+                        path = match_result_path[0]
+                        _references[path] = {}
+    
+            if _references:
+                return _references
+            return None
     
     @staticmethod
     def get_all_references(dependencies_list, db_instance, path):
-        
-        #TODO: review
-        
         dependencies = NkReader.get_references(path)
         if dependencies:
             for dp in dependencies.keys():
