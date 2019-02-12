@@ -183,6 +183,9 @@ class DependencyLoaderWidget(base_class, form_class):
         self.error_ico_path=os.path.join(ICO_PATH, "error.png")
         self.list_ico_path=os.path.join(ICO_PATH, "list.png")
         
+        self.file_ma_ico_path=os.path.join(ICO_PATH, "maya_icon.png")
+        self.file_nk_ico_path=os.path.join(ICO_PATH, "nuke_icon.png")
+        
 
 
     def _context_menu_list(self):
@@ -348,8 +351,8 @@ class DependencyLoaderWidget(base_class, form_class):
 
     def get_current_text(self):
         file_path = os.path.normpath(self.path.text()).replace("\\", "/")
-        if not file_path or not file_path.endswith(".ma"):
-            raise Exception("Specify a ma file!")
+        if not file_path or not file_path.endswith(".ma") or not file_path.endswith(".nk"):
+            raise Exception("Specify a ma or nk file!")
         return file_path
 
     @QtCore.Slot()
