@@ -13,8 +13,8 @@ import pprint
 import re
 from Framework.lib.dropbox_manager.manager import DropboxManager
 
-REG_EXPRESSION = "(file C:/.*)"
-SUB_REG_EXPRESSION = "(C:/.*)"
+REG_EXPRESSION = "(file P:/.*)"
+SUB_REG_EXPRESSION = "(P:/.*)"
 
 
 class NkReader(object):
