@@ -276,6 +276,9 @@ class Downloader(QtCore.QObject):
                             self._folders_processed.append(folder)
                             new_files.extend(children)
         if new_files:
+            #Examinate files not admitted to download...
+            new_files = self.discard_junk_files(file_list=new_files)#TODO: review
+            
             self.download_files(list(set(new_files)))
             
         # check if its the last thread to process
@@ -283,6 +286,22 @@ class Downloader(QtCore.QObject):
         if self.is_process_finished():
             self.on_finish_download.emit()
 
+    def discard_junk_files( self, file_list ):
+        clean_list = []
+        filters_junk_files = ['_old']
+       
+        files_to_discard = []           
+        for file in file_list:
+            path, filename = os.path.split(file)
+            for filter in filters_junk_files:
+                if filter in filename:
+                    files_to_discard.append(file)
+          
+        if files_to_discard:
+            clean_list = list(set(file_list)-set(files_to_discard))       
+            
+        return clean_list
+    
     def set_default_state(self):
         self._folders_processed = []
         self._processed_file_list = []
