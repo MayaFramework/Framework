@@ -8,6 +8,7 @@ import copy
 import os, sys
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.config.config import Config
+from Framework.lib.ext_lib import dropbox
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.ui.qt_thread import CustomQThread
 from Framework.lib.ma_utils.reader import MaReader
@@ -297,6 +298,45 @@ class Downloader(QtCore.QObject):
         
         print self._threads_processed, len(self._threads)
         return False
+    
+    def check_file_path_to_download(self, file_path):
+        from os import walk
+        
+        files_to_download = []
+        if self._dpx:
+            if self._dpx.existFile(file_path):
+                files_to_download.append(file_path=file_path)
+            else:
+                # Review/recover file_path to found files .zip or folders 'mps'
+                file_dir, file_name = os.path.split(file_path)
+                
+                if 'mps' in file_dir:      # Search folder 'mps' inside of file_path  
+                    if os.path.split(file_dir)[1] == 'mps':
+                        files_to_download.extend(self._dpx.getFilesChildren(file_dir))
+                        folder_children = self._dpx.getFolderChildrenFromFolder(file_dir)
+                        
+                        for folder in folder_children:
+                            files_to_download.extend(self._dpx.getFilesChildren(folder))
+            
+                        #files_to_download.extend(self._dpx.files_list_folder(file_dir))
+                        #for (dirpath, dirnames, filenames) in walk(file_dir):
+                        #    files_to_download.extend(filenames)
+                else:                       # Search existing folder with files .zip
+                    file_path_to_download = file_dir        
+                    while not self._dpx.existFile(file_path=file_path_to_download):
+                        file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
+                    #while not os.path.exists(file_path_to_download):
+                    #    file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
+                      
+                    if self._dpx.existFile(file_path=file_path_to_download):
+                        files_to_download.extend(self._dpx.getFilesChildren(file_path_to_download))
+                        
+                    #if os.path.exists(file_path_to_download) and os.path.isdir(file_path_to_download):
+                    #    for file in os.listdir(file_path_to_download):
+                    #        if os.path.isfile(os.path.join(file_path_to_download, file)):
+                    #            files_to_download.append(file)
+            
+        return files_to_download
 
     def download_file(self, file_path):
         '''
@@ -379,5 +419,7 @@ class Downloader(QtCore.QObject):
         """
         children = self._dpx.getAllChildren(folder) 
         return [self._dpx.getTargetPath(x.path_display) for x in children] 
+    
+
 
         

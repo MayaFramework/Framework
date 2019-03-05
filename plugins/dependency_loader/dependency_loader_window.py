@@ -58,6 +58,20 @@ class DependencyLoaderWidget(base_class, form_class):
             self.path.setText(file_path)
         self._config = Config.instance()
         self.downloader = Downloader()
+        # <<<<
+        #file_path_mps = 'P:\\BM2\\seq\\bat\\sho\\030\\lighting\\out\\mps\\bm2_seqsho_seq_bat_sho_030_lighting_default_none_out.%04d.exr'
+        file_path_mps = 'P:\\BM2\\seq\\des\\scn\\establishing001\\main\\mps\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out.%04d.dpx'
+        file_path_zip = 'P:\\BM2\\seq\\bat\\sho\\030\\footage\\out\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out.%04d.dpx'
+    
+        files_to_download_ = self.downloader.check_file_path_to_download(file_path=file_path_mps)
+        print 'file_path_mps RESULT:'
+        print files_to_download_
+        
+        files_to_download_ = self.downloader.check_file_path_to_download(file_path=file_path_zip)
+        print 'file_path_zip RESULT:'
+        print files_to_download_
+        
+        # >>>>
         self._init_widgets()
         self._failed_downloaded = []
         self._correct_downloaded = []
