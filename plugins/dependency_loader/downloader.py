@@ -64,8 +64,8 @@ class DownloaderResponse(object):
 class Downloader(QtCore.QObject):
     
     #filters
-    #TODO: add more filters example _old
-    FILTER_ERROR_PATHS = ['.mayaSwatches', 'old', 'OLD']
+    FILTER_ERROR_PATHS = ['.mayaSwatches', 'old', 'OLD', '.%', 
+                          'Swatches', 'swatches' ]
     NONEXISTENT_PATH = ["<UDIM>", "###"]
     
     #signals
@@ -315,6 +315,23 @@ class Downloader(QtCore.QObject):
         print self._threads_processed, len(self._threads)
         return False
     
+    def _format_dependency_files_to_download(self, dependency_files):
+        
+        dependency_files_to_download = []        
+        dependency_files = [file_child.replace("\\","/") for file_child in dependency_files]
+        #files_children = [file_child.replace('/work','P:') for file_child in files_children]
+        
+        for dependency_file in dependency_files:
+            dependency_file_list = dependency_file.split('/')
+            if dependency_file_list and len(dependency_file_list) >= 2:
+                if dependency_file_list[1] == 'work':
+                    dependency_file_list[1] = 'P:'
+                    dependency_file_list.remove(dependency_file_list[0])
+                    
+                    dependency_files_to_download.append('/'.join(dependency_file_list))
+                    
+        return dependency_files_to_download 
+    
     def check_file_path_to_download(self, file_path):
         from os import walk
         
@@ -328,8 +345,9 @@ class Downloader(QtCore.QObject):
                 
                 if 'mps' in file_dir:      # Search folder 'mps' inside of file_path
                     file_path_to_download = file_dir  
-                    while (( os.path.split(file_path_to_download)[1] != 'mps' ) and 
-                           ( file_path_to_download != os.path.split(file_path_to_download)[0] )):
+                    while ((( os.path.split(file_path_to_download)[1] != 'mps' ) and 
+                           ( file_path_to_download != os.path.split(file_path_to_download)[0] ))
+                            or not file_path_to_download):
                         file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
    
                     if file_path_to_download and self._dpx.existFile(file_path=file_path_to_download):
@@ -338,17 +356,18 @@ class Downloader(QtCore.QObject):
                         
                         for folder in folder_children:
                             files_children = self._dpx.getFilesChildren(folder)
-                            files_children = [file_child.replace("\\","/") for file_child in files_children]
+                            files_children = self._format_dependency_files_to_download(dependency_files=files_children)
                             files_to_download.extend(files_children)
                 else:                       # Search existing folder with files .zip
                     file_path_to_download = file_dir        
-                    while (( not self._dpx.existFile(file_path=file_path_to_download )) and 
-                           ( file_path_to_download != os.path.split(file_path_to_download)[0] )):
+                    while ((( not self._dpx.existFile(file_path=file_path_to_download )) and 
+                           ( file_path_to_download != os.path.split(file_path_to_download)[0] ))
+                            or not file_path_to_download):
                         file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
                       
                     if self._dpx.existFile(file_path=file_path_to_download):
                         files_children = self._dpx.getFilesChildren(file_path_to_download)
-                        files_children = [file_child.replace("\\","/") for file_child in files_children]
+                        files_children = self._format_dependency_files_to_download(dependency_files=files_children)
                         files_to_download.extend(files_children)
             
         return files_to_download
