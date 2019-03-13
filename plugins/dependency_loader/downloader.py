@@ -8,17 +8,20 @@ import copy
 import os, sys
 from Framework.lib.ui.qt.QT import QtCore, QtWidgets, QtGui
 from Framework.lib.config.config import Config
+from Framework.lib.ext_lib import dropbox
 from Framework.lib.dropbox_manager.manager import DropboxManager
 from Framework.lib.ui.qt_thread import CustomQThread
 from Framework.lib.ma_utils.reader import MaReader
 from Framework.lib.nk_utils.reader import NkReader
 import time
 import DATA as D_DATA
+
 class DownloaderResponse(object):
+    WARNING_STATE = 3
     SUCCESS_STATE = 2
     IN_PROGRESS = 1
     ERROR_STATE = 0
-    AVAILABLE_STATES = [SUCCESS_STATE, IN_PROGRESS, ERROR_STATE]
+    AVAILABLE_STATES = [SUCCESS_STATE, IN_PROGRESS, ERROR_STATE, WARNING_STATE]
     def __init__(self):
         super(DownloaderResponse, self).__init__()
         self.__file_path = ""
@@ -61,7 +64,8 @@ class DownloaderResponse(object):
 class Downloader(QtCore.QObject):
     
     #filters
-    FILTER_ERROR_PATHS = ['.mayaSwatches']
+    FILTER_ERROR_PATHS = ['.mayaSwatches', 'old', 'OLD', '.%', 
+                          'Swatches', 'swatches' ]
     NONEXISTENT_PATH = ["<UDIM>", "###"]
     
     #signals
@@ -262,8 +266,21 @@ class Downloader(QtCore.QObject):
         # calculating dependencies
         if self.STATE_DOWNLOAD_DEPENDENCIES:
             dependencies = self.get_file_dependencies(file_path)
+            # Check if dependencies exist in dropbox
             if dependencies:
-                new_files.extend(dependencies)
+                for dependency in dependencies:
+                    dependency_files = self.check_file_path_to_download(
+                                                            file_path=dependency)
+                    new_files.extend(dependency_files)
+                    #===================================================
+                    # TODO:
+                    # if not dependency_files:
+                    #    window = MessageWindow("WARNING TO DOWNLOAD", msg="Dependency file not found in Dropbox")
+                    #    or 
+                    #    self.add_log(file_path=dependency, message='Dependency file not found in Dropbox', 
+                    #                 state=downloaderResponse.WARNING_STATE)
+                    #===================================================
+                #new_files.extend(dependencies)
                 
         if self.STATE_DOWNLOAD_CONTENT_FROM_FOLDERS:
             # check filter folders
@@ -316,6 +333,63 @@ class Downloader(QtCore.QObject):
         
         print self._threads_processed, len(self._threads)
         return False
+    
+    def _format_dependency_files_to_download(self, dependency_files):
+        
+        dependency_files_to_download = []        
+        dependency_files = [file_child.replace("\\","/") for file_child in dependency_files]
+        #files_children = [file_child.replace('/work','P:') for file_child in files_children]
+        
+        for dependency_file in dependency_files:
+            dependency_file_list = dependency_file.split('/')
+            if dependency_file_list and len(dependency_file_list) >= 2:
+                if dependency_file_list[1] == 'work':
+                    dependency_file_list[1] = 'P:'
+                    dependency_file_list.remove(dependency_file_list[0])
+                    
+                    dependency_files_to_download.append('/'.join(dependency_file_list))
+                    
+        return dependency_files_to_download 
+    
+    def check_file_path_to_download(self, file_path):
+        from os import walk
+        
+        files_to_download = []
+        if self._dpx:
+            if self._dpx.existFile(file_path):
+                files_to_download.append(file_path=file_path)
+            else:
+                # Review/recover file_path to found files .zip or folders 'mps'
+                file_dir, file_name = os.path.split(file_path)
+                
+                if 'mps' in file_dir:      # Search folder 'mps' inside of file_path
+                    file_path_to_download = file_dir  
+                    while ((( os.path.split(file_path_to_download)[1] != 'mps' ) and 
+                           ( file_path_to_download != os.path.split(file_path_to_download)[0] ))
+                            or not file_path_to_download):
+                        file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
+   
+                    if file_path_to_download and self._dpx.existFile(file_path=file_path_to_download):
+                        files_to_download.extend(self._dpx.getFilesChildren(file_path_to_download))
+                        folder_children = self._dpx.getFolderChildrenFromFolder(file_path_to_download)
+                        
+                        for folder in folder_children:
+                            files_children = self._dpx.getFilesChildren(folder)
+                            files_children = self._format_dependency_files_to_download(dependency_files=files_children)
+                            files_to_download.extend(files_children)
+                else:                       # Search existing folder with files .zip
+                    file_path_to_download = file_dir        
+                    while ((( not self._dpx.existFile(file_path=file_path_to_download )) and 
+                           ( file_path_to_download != os.path.split(file_path_to_download)[0] ))
+                            or not file_path_to_download):
+                        file_path_to_download, folder_not_existing = os.path.split(file_path_to_download)
+                      
+                    if self._dpx.existFile(file_path=file_path_to_download):
+                        files_children = self._dpx.getFilesChildren(file_path_to_download)
+                        files_children = self._format_dependency_files_to_download(dependency_files=files_children)
+                        files_to_download.extend(files_children)
+            
+        return files_to_download
 
     def download_file(self, file_path):
         '''
@@ -398,5 +472,7 @@ class Downloader(QtCore.QObject):
         """
         children = self._dpx.getAllChildren(folder) 
         return [self._dpx.getTargetPath(x.path_display) for x in children] 
+    
+
 
         

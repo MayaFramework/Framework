@@ -185,7 +185,7 @@ class DropboxManager(Singleton):
 
         if self.__subfolder:
             if path.startswith(self.__subfolder.lower()):
-               return "/"+self.normpath(path)
+                return "/"+self.normpath(path)
             else:
                 return "/" + self.__subfolder.lower() + self.format_path(self.normpath(path))
         else:

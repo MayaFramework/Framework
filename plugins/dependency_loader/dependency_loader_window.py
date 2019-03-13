@@ -58,6 +58,23 @@ class DependencyLoaderWidget(base_class, form_class):
             self.path.setText(file_path)
         self._config = Config.instance()
         self.downloader = Downloader()
+    #===========================================================================
+    #     # <<<< TO testing
+    #     #file_path_mps = 'P:\\BM2\\seq\\bat\\sho\\030\\lighting\\out\\mps\\bm2_seqsho_seq_bat_sho_030_lighting_default_none_out.%04d.exr'
+    #     #file_path_mps = 'P:\\BM2\\seq\\des\\scn\\establishing001\\main\\mps\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out.%04d.dpx'
+    #     file_path_mps = 'P:\\BM2\\seq\\bat\\sho\\030\\animation\\wip\\out\\footage\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out.%04d.dpx'
+    #     file_path_zip = 'P:\\BM2\\seq\\bat\\sho\\030\\footage\\out\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out\\bm2_seqsho_seq_bat_sho_030_footage_alta_dpx_out.%04d.dpx'
+    # 
+    #     files_to_download_ = self.downloader.check_file_path_to_download(file_path=file_path_mps)
+    #     print 'file_path_mps RESULT:'
+    #     print files_to_download_
+    #     
+    #     files_to_download_ = self.downloader.check_file_path_to_download(file_path=file_path_zip)
+    #     print 'file_path_zip RESULT:'
+    #     print files_to_download_
+    #     
+    #     # >>>>
+    #===========================================================================
         self._init_widgets()
         self._failed_downloaded = []
         self._correct_downloaded = []
@@ -181,6 +198,7 @@ class DependencyLoaderWidget(base_class, form_class):
         self.question_ico_path=os.path.join(ICO_PATH, "question.png")
         self.checked_ico_path=os.path.join(ICO_PATH, "checked.png")
         self.error_ico_path=os.path.join(ICO_PATH, "error.png")
+        self.warning_ico_path=os.path.join(ICO_PATH, "warning.png")
         self.list_ico_path=os.path.join(ICO_PATH, "list.png")
         
         self.file_ma_ico_path=os.path.join(ICO_PATH, "maya_icon.png")
@@ -220,12 +238,14 @@ class DependencyLoaderWidget(base_class, form_class):
     def add_log(self, file_path, message, state):
         if state == DownloaderResponse.ERROR_STATE:
             self.log_text+= '\n{0}: \n   response:  ERROR [{1}]'.format(file_path, str(message))
+        elif state == DownloaderResponse.WARNING_STATE:
+            self.log_text+= '\n{0}: \n   response:  WARNING [{1}]'.format(file_path, str(message))
         elif state == DownloaderResponse.SUCCESS_STATE:
             self.log_text+= '\n{0}: \n   response:  {1}'.format(file_path, str("SUCCES"))
         elif state == DownloaderResponse.IN_PROGRESS:
             self.log_text += "\nDownloading:  {0}".format(file_path)
+
         self.log_text_widget.setPlainText(self.log_text)
-        
         
     def clean_flags(self):
         pass
@@ -309,6 +329,8 @@ class DependencyLoaderWidget(base_class, form_class):
             return QtGui.QIcon(self.downloading_ico_path)
         if state == DownloaderResponse.ERROR_STATE:
             return QtGui.QIcon(self.error_ico_path)
+        if state == DownloaderResponse.WARNING_STATE:
+            return QtGui.QIcon(self.warning_ico_path)
 
     def update_item(self, file_path, state):
         item = self.get_item(file_path)
@@ -405,12 +427,27 @@ class DependencyLoaderWidget(base_class, form_class):
                         file_list.append(file_path)
                     self.create_default_folders_on_target(file_path)
 
+            dependencies = []
             if self.download_dependencies:
                 if current_file_path:
                     dependencies = self.downloader.get_file_dependencies(current_file_path)
                     if dependencies:
-                        file_list.extend(self.downloader.get_file_dependencies(file_path))
-            
+                        dependencies = self.downloader.get_file_dependencies(file_path)
+                        #file_list.extend(self.downloader.get_file_dependencies(file_path))
+         
+                        # Check if dependencies exist in dropbox 
+                        for dependency in dependencies:
+                            dependency_files = self.downloader.check_file_path_to_download(file_path=dependency)
+                            #===================================================
+                            # TODO:
+                            # if not dependency_files:
+                            #    window = MessageWindow("WARNING TO DOWNLOAD", msg="Dependency file not found in Dropbox")
+                            #    or 
+                            #    self.add_log(file_path=dependency, message='Dependency file not found in Dropbox', 
+                            #                 state=downloaderResponse.WARNING_STATE)
+                            #===================================================
+                            file_list.extend(dependency_files)
+               
         self.dependency_list.clear()
         self.log_text_widget.clear()
         self.set_log_visible(True)
