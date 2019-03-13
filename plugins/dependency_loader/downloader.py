@@ -260,8 +260,7 @@ class Downloader(QtCore.QObject):
                     response.message = "Download success but different size from the local content"
                     
 #                 print file_path, local_size, file_path_mtd.size
-        
-        
+          
         # Now check for new possible files pulling from this one
         # calculating dependencies
         if self.STATE_DOWNLOAD_DEPENDENCIES:
@@ -280,7 +279,6 @@ class Downloader(QtCore.QObject):
                     #    self.add_log(file_path=dependency, message='Dependency file not found in Dropbox', 
                     #                 state=downloaderResponse.WARNING_STATE)
                     #===================================================
-                #new_files.extend(dependencies)
                 
         if self.STATE_DOWNLOAD_CONTENT_FROM_FOLDERS:
             # check filter folders
@@ -305,7 +303,7 @@ class Downloader(QtCore.QObject):
 
     def discard_junk_files( self, file_list ):
         clean_list = []
-        filters_junk_files = ['_old']
+        filters_junk_files = ['.mayaSwatches', 'old', 'OLD', '.%', 'Swatches', 'swatches' ]
        
         files_to_discard = []           
         for file in file_list:
